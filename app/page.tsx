@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { Plus, Search, UserCheck, Users, Hash } from "lucide-react";
+import { Plus, Search, UserCheck, Users, Hash, Trash2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { Header } from "@/components/Header";
@@ -204,56 +204,75 @@ export default function Home() {
       />
 
       {/* Navigation & Search */}
-      <div className="flex flex-col sm:flex-row gap-4 mb-8">
-        <div className="relative flex-1 group">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-gold transition-colors" />
-          <input
-            type="text"
-            placeholder={t.searchPlaceholder}
-            className="w-full pl-10 pr-4 py-2.5 bg-white border border-gold-light rounded-xl outline-none focus:ring-2 focus:ring-gold/20 focus:border-gold transition-all shadow-sm"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
+      <div className="flex flex-col gap-4 mb-8">
+        <div className="flex flex-col sm:flex-row gap-4">
+          <div className="relative flex-1 group">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-gold transition-colors" />
+            <input
+              type="text"
+              placeholder={t.searchPlaceholder}
+              className="w-full pl-10 pr-4 py-2.5 bg-white border border-gold-light rounded-xl outline-none focus:ring-2 focus:ring-gold/20 focus:border-gold transition-all shadow-sm"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+
+          <button
+            onClick={() => { setEditId(null); setView(view === "form" ? "list" : "form"); }}
+            className={`flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl font-medium transition-all shadow-lg active:scale-95 ${view === "form"
+                ? "bg-white border border-gold text-gold"
+                : "bg-gold text-white shadow-gold/20 hover:bg-gold/90"
+              }`}
+          >
+            {view === "form" ? t.viewList : (
+              <>
+                <Plus className="w-4 h-4" />
+                <span>{t.addGuest}</span>
+              </>
+            )}
+          </button>
         </div>
 
-        <button
-          onClick={() => { setEditId(null); setView(view === "form" ? "list" : "form"); }}
-          className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl font-medium transition-all shadow-lg active:scale-95 ${view === "form"
-              ? "bg-white border border-gold text-gold"
-              : "bg-gold text-white shadow-gold/20 hover:bg-gold/90"
-            }`}
-        >
-          {view === "form" ? t.viewList : (
-            <>
-              <Plus className="w-4 h-4" />
-              <span>{t.addGuest}</span>
-            </>
+        {/* Secondary Actions Row - More compact on mobile */}
+        <div className="flex items-center justify-center sm:justify-start gap-4 p-2 bg-ivory/50 rounded-2xl border border-gold-light/20 shadow-inner">
+          <button
+            onClick={() => setShowPresence(true)}
+            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-emerald/10 text-emerald border border-emerald/20 rounded-xl font-medium hover:bg-emerald/20 transition-all active:scale-95"
+            title="Liste des présences"
+          >
+            <Users className="w-4 h-4" />
+            <span className="hidden sm:inline text-xs">{t.presenceTitle || "Présence"}</span>
+          </button>
+
+          <div className="w-px h-6 bg-gold-light/20 mx-1 hidden sm:block"></div>
+
+          <button
+            onClick={() => setIsTableManagerOpen(true)}
+            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-gold/10 text-gold border border-gold/20 rounded-xl font-medium hover:bg-gold/20 transition-all active:scale-95"
+            title={t.tablesBtn}
+          >
+            <Hash className="w-4 h-4" />
+            <span className="hidden sm:inline text-xs">{t.tablesBtn}</span>
+          </button>
+
+          <button
+            onClick={() => setTheme(theme === "traditional" ? "civil" : "traditional")}
+            className="flex-1 sm:flex-none flex items-center justify-center p-2 bg-white border border-gold-light rounded-xl hover:bg-gold/5 transition-all active:scale-95 shadow-sm"
+            title="Changer le thème"
+          >
+            {theme === "traditional" ? "🌸" : "💍"}
+          </button>
+
+          {guests.length > 0 && (
+            <button
+               onClick={() => setIsClearModalOpen(true)}
+               className="flex-1 sm:flex-none flex items-center justify-center p-2 bg-red-50 text-red-400 border border-red-100 rounded-xl hover:bg-red-100 transition-all active:scale-95"
+               title="Tout effacer"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
           )}
-        </button>
-
-        <button
-          onClick={() => setShowPresence(true)}
-          className="flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald/10 text-emerald border border-emerald/20 rounded-xl font-medium hover:bg-emerald/20 transition-all active:scale-95 shadow-sm"
-          title="Liste des présences"
-        >
-          <Users className="w-4 h-4" />
-        </button>
-
-        <button
-          onClick={() => setIsTableManagerOpen(true)}
-          className="flex items-center justify-center p-2.5 bg-emerald/10 text-emerald border border-emerald/20 rounded-xl hover:bg-emerald/20 transition-all active:scale-95 shadow-sm"
-          title={t.tablesBtn}
-        >
-          <Hash className="w-4 h-4" />
-        </button>
-
-        <button
-          onClick={() => setTheme(theme === "traditional" ? "civil" : "traditional")}
-          className="flex items-center justify-center p-2.5 bg-gold/10 text-gold border border-gold/20 rounded-xl hover:bg-gold/20 transition-all active:scale-95 shadow-sm"
-          title="Changer le thème"
-        >
-          {theme === "traditional" ? "🌸" : "💍"}
-        </button>
+        </div>
       </div>
 
       {/* Content Area with Transitions */}

@@ -49,44 +49,51 @@ export function GuestCard({ guest, onOpenQR, onEdit, onDelete, lang, origin }: G
         </h3>
         <p className="text-sm text-gray-500 font-medium">
           {(!guest.tableName || guest.tableName.trim() === "Non assignée" || guest.tableName.trim() === "Unassigned")
-            ? <><span className="text-gray-400">Table</span> <span className="text-gold">{guest.table}</span></>
-            : <span className="text-gold">{guest.tableName.trim().toLowerCase().startsWith("table") ? guest.tableName.trim() : `Table ${guest.tableName.trim()}`}</span>
+            ? <><span className="text-gray-400">Table</span> <span className="text-gold">{guest.table.toString().padStart(2, '0')}</span></>
+            : <span className="text-gold truncate block max-w-[120px] sm:max-w-none">
+                {(() => {
+                  const name = guest.tableName.trim();
+                  const hasTablePrefix = name.toLowerCase().startsWith("table");
+                  const display = hasTablePrefix ? name : `Table ${name}`;
+                  return display;
+                })()}
+              </span>
           }
         </p>
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-2 ml-2 transition-opacity">
+      <div className="flex flex-row gap-1.5 sm:gap-2 ml-2">
         <button
           onClick={handleCopyLink}
-          className="p-2.5 bg-ivory text-gold border border-gold-light rounded-lg hover:bg-gold/10 transition-all active:scale-95"
+          className="p-2 sm:p-2.5 bg-ivory text-gold border border-gold-light rounded-lg hover:bg-gold/10 transition-all active:scale-95"
           title={t.copyLink}
           aria-label={`${t.copyLink} - ${guest.title} ${guest.name}`}
         >
-          <Copy className="w-4 h-4" />
+          <Copy className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
         </button>
         <button
           onClick={() => onOpenQR(guest)}
-          className="p-2.5 bg-emerald text-white rounded-lg hover:bg-emerald-dark transition-all active:scale-95 shadow-sm"
+          className="p-2 sm:p-2.5 bg-emerald text-white rounded-lg hover:bg-emerald-dark transition-all active:scale-95 shadow-sm"
           title={t.print}
           aria-label={`${t.print} - ${guest.title} ${guest.name}`}
         >
-          <QrCode className="w-4 h-4" />
+          <QrCode className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
         </button>
         <button
           onClick={() => onEdit(guest)}
-          className="p-2.5 border border-gold text-gold rounded-lg hover:bg-gold-light/20 transition-all active:scale-95"
+          className="p-2 sm:p-2.5 border border-gold text-gold rounded-lg hover:bg-gold-light/20 transition-all active:scale-95"
           title={t.editGuest}
           aria-label={`${t.editGuest} - ${guest.title} ${guest.name}`}
         >
-          <Edit2 className="w-4 h-4" />
+          <Edit2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
         </button>
         <button
           onClick={() => onDelete(guest.id)}
-          className="p-2.5 border border-red-200 text-red-500 rounded-lg hover:bg-red-50 transition-all active:scale-95"
+          className="p-2 sm:p-2.5 border border-red-200 text-red-500 rounded-lg hover:bg-red-50 transition-all active:scale-95 px-1.5 sm:px-2.5"
           title={t.deleteConfirm}
           aria-label={`${t.deleteConfirm} - ${guest.title} ${guest.name}`}
         >
-          <Trash2 className="w-4 h-4" />
+          <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
         </button>
       </div>
     </div>

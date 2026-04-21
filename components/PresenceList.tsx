@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
-import { Download, Users, X, Loader2, AlertCircle } from "lucide-react";
+import { Download, Users, X, Loader2, AlertCircle, Search } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Language, translations } from "@/lib/translations";
 
@@ -26,12 +26,21 @@ export function PresenceList({ isOpen, onClose, lang }: PresenceListProps) {
   const [attendance, setAttendance] = useState<AttendanceRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     if (isOpen) {
       fetchAttendance();
     }
   }, [isOpen]);
+
+  const filteredAttendance = useMemo(() => {
+    return attendance.filter(rec => 
+      rec.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (rec.tableName && rec.tableName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (rec.tableNumber && rec.tableNumber.toString().includes(searchTerm))
+    );
+  }, [attendance, searchTerm]);
 
   const fetchAttendance = async () => {
     setIsLoading(true);
@@ -278,6 +287,20 @@ export function PresenceList({ isOpen, onClose, lang }: PresenceListProps) {
               </button>
             </div>
 
+            {/* Search Bar */}
+            <div className="px-6 py-3 border-b border-gray-100 bg-white shrink-0">
+              <div className="relative group">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-gold transition-colors" />
+                <input
+                  type="text"
+                  placeholder={t.searchPlaceholder}
+                  className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gold-light/30 rounded-xl outline-none focus:ring-2 focus:ring-gold/10 focus:border-gold transition-all text-sm"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+            </div>
+
             {/* Content Flat List */}
             <div className="flex-1 overflow-y-auto p-6 bg-gray-50/50">
               {isLoading ? (
@@ -296,14 +319,14 @@ export function PresenceList({ isOpen, onClose, lang }: PresenceListProps) {
                     {p.retry}
                   </button>
                 </div>
-              ) : attendance.length === 0 ? (
+              ) : filteredAttendance.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-20 text-center gap-3">
                   <Users className="w-12 h-12 text-gray-200" />
-                  <p className="text-gray-400 font-medium">{p.noData}</p>
+                  <p className="text-gray-400 font-medium">{searchTerm ? t.noGuests : p.noData}</p>
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {attendance.map((rec) => (
+                  {filteredAttendance.map((rec) => (
                     <div 
                       key={rec.guestId}
                       className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-white rounded-2xl border border-gray-100 shadow-sm transition-colors group hover:border-gold-light"

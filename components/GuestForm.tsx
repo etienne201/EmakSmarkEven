@@ -23,6 +23,7 @@ export function GuestForm({ onSave, onCancel, initialData, tables, guests, curre
   const [tableName, setTableName] = useState<string>(initialData?.tableName || (tables[0]?.name || ""));
   const [lang, setLang] = useState<Language>(initialData?.lang || currentAppLang);
   const [isCustomTable, setIsCustomTable] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     if (initialData) {
@@ -50,7 +51,10 @@ export function GuestForm({ onSave, onCancel, initialData, tables, guests, curre
       return;
     }
 
+    setIsSaving(true);
     onSave(title, name, table, tableName, lang);
+    // Explicitly not setting isSaving back to false here because the component 
+    // will likely unmount or reset via props, but we keep it true to prevent double clicks.
   };
 
   return (
@@ -186,9 +190,19 @@ export function GuestForm({ onSave, onCancel, initialData, tables, guests, curre
         <div className="flex gap-3 pt-4">
           <button
             type="submit"
-            className="flex-1 bg-gold text-white font-medium py-2 rounded-lg hover:bg-gold/90 active:scale-[0.98] transition-all shadow-lg shadow-gold/10"
+            disabled={isSaving}
+            className={`flex-1 bg-gold text-white font-medium py-2 rounded-lg hover:bg-gold/90 active:scale-[0.98] transition-all shadow-lg shadow-gold/10 flex items-center justify-center gap-2 ${
+              isSaving ? "opacity-70 cursor-not-allowed" : ""
+            }`}
           >
-            {t.save}
+            {isSaving ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                <span>{t.save}...</span>
+              </>
+            ) : (
+              t.save
+            )}
           </button>
           <button
             type="button"
