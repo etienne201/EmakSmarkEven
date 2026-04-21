@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { NextResponse } from "next/server";
 import { Storage } from "@/lib/storage";
 
@@ -38,7 +40,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ 
       success: true, 
       data: newGuest,
-      persisted: process.env.NODE_ENV === "development"
+      persisted: !!(process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN) || process.env.NODE_ENV === "development"
     });
   } catch (error) {
     console.error("POST Error:", error);

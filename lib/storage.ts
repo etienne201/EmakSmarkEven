@@ -7,96 +7,136 @@ let localGuests: any[] = [];
 let localAttendance: any[] = [];
 let localTables: any[] = [];
 
-const hasKV = process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN;
+// Determine if we are in a production environment with KV enabled
+const isProd = process.env.NODE_ENV === "production";
+const hasKV = !!(process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN);
 
-// Local fallback initialization
-try {
-  if (!hasKV) {
+if (isProd) {
+  console.log(hasKV ? "🚀 Production: Vercel KV Active" : "⚠️ Production Warning: No KV detected, using temporary memory!");
+}
+
+// Local fallback initialization (Only for dev)
+if (!isProd) {
+  try {
     const GUEST_FILE = path.join(process.cwd(), "lib", "guests.json");
     if (fs.existsSync(GUEST_FILE)) {
       localGuests = JSON.parse(fs.readFileSync(GUEST_FILE, "utf-8"));
     }
+  } catch (e) {
+    console.warn("Storage: Could not load local guests.", e);
   }
-} catch (e) {
-  // Ignore
 }
 
 export const Storage = {
   async getGuests(): Promise<any[]> {
     if (hasKV) {
-      return (await kv.get("mariage:guests")) || [];
+      try {
+        return (await kv.get("mariage:guests")) || [];
+      } catch (e) {
+        console.error("KV Error (getGuests):", e);
+      }
     }
     return localGuests;
   },
 
   async saveGuests(guests: any[]) {
     if (hasKV) {
-      await kv.set("mariage:guests", guests);
-    } else {
-      localGuests = guests;
-      // In a real local dev we could write to fs, but for safety in Vercel we don't.
+      try {
+        await kv.set("mariage:guests", guests);
+      } catch (e) {
+        console.error("KV Error (saveGuests):", e);
+      }
+    }
+    
+    localGuests = guests;
+    
+    // Explicitly persist to file only in development
+    if (process.env.NODE_ENV === "development") {
+      try {
+        const GUEST_FILE = path.join(process.cwd(), "lib", "guests.json");
+        fs.writeFileSync(GUEST_FILE, JSON.stringify(guests, null, 2));
+      } catch (e) {
+        console.warn("Storage: Could not persist guests to disk.", e);
+      }
     }
   },
 
   async getAttendance(): Promise<any[]> {
     if (hasKV) {
-      return (await kv.get("mariage:attendance")) || [];
+      try {
+        return (await kv.get("mariage:attendance")) || [];
+      } catch (e) {
+        console.error("KV Error (getAttendance):", e);
+      }
     }
     return localAttendance;
   },
 
   async saveAttendance(attendance: any[]) {
     if (hasKV) {
-      await kv.set("mariage:attendance", attendance);
-    } else {
-      localAttendance = attendance;
+      try {
+        await kv.set("mariage:attendance", attendance);
+      } catch (e) {
+        console.error("KV Error (saveAttendance):", e);
+      }
+    }
+    
+    localAttendance = attendance;
+
+    if (process.env.NODE_ENV === "development") {
+      try {
+        const ATT_FILE = path.join(process.cwd(), "lib", "attendance.json");
+        fs.writeFileSync(ATT_FILE, JSON.stringify(attendance, null, 2));
+      } catch (e) {
+        console.warn("Storage: Could not persist attendance to disk.", e);
+      }
     }
   },
 
-  // New storage methods for Tables
   async getTables(): Promise<any[]> {
     if (hasKV) {
-      return (await kv.get("mariage:tables")) || [];
+      try {
+        return (await kv.get("mariage:tables")) || [];
+      } catch (e) {
+        console.error("KV Error (getTables):", e);
+      }
     }
     return localTables;
   },
 
   async saveTables(tables: any[]) {
     if (hasKV) {
-      await kv.set("mariage:tables", tables);
-    } else {
-      localTables = tables;
+      try {
+        await kv.set("mariage:tables", tables);
+      } catch (e) {
+        console.error("KV Error (saveTables):", e);
+      }
     }
+    localTables = tables;
   },
 
   async clearAllData() {
     if (hasKV) {
-      await kv.set("mariage:guests", []);
-      await kv.set("mariage:attendance", []);
-      await kv.set("mariage:tables", []);
-    } else {
-      localGuests = [];
-      localAttendance = [];
-      localTables = [];
+      await kv.del("mariage:guests");
+      await kv.del("mariage:attendance");
+      await kv.del("mariage:tables");
     }
+    localGuests = [];
+    localAttendance = [];
+    localTables = [];
   },
 
-  // Senior Feature: Atomic cascading delete
   async deleteGuest(id: string | number) {
     const stringId = id.toString();
-    
-    // 1. Remove from guests
     const guests = await this.getGuests();
     const filteredGuests = guests.filter((g: any) => g.id.toString() !== stringId);
     await this.saveGuests(filteredGuests);
 
-    // 2. Cascade remove from attendance
     const attendance = await this.getAttendance();
     const filteredAttendance = attendance.filter((a: any) => a.guestId.toString() !== stringId);
     await this.saveAttendance(filteredAttendance);
   },
 
-  // Senior Feature: Fast existence check
   async isGuestPresent(id: string | number): Promise<string | null> {
     const stringId = id.toString();
     const attendance = await this.getAttendance();
