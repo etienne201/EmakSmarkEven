@@ -3,6 +3,7 @@ import "./globals.css";
 import { ServiceWorkerCleaner } from "@/components/ServiceWorkerCleaner";
 import { Metadata, Viewport } from 'next';
 import { ToastProvider } from "@/hooks/useToast";
+import { AdminNavbar } from "@/components/AdminNavbar";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -39,6 +40,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col" suppressHydrationWarning>
         <ToastProvider>
           <ServiceWorkerCleaner />
+          <AdminNavbar />
           {children}
         </ToastProvider>
       </body>

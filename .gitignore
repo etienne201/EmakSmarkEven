@@ -38,12 +38,6 @@ next-env.d.ts
 # IDEs
 .vscode/
 .idea/
-*.swp
-*.swo
-
-# Project Specific Data (Expert: Ignore local database to protect guest privacy)
-lib/guests.json
-lib/attendance.json
 
 # Logs
 logs

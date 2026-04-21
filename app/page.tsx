@@ -8,7 +8,6 @@ import { Header } from "@/components/Header";
 import { GuestCard } from "@/components/GuestCard";
 import { GuestForm } from "@/components/GuestForm";
 import { QRCodeModal } from "@/components/QRCodeModal";
-import { PresenceList } from "@/components/PresenceList";
 import { LoadingScreen } from "@/components/LoadingScreen";
 import { FloatingDecorations } from "@/components/FloatingDecorations";
 import { TableManager, Table } from "@/components/TableManager";
@@ -37,10 +36,8 @@ export default function Home() {
   const [selectedGuest, setSelectedGuest] = useState<Guest | null>(null);
   const [editId, setEditId] = useState<number | null>(null);
   const [deleteGuestId, setDeleteGuestId] = useState<number | null>(null);
-  const [isTableManagerOpen, setIsTableManagerOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [origin, setOrigin] = useState("");
-  const [showPresence, setShowPresence] = useState(false);
   const [isPageLoading, setIsPageLoading] = useState(true);
   const [theme, setTheme] = useState<"traditional" | "civil">("traditional");
   const [isClearModalOpen, setIsClearModalOpen] = useState(false);
@@ -196,7 +193,7 @@ export default function Home() {
   };
 
   return (
-    <main className="flex-1 max-w-2xl mx-auto w-full px-4 py-8 md:py-12">
+    <main className="flex-1 max-w-2xl mx-auto w-full px-4 py-8 md:py-12 relative z-10">
       <Header
         guestCount={guests.length}
         lang={appLang}
@@ -233,35 +230,17 @@ export default function Home() {
           </button>
         </div>
 
-        {/* Secondary Actions Row - More compact on mobile */}
-        <div className="flex items-center justify-center sm:justify-start gap-4 p-2 bg-ivory/50 rounded-2xl border border-gold-light/20 shadow-inner">
+        {/* Global Action Bar */}
+        <div className="flex items-center justify-center sm:justify-start gap-4 p-2 bg-white/50 backdrop-blur-sm rounded-2xl border border-gold-light/20 shadow-sm">
           <button
-            onClick={() => setShowPresence(true)}
-            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-emerald/10 text-emerald border border-emerald/20 rounded-xl font-medium hover:bg-emerald/20 transition-all active:scale-95"
-            title="Liste des présences"
+            onClick={() => setTheme(theme === "traditional" ? "civil" : "traditional")}
+            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-white border border-gold-light rounded-xl hover:bg-gold/5 transition-all active:scale-95 shadow-sm text-xs font-medium text-gray-600"
+            title="Changer le thème"
           >
-            <Users className="w-4 h-4" />
-            <span className="hidden sm:inline text-xs">{t.presenceTitle || "Présence"}</span>
+            {theme === "traditional" ? "🌸 Thème Floral" : "💍 Thème Civil"}
           </button>
 
           <div className="w-px h-6 bg-gold-light/20 mx-1 hidden sm:block"></div>
-
-          <button
-            onClick={() => setIsTableManagerOpen(true)}
-            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-gold/10 text-gold border border-gold/20 rounded-xl font-medium hover:bg-gold/20 transition-all active:scale-95"
-            title={t.tablesBtn}
-          >
-            <Hash className="w-4 h-4" />
-            <span className="hidden sm:inline text-xs">{t.tablesBtn}</span>
-          </button>
-
-          <button
-            onClick={() => setTheme(theme === "traditional" ? "civil" : "traditional")}
-            className="flex-1 sm:flex-none flex items-center justify-center p-2 bg-white border border-gold-light rounded-xl hover:bg-gold/5 transition-all active:scale-95 shadow-sm"
-            title="Changer le thème"
-          >
-            {theme === "traditional" ? "🌸" : "💍"}
-          </button>
 
           {guests.length > 0 && (
             <button
@@ -333,40 +312,21 @@ export default function Home() {
             </motion.div>
           )}
 
-          {view === "qr" && selectedGuest && (
-            <motion.div
-              key="qr"
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              className="flex justify-center p-4"
-            >
-              <QRCodeModal
-                guest={selectedGuest}
-                origin={origin}
-                onClose={() => setView("list")}
-              />
-            </motion.div>
-          )}
         </AnimatePresence>
       </div>
 
       <LoadingScreen isLoading={isPageLoading} images={invitationImages} />
       <FloatingDecorations type={theme} />
 
-      <PresenceList
-        isOpen={showPresence}
-        onClose={() => setShowPresence(false)}
-        lang={appLang}
-      />
-
-      <TableManager
-        isOpen={isTableManagerOpen}
-        onClose={() => setIsTableManagerOpen(false)}
-        tables={customTables}
-        onUpdateTables={handleUpdateTables}
-        lang={appLang}
-      />
+      {selectedGuest && (
+        <QRCodeModal
+          isOpen={view === "qr" && !!selectedGuest}
+          onClose={() => setView("list")}
+          guest={selectedGuest!}
+          origin={origin}
+          lang={appLang}
+        />
+      )}
 
       <ConfirmModal
         isOpen={!!deleteGuestId}
@@ -380,27 +340,9 @@ export default function Home() {
         isOpen={isClearModalOpen}
         onClose={() => setIsClearModalOpen(false)}
         onConfirm={handleClearAll}
-        title={t.confirm.clearAll}
         message={t.confirm.clearAllConfirm}
         lang={appLang}
       />
-
-      {/* Footer Info */}
-      <footer className="mt-12 p-6 bg-gold-light/30 border border-gold-light rounded-2xl">
-        <h4 className="text-sm font-semibold text-gold flex items-center gap-2 mb-2">
-          <span className="w-1.5 h-1.5 bg-gold rounded-full" />
-          {t.guideTitle}
-        </h4>
-        <p className="text-xs text-gold/80 leading-relaxed italic mb-4">
-          {t.guideText}
-        </p>
-        <button
-          onClick={() => setIsClearModalOpen(true)}
-          className="text-[10px] uppercase tracking-wider font-bold text-red-400 hover:text-red-500 transition-colors py-2 px-3 border border-red-400/20 rounded-lg bg-red-400/5 hover:bg-red-400/10"
-        >
-          {t.confirm.clearAll}
-        </button>
-      </footer>
     </main>
   );
 }

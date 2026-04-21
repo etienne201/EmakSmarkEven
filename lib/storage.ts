@@ -1,19 +1,49 @@
-import { kv } from "@vercel/kv";
+// Final Production Storage Engine - Refreshed 2026-04-21
 import fs from "fs";
 import path from "path";
 
-// Fallback arrays for local development when KV is not configured
+// Support for different Vercel prefixes (standard KV_ or custom STORAGE_)
+const kvUrl = process.env.KV_REST_API_URL || process.env.STORAGE_REST_API_URL;
+const kvToken = process.env.KV_REST_API_TOKEN || process.env.STORAGE_REST_API_TOKEN;
+const redisUrl = process.env.REDIS_URL;
+
+// --- SENIOR SINGLETON PATTERN ---
+let cachedClient: any = null;
+
+async function getClient() {
+  if (cachedClient) return cachedClient;
+
+  try {
+    // 1. Priority: External Redis (RedisLabs)
+    if (redisUrl) {
+      console.log("📡 Initializing RedisLabs Client (Dynamic)...");
+      const { createClient: createRedis } = await import("redis");
+      const client = createRedis({ url: redisUrl });
+      await client.connect();
+      cachedClient = client;
+      return cachedClient;
+    }
+
+    // 2. Fallback: Vercel KV
+    if (kvUrl && kvToken) {
+      console.log("🚀 Initializing Vercel KV Client (Dynamic)...");
+      const { createClient: createVercelKV } = await import("@vercel/kv");
+      cachedClient = createVercelKV({ url: kvUrl, token: kvToken });
+      return cachedClient;
+    }
+  } catch (err) {
+    console.error("❌ Storage Initialization Error:", err);
+  }
+
+  return null;
+}
+
+const isProd = process.env.NODE_ENV === "production";
+
+// Fallback arrays for local development
 let localGuests: any[] = [];
 let localAttendance: any[] = [];
 let localTables: any[] = [];
-
-// Determine if we are in a production environment with KV enabled
-const isProd = process.env.NODE_ENV === "production";
-const hasKV = !!(process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN);
-
-if (isProd) {
-  console.log(hasKV ? "🚀 Production: Vercel KV Active" : "⚠️ Production Warning: No KV detected, using temporary memory!");
-}
 
 // Local fallback initialization (Only for dev)
 if (!isProd) {
@@ -29,28 +59,32 @@ if (!isProd) {
 
 export const Storage = {
   async getGuests(): Promise<any[]> {
-    if (hasKV) {
+    const client = await getClient();
+    if (client) {
       try {
-        return (await kv.get("mariage:guests")) || [];
+        const data = await client.get("mariage:guests");
+        return (typeof data === "string" ? JSON.parse(data) : data) || [];
       } catch (e) {
-        console.error("KV Error (getGuests):", e);
+        console.error("Storage Error (getGuests):", e);
       }
     }
     return localGuests;
   },
 
   async saveGuests(guests: any[]) {
-    if (hasKV) {
+    const client = await getClient();
+    if (client) {
       try {
-        await kv.set("mariage:guests", guests);
+        // Handle serialization differences between redis and vercel/kv
+        const value = typeof client.set === "function" && client.connect ? JSON.stringify(guests) : guests;
+        await client.set("mariage:guests", value);
       } catch (e) {
-        console.error("KV Error (saveGuests):", e);
+        console.error("Storage Error (saveGuests):", e);
       }
     }
-    
+
     localGuests = guests;
-    
-    // Explicitly persist to file only in development
+
     if (process.env.NODE_ENV === "development") {
       try {
         const GUEST_FILE = path.join(process.cwd(), "lib", "guests.json");
@@ -62,25 +96,29 @@ export const Storage = {
   },
 
   async getAttendance(): Promise<any[]> {
-    if (hasKV) {
+    const client = await getClient();
+    if (client) {
       try {
-        return (await kv.get("mariage:attendance")) || [];
+        const data = await client.get("mariage:attendance");
+        return (typeof data === "string" ? JSON.parse(data) : data) || [];
       } catch (e) {
-        console.error("KV Error (getAttendance):", e);
+        console.error("Storage Error (getAttendance):", e);
       }
     }
     return localAttendance;
   },
 
   async saveAttendance(attendance: any[]) {
-    if (hasKV) {
+    const client = await getClient();
+    if (client) {
       try {
-        await kv.set("mariage:attendance", attendance);
+        const value = typeof client.set === "function" && client.connect ? JSON.stringify(attendance) : attendance;
+        await client.set("mariage:attendance", value);
       } catch (e) {
-        console.error("KV Error (saveAttendance):", e);
+        console.error("Storage Error (saveAttendance):", e);
       }
     }
-    
+
     localAttendance = attendance;
 
     if (process.env.NODE_ENV === "development") {
@@ -94,32 +132,37 @@ export const Storage = {
   },
 
   async getTables(): Promise<any[]> {
-    if (hasKV) {
+    const client = await getClient();
+    if (client) {
       try {
-        return (await kv.get("mariage:tables")) || [];
+        const data = await client.get("mariage:tables");
+        return (typeof data === "string" ? JSON.parse(data) : data) || [];
       } catch (e) {
-        console.error("KV Error (getTables):", e);
+        console.error("Storage Error (getTables):", e);
       }
     }
     return localTables;
   },
 
   async saveTables(tables: any[]) {
-    if (hasKV) {
+    const client = await getClient();
+    if (client) {
       try {
-        await kv.set("mariage:tables", tables);
+        const value = typeof client.set === "function" && client.connect ? JSON.stringify(tables) : tables;
+        await client.set("mariage:tables", value);
       } catch (e) {
-        console.error("KV Error (saveTables):", e);
+        console.error("Storage Error (saveTables):", e);
       }
     }
     localTables = tables;
   },
 
   async clearAllData() {
-    if (hasKV) {
-      await kv.del("mariage:guests");
-      await kv.del("mariage:attendance");
-      await kv.del("mariage:tables");
+    const client = await getClient();
+    if (client) {
+      await client.del("mariage:guests");
+      await client.del("mariage:attendance");
+      await client.del("mariage:tables");
     }
     localGuests = [];
     localAttendance = [];
