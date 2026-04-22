@@ -4,17 +4,21 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LayoutDashboard, Users, Hash, Settings, Heart } from "lucide-react";
 import { motion } from "framer-motion";
+import { useLocalStorage } from "@/hooks/useLocalStorage";
+import { Language, translations } from "@/lib/translations";
 
 export function AdminNavbar() {
   const pathname = usePathname();
+  const [appLang] = useLocalStorage<Language>("mariage-app-lang", "fr");
+  const t = translations[appLang];
 
   // Hide the admin navbar on the guest invitation page
   if (pathname === "/guest") return null;
 
   const navItems = [
-    { href: "/", label: "Dashboard", icon: LayoutDashboard },
-    { href: "/presence", label: "Présence", icon: Users },
-    { href: "/tables", label: "Tables", icon: Hash },
+    { href: "/", label: t.nav.dashboard, icon: LayoutDashboard },
+    { href: "/presence", label: t.nav.presence, icon: Users },
+    { href: "/tables", label: t.nav.tables, icon: Hash },
   ];
 
   return (

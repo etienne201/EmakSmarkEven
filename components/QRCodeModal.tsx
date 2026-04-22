@@ -61,7 +61,7 @@ export function QRCodeModal({ guest, origin, onClose, isOpen, lang }: QRCodeModa
 
       // 2. Draw Guest Name (Title + Name)
       const textX = canvas.width * 0.395;
-      const textY = canvas.height * 0.34; // Shifted up as requested
+      const textY = canvas.height * 0.33; // Synchronized with UI top-[33%]
       
       ctx.fillStyle = "#846733"; // Gold/Bronze color
       const fontSize = Math.round(canvas.height * 0.024);
@@ -83,7 +83,19 @@ export function QRCodeModal({ guest, origin, onClose, isOpen, lang }: QRCodeModa
       ctx.lineTo(textX + titleWidth + nameWidth, textY + 5);
       ctx.stroke();
 
-      // 3. Draw QR Code
+      // 3. Draw Table Name/Number
+      const tableText = (!guest.tableName || guest.tableName.trim() === "Non assignée" || guest.tableName.trim() === "Unassigned")
+        ? `Table ${guest.table}`
+        : (guest.tableName.trim().toLowerCase().startsWith("table") ? guest.tableName.trim() : `Table ${guest.tableName.trim()}`);
+
+      const tableTextX = canvas.width * 0.92; // Very far right
+      const tableTextY = canvas.height * 0.08; // Very high
+      ctx.font = `italic 600 ${fontSize * 0.9}px serif`; // Bold and slightly larger for corner placement
+      ctx.textAlign = "right";
+      ctx.fillText(tableText, tableTextX, tableTextY);
+      ctx.textAlign = "left"; // Restore default
+
+      // 4. Draw QR Code
       // Get the QR from the existing rendered component or redraw it
       const qrCanvas = document.querySelector("canvas");
       if (qrCanvas) {
@@ -99,15 +111,15 @@ export function QRCodeModal({ guest, origin, onClose, isOpen, lang }: QRCodeModa
         ctx.drawImage(qrCanvas, qrX, qrY, qrSize, qrSize);
       }
 
-      // 4. Trigger Download
+      // 5. Trigger Download
       const dataUrl = canvas.toDataURL("image/png", 1.0);
       const link = document.createElement("a");
       link.download = `invitation-${guest.name.replace(/\s+/g, "-").toLowerCase()}.png`;
       link.href = dataUrl;
       link.click();
     } catch (error) {
-      console.error("Erreur lors de la génération:", error);
-      showToast(guest.lang === "fr" ? "Erreur lors de la génération" : "Generation error", "error");
+      console.error("Error during generation:", error);
+      showToast(t.toasts.genError, "error");
     } finally {
       setIsGenerating(false);
     }
@@ -196,6 +208,21 @@ export function QRCodeModal({ guest, origin, onClose, isOpen, lang }: QRCodeModa
                      <span className="text-[2vw] md:text-sm font-serif text-[#846733] italic font-bold border-b-2 border-[#846733] whitespace-nowrap">
                        {guest.name}
                      </span>
+                  </motion.div>
+
+                  {/* Table Name Overlay - Top Right Positioning */}
+                  <motion.div 
+                     initial={{ opacity: 0, scale: 0.8 }}
+                     animate={{ opacity: 1, scale: 1 }}
+                     transition={{ delay: 1.6, duration: 0.8 }}
+                     className="absolute top-[8%] right-[8%] w-[30%] text-right hidden sm:block overflow-hidden"
+                  >
+                     <p className="text-[1.8vw] md:text-sm font-serif text-[#846733] italic font-semibold">
+                        {(!guest.tableName || guest.tableName.trim() === "Non assignée" || guest.tableName.trim() === "Unassigned")
+                           ? `Table ${guest.table}`
+                           : (guest.tableName.trim().toLowerCase().startsWith("table") ? guest.tableName.trim() : `Table ${guest.tableName.trim()}`)
+                        }
+                     </p>
                   </motion.div>
                 </div>
               </motion.div>

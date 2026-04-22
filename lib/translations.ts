@@ -42,7 +42,7 @@ export const translations = {
     loading: "Chargement de votre invitation...",
     downloadPNG: "PNG (Format Carte)",
     titles: [
-      "Hon.", "Prof.", "Dr.", "Aîné", "M.", "Mme", "Mlle", "M./Mme"
+      "Hon.", "Prof.", "Dr.", "Aîné", "M.", "Mme", "Mlle", "M./Mme","M./ Prof./ Dr./ Aîné/ M./ Mme/ Mlle"
     ],
     attendance: {
       title: "Confirmation de Présence",
@@ -88,6 +88,24 @@ export const translations = {
     },
     errors: {
       tableFull: "Cette table est pleine (10 invités max)."
+    },
+    common: {
+      guestDefault: "Cher invité",
+      unassigned: "Non assignée"
+    },
+    nav: {
+      dashboard: "Tableau de Bord",
+      presence: "Présences",
+      tables: "Tables"
+    },
+    toasts: {
+      successUpdate: "Modifié avec succès",
+      successAdd: "Ajouté avec succès",
+      successDelete: "Supprimé avec succès",
+      connError: "Erreur de connexion",
+      deleteError: "Erreur lors de la suppression",
+      genError: "Erreur lors de la génération",
+      tableAdded: "Table ajoutée"
     }
   },
   en: {
@@ -131,7 +149,7 @@ export const translations = {
     loading: "Loading your invitation...",
     downloadPNG: "PNG (Card Format)",
     titles: [
-      "Hon.", "Prof.", "Dr.", "Eld.", "Mr.", "Mrs.", "Miss", "Mr./Mrs."
+      "Hon.", "Prof.", "Dr.", "Eld.", "Mr.", "Mrs.", "Miss", "Mr./Mrs.","Hon./ Prof./ Dr./ Eld./ Mr./ Mrs./ Miss"
     ],
     attendance: {
       title: "Attendance Confirmation",
@@ -177,6 +195,24 @@ export const translations = {
     },
     errors: {
       tableFull: "This table is full (10 guests max)."
+    },
+    common: {
+      guestDefault: "Dear Guest",
+      unassigned: "Unassigned"
+    },
+    nav: {
+      dashboard: "Dashboard",
+      presence: "Attendance",
+      tables: "Tables"
+    },
+    toasts: {
+      successUpdate: "Updated successfully",
+      successAdd: "Added successfully",
+      successDelete: "Deleted successfully",
+      connError: "Connection error",
+      deleteError: "Deletion error",
+      genError: "Generation error",
+      tableAdded: "Table added"
     }
   },
 };

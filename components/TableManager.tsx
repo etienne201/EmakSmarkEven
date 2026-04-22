@@ -39,7 +39,7 @@ export function TableManager({ isOpen, onClose, tables, onUpdateTables, lang }: 
     };
     
     onUpdateTables([...tables, newTable]);
-    showToast(lang === "fr" ? "Table ajoutée" : "Table added", "success");
+    showToast(t.toasts.tableAdded, "success");
     setNewName("");
     setNewNumber(tables.length + 2);
   };

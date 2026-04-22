@@ -57,11 +57,11 @@ function GuestContent() {
     }
   }, [searchParams]);
 
-  const fullName = data ? (data.title ? `${data.title} ${data.name}` : data.name) : "Cher invité";
   const lang = data?.lang || "fr";
   const t = translations[lang as Language] || translations.fr;
+  const fullName = data ? (data.title ? `${data.title} ${data.name}` : data.name) : t.common.guestDefault;
   const table = data?.table || "?";
-  const tableName = data?.tableName || (lang === "fr" ? "Non assignée" : "Unassigned");
+  const tableName = data?.tableName || t.common.unassigned;
 
   const invitationImages = lang === "fr" 
     ? ["/images/InvitaionDanie&johnFr.png"] 
@@ -87,18 +87,12 @@ function GuestContent() {
         setHasCheckedIn(true);
         setCheckInStatus(status);
         setShowModal(false);
-        showToast(
-          lang === "fr" ? "Confirmation enregistrée !" : "Check-in confirmed!", 
-          "success"
-        );
+        showToast(t.toasts.successAdd, "success"); // Centralized success toast
         localStorage.setItem(`attendance-${id}`, status);
       }
     } catch (error) {
       console.error("Error during check-in:", error);
-      showToast(
-        lang === "fr" ? "Erreur de connexion" : "Connection error", 
-        "error"
-      );
+      showToast(t.toasts.connError, "error");
     }
   };
 
@@ -279,7 +273,7 @@ export default function GuestPage() {
       <Suspense fallback={
         <div className="min-h-screen flex items-center justify-center flex-col gap-4 text-center p-4">
           <div className="w-12 h-12 border-4 border-gold-light border-t-gold rounded-full animate-spin" />
-          <p className="text-gold font-medium animate-pulse">Chargement...</p>
+          <p className="text-gold font-medium animate-pulse">Chargement / Loading...</p>
         </div>
       }>
         <GuestContent />

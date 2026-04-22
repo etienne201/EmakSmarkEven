@@ -140,17 +140,17 @@ export default function Home() {
 
         if (editId !== null) {
           setGuests((prev) => prev.map((g) => (g.id === editId ? guestData : g)));
-          showToast(appLang === "fr" ? "Modifié avec succès" : "Updated successfully", "success");
+          showToast(t.toasts.successUpdate, "success");
           setEditId(null);
         } else {
           setGuests((prev) => [...prev, guestData]);
-          showToast(appLang === "fr" ? "Ajouté avec succès" : "Added successfully", "success");
+          showToast(t.toasts.successAdd, "success");
         }
         setView("list");
       }
     } catch (error) {
       console.error("Error saving guest:", error);
-      showToast(appLang === "fr" ? "Erreur de connexion" : "Connection error", "error");
+      showToast(t.toasts.connError, "error");
     }
   };
 
@@ -160,11 +160,11 @@ export default function Home() {
       if (res.ok) {
         setGuests((prev) => prev.filter((g) => g.id !== id));
         if (selectedGuest?.id === id) setSelectedGuest(null);
-        showToast(appLang === "fr" ? "Supprimé avec succès" : "Deleted successfully", "info");
+        showToast(t.toasts.successDelete, "info");
       }
     } catch (error) {
       console.error("Error deleting guest:", error);
-      showToast(appLang === "fr" ? "Erreur lors de la suppression" : "Deletion error", "error");
+      showToast(t.toasts.deleteError, "error");
     }
   };
 
@@ -178,7 +178,7 @@ export default function Home() {
       }
     } catch (error) {
       console.error("Error clearing data:", error);
-      showToast(appLang === "fr" ? "Erreur lors de la suppression" : "Deletion error", "error");
+      showToast(t.toasts.deleteError, "error");
     }
   };
 
@@ -235,9 +235,11 @@ export default function Home() {
           <button
             onClick={() => setTheme(theme === "traditional" ? "civil" : "traditional")}
             className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-white border border-gold-light rounded-xl hover:bg-gold/5 transition-all active:scale-95 shadow-sm text-xs font-medium text-gray-600"
-            title="Changer le thème"
+            title={appLang === "fr" ? "Changer le thème" : "Change theme"}
           >
-            {theme === "traditional" ? "🌸 Thème Floral" : "💍 Thème Civil"}
+            {theme === "traditional" 
+              ? (appLang === "fr" ? "🌸 Thème Floral" : "🌸 Floral Theme") 
+              : (appLang === "fr" ? "💍 Thème Civil" : "💍 Civil Theme")}
           </button>
 
           <div className="w-px h-6 bg-gold-light/20 mx-1 hidden sm:block"></div>
