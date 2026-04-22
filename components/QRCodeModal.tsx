@@ -31,8 +31,8 @@ export function QRCodeModal({ guest, origin, onClose, isOpen, lang }: QRCodeModa
   const guestUrl = `${origin}/guest?id=${guest.id}`;
   const t = translations[guest.lang];
 
-  const invitationImg = guest.lang === "fr" 
-    ? "/images/InvitaionDanie&johnFr.png" 
+  const invitationImg = guest.lang === "fr"
+    ? "/images/InvitaionDanie&johnFr.png"
     : "/images/InvitaionDanie&johnEN.png";
 
   const downloadInvitation = async () => {
@@ -46,7 +46,7 @@ export function QRCodeModal({ guest, origin, onClose, isOpen, lang }: QRCodeModa
       const bgImg = new Image();
       bgImg.crossOrigin = "anonymous";
       bgImg.src = invitationImg;
-      
+
       await new Promise((resolve, reject) => {
         bgImg.onload = resolve;
         bgImg.onerror = reject;
@@ -60,17 +60,17 @@ export function QRCodeModal({ guest, origin, onClose, isOpen, lang }: QRCodeModa
       ctx.drawImage(bgImg, 0, 0);
 
       // 2. Draw Guest Name (Title + Name)
-      const textX = canvas.width * 0.395;
-      const textY = canvas.height * 0.33; // Synchronized with UI top-[33%]
-      
+      const textX = canvas.width * 0.385;
+      const textY = canvas.height * 0.315; // Synchronized with UI top-[31.5%]
+
       ctx.fillStyle = "#846733"; // Gold/Bronze color
       const fontSize = Math.round(canvas.height * 0.024);
-      
+
       // 2a. Draw Title (Regular)
       ctx.font = `italic 400 ${fontSize}px serif`;
       const titleWidth = ctx.measureText(`${guest.title} `).width;
       ctx.fillText(`${guest.title} `, textX, textY);
-      
+
       // 2b. Draw Name (Bold + Underline)
       ctx.font = `italic 700 ${fontSize}px serif`; // Bold for name
       ctx.fillText(guest.name, textX + titleWidth, textY);
@@ -107,7 +107,7 @@ export function QRCodeModal({ guest, origin, onClose, isOpen, lang }: QRCodeModa
         // Draw a small white background for the QR if needed (though it's in a frame)
         ctx.fillStyle = "white";
         ctx.fillRect(qrX, qrY, qrSize, qrSize);
-        
+
         ctx.drawImage(qrCanvas, qrX, qrY, qrSize, qrSize);
       }
 
@@ -150,32 +150,32 @@ export function QRCodeModal({ guest, origin, onClose, isOpen, lang }: QRCodeModa
             </div>
 
             <div className="p-4 md:p-8 text-center bg-ivory">
-                <motion.div
-                  initial={{ opacity: 0, y: 50, rotateX: -15 }}
-                  animate={{ opacity: 1, y: 0, rotateX: 0 }}
-                  transition={{ 
-                    duration: 1.2, 
-                    ease: [0.16, 1, 0.3, 1],
-                    delay: 0.2
-                  }}
-                  className="relative inline-block w-full max-w-[500px] shadow-2xl rounded-lg overflow-hidden border border-gold-light/30 mb-8 group transition-transform hover:scale-[1.01] duration-500 perspective-1000"
-                >
-                  <div className="relative w-full aspect-[3/2] overflow-hidden">
-                  <img 
-                    src={invitationImg} 
-                    alt="Invitation" 
+              <motion.div
+                initial={{ opacity: 0, y: 50, rotateX: -15 }}
+                animate={{ opacity: 1, y: 0, rotateX: 0 }}
+                transition={{
+                  duration: 1.2,
+                  ease: [0.16, 1, 0.3, 1],
+                  delay: 0.2
+                }}
+                className="relative inline-block w-full max-w-[500px] shadow-2xl rounded-lg overflow-hidden border border-gold-light/30 mb-8 group transition-transform hover:scale-[1.01] duration-500 perspective-1000"
+              >
+                <div className="relative w-full aspect-[3/2] overflow-hidden">
+                  <img
+                    src={invitationImg}
+                    alt="Invitation"
                     className="w-full h-full object-contain"
                     onError={(e) => {
                       (e.target as HTMLImageElement).src = "https://placehold.co/600x400/004d40/ecc94b?text=Image+Manquante";
                     }}
                   />
-                  
+
                   {/* QR Code Overlay - Responsive positioning */}
-                  <motion.div 
-                     initial={{ opacity: 0, scale: 0.8 }}
-                     animate={{ opacity: 1, scale: 1 }}
-                     transition={{ delay: 1, duration: 0.8 }}
-                     className="absolute top-[68%] left-[84.4%] w-[14.5%] aspect-square bg-white p-[1%] rounded-sm shadow-sm md:shadow-md"
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 1, duration: 0.8 }}
+                    className="absolute top-[68%] left-[84.4%] w-[14.5%] aspect-square bg-white p-[1%] rounded-sm shadow-sm md:shadow-md"
                   >
                     <QRCodeCanvas
                       value={guestUrl}
@@ -196,33 +196,33 @@ export function QRCodeModal({ guest, origin, onClose, isOpen, lang }: QRCodeModa
                   </motion.div>
 
                   {/* Guest Name Overlay - Responsive positioning */}
-                  <motion.div 
-                     initial={{ opacity: 0, x: -20 }}
-                     animate={{ opacity: 1, x: 0 }}
-                     transition={{ delay: 1.4, duration: 0.8 }}
-                     className="absolute top-[33%] left-[39.5%] w-[50%] text-left hidden sm:flex items-baseline gap-1.5 overflow-hidden"
+                  <motion.div
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 1.4, duration: 0.8 }}
+                    className="absolute top-[25.5%] left-[36.5%] w-[35%] text-left hidden sm:flex items-baseline gap-1.5 overflow-hidden"
                   >
-                     <span className="text-[1.8vw] md:text-sm font-serif text-[#846733] italic whitespace-nowrap">
-                       {guest.title}
-                     </span>
-                     <span className="text-[2vw] md:text-sm font-serif text-[#846733] italic font-bold border-b-2 border-[#846733] whitespace-nowrap">
-                       {guest.name}
-                     </span>
+                    <span className="text-[1.8vw] md:text-sm font-serif text-[#846733] italic whitespace-nowrap">
+                      {guest.title}
+                    </span>
+                    <span className="text-[2vw] md:text-sm font-serif text-[#846733] italic font-bold border-b-2 border-[#846733] whitespace-nowrap">
+                      {guest.name}
+                    </span>
                   </motion.div>
 
                   {/* Table Name Overlay - Top Right Positioning */}
-                  <motion.div 
-                     initial={{ opacity: 0, scale: 0.8 }}
-                     animate={{ opacity: 1, scale: 1 }}
-                     transition={{ delay: 1.6, duration: 0.8 }}
-                     className="absolute top-[8%] right-[8%] w-[30%] text-right hidden sm:block overflow-hidden"
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 1.6, duration: 0.8 }}
+                    className="absolute top-[8%] right-[8%] w-[30%] text-right hidden sm:block overflow-hidden"
                   >
-                     <p className="text-[1.8vw] md:text-sm font-serif text-[#846733] italic font-semibold">
-                        {(!guest.tableName || guest.tableName.trim() === "Non assignée" || guest.tableName.trim() === "Unassigned")
-                           ? `Table ${guest.table}`
-                           : (guest.tableName.trim().toLowerCase().startsWith("table") ? guest.tableName.trim() : `Table ${guest.tableName.trim()}`)
-                        }
-                     </p>
+                    <p className="text-[1.8vw] md:text-sm font-serif text-[#846733] italic font-semibold">
+                      {(!guest.tableName || guest.tableName.trim() === "Non assignée" || guest.tableName.trim() === "Unassigned")
+                        ? `Table ${guest.table}`
+                        : (guest.tableName.trim().toLowerCase().startsWith("table") ? guest.tableName.trim() : `Table ${guest.tableName.trim()}`)
+                      }
+                    </p>
                   </motion.div>
                 </div>
               </motion.div>
@@ -230,10 +230,10 @@ export function QRCodeModal({ guest, origin, onClose, isOpen, lang }: QRCodeModa
               <div className="space-y-1 mb-8">
                 <h4 className="text-xl font-bold text-gray-900">{guest.title} {guest.name}</h4>
                 <p className="text-gold font-medium">
-                   {(!guest.tableName || guest.tableName.trim() === "Non assignée" || guest.tableName.trim() === "Unassigned")
-                      ? `Table ${guest.table}`
-                      : (guest.tableName.trim().toLowerCase().startsWith("table") ? guest.tableName.trim() : `Table ${guest.tableName.trim()}`)
-                   }
+                  {(!guest.tableName || guest.tableName.trim() === "Non assignée" || guest.tableName.trim() === "Unassigned")
+                    ? `Table ${guest.table}`
+                    : (guest.tableName.trim().toLowerCase().startsWith("table") ? guest.tableName.trim() : `Table ${guest.tableName.trim()}`)
+                  }
                 </p>
                 <p className="text-[10px] text-gray-400 uppercase tracking-tighter mt-2">
                   {t.scanMe}
