@@ -1,0 +1,148 @@
+import { CreateOrganizationDto } from './dto/create-organization.dto';
+import { UpdateOrganizationDto } from './dto/update-organization.dto';
+import { OrganizationsService } from './organizations.service';
+export declare class OrganizationsController {
+    private readonly organizationsService;
+    constructor(organizationsService: OrganizationsService);
+    findAll(): Promise<{
+        id: string;
+        email: string | null;
+        phone: string | null;
+        createdAt: Date;
+        updatedAt: Date;
+        name: string;
+        slug: string;
+        logoUrl: string | null;
+        website: string | null;
+        ownerId: string;
+        isActive: boolean;
+    }[]>;
+    create(dto: CreateOrganizationDto): Promise<{
+        id: string;
+        email: string | null;
+        phone: string | null;
+        createdAt: Date;
+        updatedAt: Date;
+        name: string;
+        slug: string;
+        logoUrl: string | null;
+        website: string | null;
+        ownerId: string;
+        isActive: boolean;
+    }>;
+    findOne(id: string): Promise<{
+        owner: {
+            id: string;
+            email: string;
+            organizationId: string | null;
+            roleId: string;
+            passwordHash: string;
+            fullName: string;
+            avatarUrl: string | null;
+            phone: string | null;
+            status: import("@prisma/client").$Enums.UserStatus;
+            emailVerified: boolean;
+            lastLoginAt: Date | null;
+            createdAt: Date;
+            updatedAt: Date;
+        };
+    } & {
+        id: string;
+        email: string | null;
+        phone: string | null;
+        createdAt: Date;
+        updatedAt: Date;
+        name: string;
+        slug: string;
+        logoUrl: string | null;
+        website: string | null;
+        ownerId: string;
+        isActive: boolean;
+    }>;
+    update(id: string, dto: UpdateOrganizationDto): Promise<{
+        id: string;
+        email: string | null;
+        phone: string | null;
+        createdAt: Date;
+        updatedAt: Date;
+        name: string;
+        slug: string;
+        logoUrl: string | null;
+        website: string | null;
+        ownerId: string;
+        isActive: boolean;
+    }>;
+    remove(id: string): Promise<{
+        id: string;
+        email: string | null;
+        phone: string | null;
+        createdAt: Date;
+        updatedAt: Date;
+        name: string;
+        slug: string;
+        logoUrl: string | null;
+        website: string | null;
+        ownerId: string;
+        isActive: boolean;
+    }>;
+    findUsers(id: string): Promise<{
+        id: string;
+        email: string;
+        organizationId: string | null;
+        roleId: string;
+        passwordHash: string;
+        fullName: string;
+        avatarUrl: string | null;
+        phone: string | null;
+        status: import("@prisma/client").$Enums.UserStatus;
+        emailVerified: boolean;
+        lastLoginAt: Date | null;
+        createdAt: Date;
+        updatedAt: Date;
+    }[]>;
+    addUser(id: string, dto: any): Promise<{
+        id: string;
+        email: string;
+        organizationId: string | null;
+        roleId: string;
+        passwordHash: string;
+        fullName: string;
+        avatarUrl: string | null;
+        phone: string | null;
+        status: import("@prisma/client").$Enums.UserStatus;
+        emailVerified: boolean;
+        lastLoginAt: Date | null;
+        createdAt: Date;
+        updatedAt: Date;
+    }>;
+    updateUser(id: string, userId: string, dto: any): Promise<{
+        id: string;
+        email: string;
+        organizationId: string | null;
+        roleId: string;
+        passwordHash: string;
+        fullName: string;
+        avatarUrl: string | null;
+        phone: string | null;
+        status: import("@prisma/client").$Enums.UserStatus;
+        emailVerified: boolean;
+        lastLoginAt: Date | null;
+        createdAt: Date;
+        updatedAt: Date;
+    }>;
+    removeUser(id: string, userId: string): Promise<{
+        id: string;
+        email: string;
+        organizationId: string | null;
+        roleId: string;
+        passwordHash: string;
+        fullName: string;
+        avatarUrl: string | null;
+        phone: string | null;
+        status: import("@prisma/client").$Enums.UserStatus;
+        emailVerified: boolean;
+        lastLoginAt: Date | null;
+        createdAt: Date;
+        updatedAt: Date;
+    }>;
+}

@@ -1,0 +1,15 @@
+packages:
+  - apps/*
+  - packages/*
+  - backend
+
+ignoredBuiltDependencies:
+  - '@scarf/scarf'
+  - core-js
+
+onlyBuiltDependencies:
+  - '@nestjs/core'
+  - '@prisma/client'
+  - '@prisma/engines'
+  - prisma
+  - unrs-resolver

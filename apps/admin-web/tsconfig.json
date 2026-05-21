@@ -1,0 +1,16 @@
+{
+  "extends": "@emak-smark-even-monorepo/tsconfig/nextjs.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./*"],
+      "@frontend/components/*": ["../../packages/ui/src/components/*"],
+      "@frontend/hooks/*": ["../../packages/shared/src/hooks/*"],
+      "@frontend/lib/*": ["../../packages/shared/src/lib/*"],
+      "@frontend/*": ["../../packages/shared/src/*"],
+      "@backend/*": ["../../backend/src/*"]
+    }
+  },
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "exclude": ["node_modules"]
+}

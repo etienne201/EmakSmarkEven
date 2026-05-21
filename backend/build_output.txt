@@ -1,0 +1,83 @@
+
+> backend@0.1.0 build /Users/joeemako/Documents/MesprojetPrive/EmakSmarkEven/backend
+> nest build
+
+[96msrc/modules/analytics/analytics.service.ts[0m:[93m10[0m:[93m16[0m - [91merror[0m[90m TS2353: [0mObject literal may only specify known properties, and 'eventId' does not exist in type 'ActivityLogWhereInput'.
+
+[7m10[0m       where: { eventId, action: 'VIEW' },
+[7m  [0m [91m               ~~~~~~~[0m
+
+  [96m../node_modules/.pnpm/@prisma+client@6.19.3_prisma@6.19.3_typescript@5.9.3__typescript@5.9.3/node_modules/.prisma/client/index.d.ts[0m:[93m31028[0m:[93m5[0m
+    [7m31028[0m     where?: ActivityLogWhereInput
+    [7m     [0m [96m    ~~~~~[0m
+    The expected type comes from property 'where' which is declared here on type 'Subset<ActivityLogCountArgs<DefaultArgs>, ActivityLogCountArgs<DefaultArgs>>'
+[96msrc/modules/analytics/analytics.service.ts[0m:[93m13[0m:[93m25[0m - [91merror[0m[90m TS2820: [0mType '"CHECKED_IN"' is not assignable to type 'EnumGuestStatusFilter<"Guest"> | GuestStatus'. Did you mean '"checked_in"'?
+
+[7m13[0m       where: { eventId, status: 'CHECKED_IN' },
+[7m  [0m [91m                        ~~~~~~[0m
+
+  [96m../node_modules/.pnpm/@prisma+client@6.19.3_prisma@6.19.3_typescript@5.9.3__typescript@5.9.3/node_modules/.prisma/client/index.d.ts[0m:[93m52299[0m:[93m5[0m
+    [7m52299[0m     status?: EnumGuestStatusFilter<"Guest"> | $Enums.GuestStatus
+    [7m     [0m [96m    ~~~~~~[0m
+    The expected type comes from property 'status' which is declared here on type 'GuestWhereInput'
+[96msrc/modules/analytics/analytics.service.ts[0m:[93m20[0m:[93m16[0m - [91merror[0m[90m TS2353: [0mObject literal may only specify known properties, and 'eventId' does not exist in type 'ActivityLogWhereInput'.
+
+[7m20[0m       where: { eventId, action: 'VIEW' },
+[7m  [0m [91m               ~~~~~~~[0m
+
+  [96m../node_modules/.pnpm/@prisma+client@6.19.3_prisma@6.19.3_typescript@5.9.3__typescript@5.9.3/node_modules/.prisma/client/index.d.ts[0m:[93m31028[0m:[93m5[0m
+    [7m31028[0m     where?: ActivityLogWhereInput
+    [7m     [0m [96m    ~~~~~[0m
+    The expected type comes from property 'where' which is declared here on type '{ select?: ActivityLogSelect<DefaultArgs>; omit?: ActivityLogOmit<DefaultArgs>; include?: ActivityLogInclude<DefaultArgs>; ... 5 more ...; distinct?: ActivityLogScalarFieldEnum | ActivityLogScalarFieldEnum[]; }'
+[96msrc/modules/analytics/analytics.service.ts[0m:[93m27[0m:[93m25[0m - [91merror[0m[90m TS2820: [0mType '"CHECKED_IN"' is not assignable to type 'EnumGuestStatusFilter<"Guest"> | GuestStatus'. Did you mean '"checked_in"'?
+
+[7m27[0m       where: { eventId, status: 'CHECKED_IN' },
+[7m  [0m [91m                        ~~~~~~[0m
+
+  [96m../node_modules/.pnpm/@prisma+client@6.19.3_prisma@6.19.3_typescript@5.9.3__typescript@5.9.3/node_modules/.prisma/client/index.d.ts[0m:[93m52299[0m:[93m5[0m
+    [7m52299[0m     status?: EnumGuestStatusFilter<"Guest"> | $Enums.GuestStatus
+    [7m     [0m [96m    ~~~~~~[0m
+    The expected type comes from property 'status' which is declared here on type 'GuestWhereInput'
+[96msrc/modules/design/design.service.ts[0m:[93m35[0m:[93m7[0m - [91merror[0m[90m TS2322: [0mType '{ eventId: string; }' is not assignable to type 'EventContentWhereUniqueInput'.
+  Type '{ eventId: string; }' is not assignable to type '{ id: string; } & { id?: string; AND?: EventContentWhereInput | EventContentWhereInput[]; OR?: EventContentWhereInput[]; ... 7 more ...; event?: (Without<...> & EventWhereInput) | (Without<...> & EventScalarRelationFilter); }'.
+    Property 'id' is missing in type '{ eventId: string; }' but required in type '{ id: string; }'.
+
+[7m35[0m       where: { eventId },
+[7m  [0m [91m      ~~~~~[0m
+
+  [96m../node_modules/.pnpm/@prisma+client@6.19.3_prisma@6.19.3_typescript@5.9.3__typescript@5.9.3/node_modules/.prisma/client/index.d.ts[0m:[93m52160[0m:[93m5[0m
+    [7m52160[0m     id?: string
+    [7m     [0m [96m    ~~[0m
+    'id' is declared here.
+  [96m../node_modules/.pnpm/@prisma+client@6.19.3_prisma@6.19.3_typescript@5.9.3__typescript@5.9.3/node_modules/.prisma/client/index.d.ts[0m:[93m19280[0m:[93m5[0m
+    [7m19280[0m     where: EventContentWhereUniqueInput
+    [7m     [0m [96m    ~~~~~[0m
+    The expected type comes from property 'where' which is declared here on type '{ select?: EventContentSelect<DefaultArgs>; omit?: EventContentOmit<DefaultArgs>; include?: EventContentInclude<DefaultArgs>; where: EventContentWhereUniqueInput; }'
+[96msrc/modules/design/design.service.ts[0m:[93m41[0m:[93m7[0m - [91merror[0m[90m TS2322: [0mType '{ eventId: string; }' is not assignable to type 'EventContentWhereUniqueInput'.
+  Type '{ eventId: string; }' is not assignable to type '{ id: string; } & { id?: string; AND?: EventContentWhereInput | EventContentWhereInput[]; OR?: EventContentWhereInput[]; ... 7 more ...; event?: (Without<...> & EventWhereInput) | (Without<...> & EventScalarRelationFilter); }'.
+    Property 'id' is missing in type '{ eventId: string; }' but required in type '{ id: string; }'.
+
+[7m41[0m       where: { eventId },
+[7m  [0m [91m      ~~~~~[0m
+
+  [96m../node_modules/.pnpm/@prisma+client@6.19.3_prisma@6.19.3_typescript@5.9.3__typescript@5.9.3/node_modules/.prisma/client/index.d.ts[0m:[93m52160[0m:[93m5[0m
+    [7m52160[0m     id?: string
+    [7m     [0m [96m    ~~[0m
+    'id' is declared here.
+  [96m../node_modules/.pnpm/@prisma+client@6.19.3_prisma@6.19.3_typescript@5.9.3__typescript@5.9.3/node_modules/.prisma/client/index.d.ts[0m:[93m19605[0m:[93m5[0m
+    [7m19605[0m     where: EventContentWhereUniqueInput
+    [7m     [0m [96m    ~~~~~[0m
+    The expected type comes from property 'where' which is declared here on type '{ select?: EventContentSelect<DefaultArgs>; omit?: EventContentOmit<DefaultArgs>; include?: EventContentInclude<DefaultArgs>; where: EventContentWhereUniqueInput; create: (Without<...> & EventContentUncheckedCreateInput) | (Without<...> & EventContentCreateInput); update: (Without<...> & EventContentUncheckedUpdateI...'
+[96msrc/modules/events/events.service.ts[0m:[93m21[0m:[93m9[0m - [91merror[0m[90m TS2353: [0mObject literal may only specify known properties, and 'speakers' does not exist in type 'EventInclude<DefaultArgs>'.
+
+[7m21[0m         speakers: { include: { speaker: true } },
+[7m  [0m [91m        ~~~~~~~~[0m
+
+  [96m../node_modules/.pnpm/@prisma+client@6.19.3_prisma@6.19.3_typescript@5.9.3__typescript@5.9.3/node_modules/.prisma/client/index.d.ts[0m:[93m13226[0m:[93m5[0m
+    [7m13226[0m     include?: EventInclude<ExtArgs> | null
+    [7m     [0m [96m    ~~~~~~~[0m
+    The expected type comes from property 'include' which is declared here on type '{ select?: EventSelect<DefaultArgs>; omit?: EventOmit<DefaultArgs>; include?: EventInclude<DefaultArgs>; where: EventWhereUniqueInput; }'
+
+Found 7 error(s).
+
+ ELIFECYCLE  Command failed with exit code 1.
