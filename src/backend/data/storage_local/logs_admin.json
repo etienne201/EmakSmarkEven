@@ -1,0 +1,109 @@
+[
+  {
+    "timestamp": "2026-05-06T09:35:18.616Z",
+    "ownerId": "admin",
+    "action": "EVENTS_LIST",
+    "details": {
+      "count": 3
+    }
+  },
+  {
+    "timestamp": "2026-05-05T15:03:53.482Z",
+    "ownerId": "admin",
+    "action": "EVENTS_LIST",
+    "details": {
+      "count": 3
+    }
+  },
+  {
+    "timestamp": "2026-05-05T14:27:31.864Z",
+    "ownerId": "admin",
+    "action": "EVENTS_LIST",
+    "details": {
+      "count": 3
+    }
+  },
+  {
+    "timestamp": "2026-05-05T14:27:31.831Z",
+    "ownerId": "admin",
+    "action": "EVENT_UPDATE",
+    "details": {
+      "ownerId": "user1",
+      "changes": {
+        "adminPassword": "User123!",
+        "eventName": "QA1",
+        "eventType": "wedding",
+        "isBlocked": false
+      }
+    }
+  },
+  {
+    "timestamp": "2026-05-05T14:26:40.949Z",
+    "ownerId": "admin",
+    "action": "EVENTS_LIST",
+    "details": {
+      "count": 3
+    }
+  },
+  {
+    "timestamp": "2026-05-05T14:21:44.716Z",
+    "ownerId": "admin",
+    "action": "EVENTS_LIST",
+    "details": {
+      "count": 1
+    }
+  },
+  {
+    "timestamp": "2026-05-05T14:21:44.678Z",
+    "ownerId": "admin",
+    "action": "EVENT_UPDATE",
+    "details": {
+      "ownerId": "user1",
+      "changes": {
+        "adminPassword": "User123!",
+        "eventName": "QA1",
+        "eventType": "wedding",
+        "isBlocked": false
+      }
+    }
+  },
+  {
+    "timestamp": "2026-05-05T14:21:24.257Z",
+    "ownerId": "admin",
+    "action": "EVENTS_LIST",
+    "details": {
+      "count": 1
+    }
+  },
+  {
+    "timestamp": "2026-05-05T14:21:24.213Z",
+    "ownerId": "admin",
+    "action": "EVENT_UPDATE",
+    "details": {
+      "ownerId": "user1",
+      "changes": {
+        "adminPassword": "User123!",
+        "eventName": "QA1",
+        "eventType": "wedding",
+        "isBlocked": false
+      }
+    }
+  },
+  {
+    "timestamp": "2026-05-05T14:19:42.965Z",
+    "ownerId": "admin",
+    "action": "EVENTS_LIST",
+    "details": {
+      "count": 1
+    }
+  },
+  {
+    "timestamp": "2026-05-05T14:19:21.103Z",
+    "ownerId": "admin",
+    "action": "EVENT_CREATE",
+    "details": {
+      "ownerId": "user1",
+      "eventName": "QA1"
+    }
+  }
+]

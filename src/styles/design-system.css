@@ -1,0 +1,100 @@
+/* 
+ * EMAK Design System - Premium Wedding & Event UI
+ * Focused on Vibrant Aesthetics, Glassmorphism, and Premium Micro-interactions.
+ */
+
+:root {
+  /* Core Colors - Royal & Festive Palette */
+  --color-midnight: 220 40% 13%;
+  --color-midnight-light: 220 40% 20%;
+  --color-gold: 43 100% 50%;
+  --color-gold-light: 43 100% 70%;
+  --color-gold-soft: 43 100% 90%;
+  --color-crimson: 345 80% 45%;
+  --color-crimson-light: 345 80% 60%;
+  
+  /* UI Surface Colors */
+  --surface-glass: rgba(255, 255, 255, 0.7);
+  --surface-glass-dark: rgba(15, 23, 42, 0.7);
+  --border-glass: rgba(255, 255, 255, 0.2);
+  
+  /* Shadows & Depth */
+  --shadow-premium: 0 10px 30px -10px rgba(0, 0, 0, 0.1), 0 4px 10px -5px rgba(0, 0, 0, 0.04);
+  --shadow-glass: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+}
+
+/* Glassmorphism Utility */
+.glass-panel {
+  background: var(--surface-glass);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border-glass);
+  border-radius: 1.5rem;
+  box-shadow: var(--shadow-premium);
+}
+
+.dark .glass-panel {
+  background: var(--surface-glass-dark);
+}
+
+/* Premium Gradients */
+.gradient-gold {
+  background: linear-gradient(135deg, hsl(var(--color-gold)), hsl(var(--color-gold-light)));
+}
+
+.gradient-midnight {
+  background: linear-gradient(135deg, hsl(var(--color-midnight)), hsl(var(--color-midnight-light)));
+}
+
+/* Animation Utilities */
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
+}
+
+/* Typography Enhancements */
+.text-premium {
+  letter-spacing: -0.02em;
+  font-weight: 600;
+}
+
+.heading-fancy {
+  font-family: var(--font-serif, serif);
+  background: linear-gradient(to right, hsl(var(--color-gold)), hsl(var(--color-crimson)));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Buttons */
+.btn-premium {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.5rem;
+  border-radius: 9999px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-premium::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: 0.5s;
+}
+
+.btn-premium:hover::after {
+  left: 100%;
+}

@@ -8,6 +8,7 @@ node_modules/
 
 # Next.js
 /.next/
+/.next-*/
 /out/
 
 # Production
@@ -62,3 +63,7 @@ Icon
 ._*
 .Spotlight-V100
 .Trashes
+
+# Next.js build caches
+.next-*
+.dev/
