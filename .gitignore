@@ -67,3 +67,4 @@ Icon
 # Next.js build caches
 .next-*
 .dev/
+.refact/
