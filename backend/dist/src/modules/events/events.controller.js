@@ -21,6 +21,7 @@ const roles_decorator_1 = require("../auth/decorators/roles.decorator");
 const events_service_1 = require("./events.service");
 const create_event_dto_1 = require("./dto/create-event.dto");
 const update_event_dto_1 = require("./dto/update-event.dto");
+const event_setup_dto_1 = require("./dto/event-setup.dto");
 let EventsController = class EventsController {
     constructor(eventsService) {
         this.eventsService = eventsService;
@@ -141,7 +142,7 @@ __decorate([
     __param(1, (0, common_1.Param)('stepId')),
     __param(2, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String, Object]),
+    __metadata("design:paramtypes", [String, String, event_setup_dto_1.EventSetupStepDto]),
     __metadata("design:returntype", Promise)
 ], EventsController.prototype, "setupStep", null);
 __decorate([
@@ -166,7 +167,7 @@ __decorate([
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:paramtypes", [String, event_setup_dto_1.UpdateEventSettingsDto]),
     __metadata("design:returntype", Promise)
 ], EventsController.prototype, "updateSettings", null);
 __decorate([
@@ -183,7 +184,7 @@ __decorate([
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:paramtypes", [String, event_setup_dto_1.UpdateEventModulesDto]),
     __metadata("design:returntype", Promise)
 ], EventsController.prototype, "updateModules", null);
 __decorate([

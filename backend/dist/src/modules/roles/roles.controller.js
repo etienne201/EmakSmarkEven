@@ -18,6 +18,8 @@ const swagger_1 = require("@nestjs/swagger");
 const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
 const roles_guard_1 = require("../auth/guards/roles.guard");
 const roles_decorator_1 = require("../auth/decorators/roles.decorator");
+const create_role_dto_1 = require("./dto/create-role.dto");
+const update_role_dto_1 = require("./dto/update-role.dto");
 const roles_service_1 = require("./roles.service");
 let RolesController = class RolesController {
     constructor(rolesService) {
@@ -52,7 +54,7 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: 'Créer un rôle' }),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", [create_role_dto_1.CreateRoleDto]),
     __metadata("design:returntype", Promise)
 ], RolesController.prototype, "create", null);
 __decorate([
@@ -69,7 +71,7 @@ __decorate([
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:paramtypes", [String, update_role_dto_1.UpdateRoleDto]),
     __metadata("design:returntype", Promise)
 ], RolesController.prototype, "update", null);
 __decorate([

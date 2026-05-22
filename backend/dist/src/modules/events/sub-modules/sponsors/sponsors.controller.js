@@ -16,6 +16,7 @@ exports.SponsorsController = void 0;
 const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
 const jwt_auth_guard_1 = require("../../../auth/guards/jwt-auth.guard");
+const sponsor_dto_1 = require("./dto/sponsor.dto");
 let SponsorsController = class SponsorsController {
     async findAll(id) {
         return [];
@@ -45,7 +46,7 @@ __decorate([
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:paramtypes", [String, sponsor_dto_1.CreateSponsorDto]),
     __metadata("design:returntype", Promise)
 ], SponsorsController.prototype, "create", null);
 __decorate([
@@ -54,7 +55,7 @@ __decorate([
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:paramtypes", [String, sponsor_dto_1.UpdateSponsorDto]),
     __metadata("design:returntype", Promise)
 ], SponsorsController.prototype, "update", null);
 __decorate([

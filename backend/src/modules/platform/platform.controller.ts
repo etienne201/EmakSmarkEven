@@ -6,6 +6,7 @@ import { Roles } from '../auth/decorators/roles.decorator';
 
 import { PlatformService } from './platform.service';
 import { UpdateSettingDto } from './dto/update-setting.dto';
+import { CreateTemplateDto, CreateWebhookDto, CreateApiKeyDto } from './dto/platform.dto';
 
 @ApiTags('Platform Admin')
 @Controller('platform')
@@ -42,7 +43,7 @@ export class PlatformController {
   @Post('templates')
   @Roles('Super Admin')
   @ApiOperation({ summary: 'Créer un template (Super Admin)' })
-  async createTemplate(@Body() dto: any) {
+  async createTemplate(@Body() dto: CreateTemplateDto) {
     return this.platformService.createTemplate(dto);
   }
 
@@ -54,7 +55,7 @@ export class PlatformController {
 
   @Post('webhooks')
   @ApiOperation({ summary: 'Créer un webhook' })
-  async createWebhook(@Query('organizationId') orgId: string, @Body() dto: any) {
+  async createWebhook(@Query('organizationId') orgId: string, @Body() dto: CreateWebhookDto) {
     return this.platformService.createWebhook(orgId, dto);
   }
 
@@ -66,7 +67,7 @@ export class PlatformController {
 
   @Post('api-keys')
   @ApiOperation({ summary: 'Générer une clé API' })
-  async createApiKey(@Query('organizationId') orgId: string, @Body() body: { name: string }) {
+  async createApiKey(@Query('organizationId') orgId: string, @Body() body: CreateApiKeyDto) {
     return this.platformService.createApiKey(orgId, body.name);
   }
 

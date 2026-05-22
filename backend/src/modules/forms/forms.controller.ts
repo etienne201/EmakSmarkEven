@@ -2,6 +2,8 @@ import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards } from '@nes
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
+import { CreateFormDto, UpdateFormDto, FormResponseDto } from './dto/form.dto';
+
 @ApiTags('Engagement')
 @Controller()
 @UseGuards(JwtAuthGuard)
@@ -16,13 +18,13 @@ export class FormsController {
 
   @Post('events/:id/forms')
   @ApiOperation({ summary: 'Créer un formulaire dynamique' })
-  async create(@Param('id') id: string, @Body() dto: any) {
+  async create(@Param('id') id: string, @Body() dto: CreateFormDto) {
     return { success: true };
   }
 
   @Put('forms/:id')
   @ApiOperation({ summary: 'Modifier un formulaire' })
-  async update(@Param('id') id: string, @Body() dto: any) {
+  async update(@Param('id') id: string, @Body() dto: UpdateFormDto) {
     return { success: true };
   }
 
@@ -34,7 +36,7 @@ export class FormsController {
 
   @Post('forms/:id/respond')
   @ApiOperation({ summary: 'Répondre à un formulaire' })
-  async respond(@Param('id') id: string, @Body() answers: any) {
+  async respond(@Param('id') id: string, @Body() answers: FormResponseDto) {
     return { success: true };
   }
 

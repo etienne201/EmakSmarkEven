@@ -7,6 +7,8 @@ import { CreateOrganizationDto } from './dto/create-organization.dto';
 import { UpdateOrganizationDto } from './dto/update-organization.dto';
 import { OrganizationsService } from './organizations.service';
 
+import { AddOrganizationUserDto, UpdateOrganizationUserDto } from './dto/organization-user.dto';
+
 @ApiTags('Organizations')
 @Controller('organizations')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -56,13 +58,13 @@ export class OrganizationsController {
 
   @Post(':id/users')
   @ApiOperation({ summary: 'Ajouter un utilisateur à une organisation' })
-  async addUser(@Param('id') id: string, @Body() dto: any) {
+  async addUser(@Param('id') id: string, @Body() dto: AddOrganizationUserDto) {
     return this.organizationsService.addUser(id, dto);
   }
 
   @Put(':id/users/:userId')
   @ApiOperation({ summary: 'Modifier un utilisateur d une organisation' })
-  async updateUser(@Param('id') id: string, @Param('userId') userId: string, @Body() dto: any) {
+  async updateUser(@Param('id') id: string, @Param('userId') userId: string, @Body() dto: UpdateOrganizationUserDto) {
     return this.organizationsService.updateUser(id, userId, dto);
   }
 

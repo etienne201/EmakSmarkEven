@@ -1,6 +1,7 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../../database/prisma.service';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class AuthService {
@@ -19,8 +20,9 @@ export class AuthService {
       throw new UnauthorizedException('Identifiants invalides');
     }
 
-    // Checking plain password hash for now as per legacy code
-    if (user.passwordHash !== password) {
+    // Checking password with bcrypt
+    const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
+    if (!isPasswordValid) {
       throw new UnauthorizedException('Identifiants invalides');
     }
 

@@ -13,6 +13,7 @@ exports.AuthService = void 0;
 const common_1 = require("@nestjs/common");
 const jwt_1 = require("@nestjs/jwt");
 const prisma_service_1 = require("../../database/prisma.service");
+const bcrypt = require("bcrypt");
 let AuthService = class AuthService {
     constructor(prisma, jwtService) {
         this.prisma = prisma;
@@ -26,7 +27,8 @@ let AuthService = class AuthService {
         if (!user) {
             throw new common_1.UnauthorizedException('Identifiants invalides');
         }
-        if (user.passwordHash !== password) {
+        const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
+        if (!isPasswordValid) {
             throw new common_1.UnauthorizedException('Identifiants invalides');
         }
         if (user.status !== 'active') {

@@ -16,6 +16,7 @@ exports.VenuesController = void 0;
 const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
 const jwt_auth_guard_1 = require("../../../auth/guards/jwt-auth.guard");
+const venue_dto_1 = require("./dto/venue.dto");
 let VenuesController = class VenuesController {
     async findAll() {
         return [];
@@ -43,7 +44,7 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: 'Créer un lieu' }),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", [venue_dto_1.CreateVenueDto]),
     __metadata("design:returntype", Promise)
 ], VenuesController.prototype, "create", null);
 __decorate([
@@ -52,7 +53,7 @@ __decorate([
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:paramtypes", [String, venue_dto_1.UpdateVenueDto]),
     __metadata("design:returntype", Promise)
 ], VenuesController.prototype, "update", null);
 __decorate([

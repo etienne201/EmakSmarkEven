@@ -8,6 +8,8 @@ import { EventsService } from './events.service';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 
+import { EventSetupStepDto, UpdateEventSettingsDto, UpdateEventModulesDto } from './dto/event-setup.dto';
+
 @ApiTags('Events')
 @Controller('events')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -56,7 +58,7 @@ export class EventsController {
 
   @Post(':id/setup/step/:stepId')
   @ApiOperation({ summary: 'Enregistrer une étape du wizard (1-5)' })
-  async setupStep(@Param('id') id: string, @Param('stepId') stepId: string, @Body() dto: any) {
+  async setupStep(@Param('id') id: string, @Param('stepId') stepId: string, @Body() dto: EventSetupStepDto) {
     return { success: true };
   }
 
@@ -75,7 +77,7 @@ export class EventsController {
 
   @Put(':id/settings')
   @ApiOperation({ summary: 'Modifier les réglages de l événement' })
-  async updateSettings(@Param('id') id: string, @Body() dto: any) {
+  async updateSettings(@Param('id') id: string, @Body() dto: UpdateEventSettingsDto) {
     return { success: true };
   }
 
@@ -88,7 +90,7 @@ export class EventsController {
 
   @Put(':id/modules')
   @ApiOperation({ summary: 'Activer/Désactiver des modules' })
-  async updateModules(@Param('id') id: string, @Body() body: { modules: string[] }) {
+  async updateModules(@Param('id') id: string, @Body() body: UpdateEventModulesDto) {
     return { success: true };
   }
 

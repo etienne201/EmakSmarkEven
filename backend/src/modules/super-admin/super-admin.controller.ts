@@ -4,6 +4,8 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 
+import { CreateAdminDto } from './dto/create-admin.dto';
+
 @Controller('super-admin')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles('Super Admin')
@@ -31,7 +33,7 @@ export class SuperAdminController {
   }
 
   @Post('admins')
-  async createAdmin(@Body() data: any) {
-    return this.superAdminService.createAdminAccount(data);
+  async createAdmin(@Body() dto: CreateAdminDto) {
+    return this.superAdminService.createAdminAccount(dto);
   }
 }

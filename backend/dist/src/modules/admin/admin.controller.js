@@ -20,6 +20,7 @@ const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
 const roles_guard_1 = require("../auth/guards/roles.guard");
 const roles_decorator_1 = require("../auth/decorators/roles.decorator");
 const create_guest_dto_1 = require("../guest/dto/create-guest.dto");
+const admin_dto_1 = require("./dto/admin.dto");
 let AdminController = class AdminController {
     constructor(adminService) {
         this.adminService = adminService;
@@ -60,7 +61,7 @@ __decorate([
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:paramtypes", [String, admin_dto_1.UpdateEventConfigDto]),
     __metadata("design:returntype", Promise)
 ], AdminController.prototype, "updateConfig", null);
 __decorate([

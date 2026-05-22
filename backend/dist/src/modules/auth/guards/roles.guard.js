@@ -18,12 +18,26 @@ let RolesGuard = class RolesGuard {
         this.reflector = reflector;
     }
     canActivate(context) {
-        const requiredRoles = this.reflector.get(roles_decorator_1.ROLES_KEY, context.getHandler());
-        if (!requiredRoles) {
+        const requiredRoles = this.reflector.getAllAndOverride(roles_decorator_1.ROLES_KEY, [
+            context.getHandler(),
+            context.getClass(),
+        ]);
+        if (!requiredRoles || requiredRoles.length === 0) {
             return true;
         }
         const { user } = context.switchToHttp().getRequest();
-        return requiredRoles.some((role) => user?.role?.name?.toLowerCase().includes(role.toLowerCase()));
+        if (!user || !user.role) {
+            throw new common_1.ForbiddenException('Accès refusé : utilisateur non authentifié ou rôle manquant');
+        }
+        const normalizedUser = user.role.name.toLowerCase().replace(/[\s_-]/g, '');
+        const hasRole = requiredRoles.some((role) => {
+            const normalizedReq = role.toLowerCase().replace(/[\s_-]/g, '');
+            return normalizedUser === normalizedReq;
+        });
+        if (!hasRole) {
+            throw new common_1.ForbiddenException(`Accès refusé : le rôle "${user.role.name}" n'est pas autorisé. Rôles requis : ${requiredRoles.join(', ')}`);
+        }
+        return true;
     }
 };
 exports.RolesGuard = RolesGuard;

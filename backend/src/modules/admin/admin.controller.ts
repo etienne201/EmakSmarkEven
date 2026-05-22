@@ -6,6 +6,8 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { CreateGuestDto } from '../guest/dto/create-guest.dto';
 
+import { UpdateEventConfigDto } from './dto/admin.dto';
+
 @ApiTags('Organization Admin')
 @Controller('admin')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -28,7 +30,7 @@ export class AdminController {
 
   @Post('events/:id/config')
   @ApiOperation({ summary: 'Mettre à jour la configuration d un événement' })
-  async updateConfig(@Param('id') id: string, @Body() data: any) {
+  async updateConfig(@Param('id') id: string, @Body() data: UpdateEventConfigDto) {
     return this.adminService.updateEventConfig(id, data);
   }
 

@@ -2,6 +2,8 @@ import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards } from '@nes
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
+import { CreateContentDto, UpdateContentDto } from './dto/content.dto';
+
 @ApiTags('Design & Content')
 @Controller()
 @UseGuards(JwtAuthGuard)
@@ -16,13 +18,13 @@ export class ContentController {
 
   @Post('events/:id/content')
   @ApiOperation({ summary: 'Ajouter un bloc de contenu' })
-  async create(@Param('id') id: string, @Body() dto: any) {
+  async create(@Param('id') id: string, @Body() dto: CreateContentDto) {
     return { success: true };
   }
 
   @Put('content/:id')
   @ApiOperation({ summary: 'Modifier un bloc de contenu' })
-  async update(@Param('id') id: string, @Body() dto: any) {
+  async update(@Param('id') id: string, @Body() dto: UpdateContentDto) {
     return { success: true };
   }
 

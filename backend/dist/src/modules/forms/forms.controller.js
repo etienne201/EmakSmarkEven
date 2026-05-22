@@ -16,6 +16,7 @@ exports.FormsController = void 0;
 const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
 const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
+const form_dto_1 = require("./dto/form.dto");
 let FormsController = class FormsController {
     async findAll(id) {
         return [];
@@ -51,7 +52,7 @@ __decorate([
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:paramtypes", [String, form_dto_1.CreateFormDto]),
     __metadata("design:returntype", Promise)
 ], FormsController.prototype, "create", null);
 __decorate([
@@ -60,7 +61,7 @@ __decorate([
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:paramtypes", [String, form_dto_1.UpdateFormDto]),
     __metadata("design:returntype", Promise)
 ], FormsController.prototype, "update", null);
 __decorate([
@@ -77,7 +78,7 @@ __decorate([
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:paramtypes", [String, form_dto_1.FormResponseDto]),
     __metadata("design:returntype", Promise)
 ], FormsController.prototype, "respond", null);
 __decorate([

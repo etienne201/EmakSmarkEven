@@ -27,6 +27,7 @@ const platform_module_1 = require("./modules/platform/platform.module");
 const public_module_1 = require("./modules/public/public.module");
 const app_config_1 = require("./config/app.config");
 const database_config_1 = require("./config/database.config");
+const app_controller_1 = require("./app.controller");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -54,7 +55,7 @@ exports.AppModule = AppModule = __decorate([
             platform_module_1.PlatformModule,
             public_module_1.PublicModule,
         ],
-        controllers: [],
+        controllers: [app_controller_1.AppController],
         providers: [],
     })
 ], AppModule);

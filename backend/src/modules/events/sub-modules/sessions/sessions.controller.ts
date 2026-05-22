@@ -2,6 +2,8 @@ import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards } from '@nes
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../../auth/guards/jwt-auth.guard';
 
+import { CreateSessionDto, UpdateSessionDto } from './dto/session.dto';
+
 @ApiTags('Event Logistics')
 @Controller()
 @UseGuards(JwtAuthGuard)
@@ -16,13 +18,13 @@ export class SessionsController {
 
   @Post('events/:id/sessions')
   @ApiOperation({ summary: 'Créer une session' })
-  async create(@Param('id') id: string, @Body() dto: any) {
+  async create(@Param('id') id: string, @Body() dto: CreateSessionDto) {
     return { success: true };
   }
 
   @Put('sessions/:id')
   @ApiOperation({ summary: 'Modifier une session' })
-  async update(@Param('id') id: string, @Body() dto: any) {
+  async update(@Param('id') id: string, @Body() dto: UpdateSessionDto) {
     return { success: true };
   }
 

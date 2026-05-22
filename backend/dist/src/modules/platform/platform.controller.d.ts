@@ -1,5 +1,6 @@
 import { PlatformService } from './platform.service';
 import { UpdateSettingDto } from './dto/update-setting.dto';
+import { CreateTemplateDto, CreateWebhookDto, CreateApiKeyDto } from './dto/platform.dto';
 export declare class PlatformController {
     private readonly platformService;
     constructor(platformService: PlatformService);
@@ -32,7 +33,7 @@ export declare class PlatformController {
         config: import("@prisma/client/runtime/library").JsonValue;
         isPremium: boolean;
     }[]>;
-    createTemplate(dto: any): Promise<{
+    createTemplate(dto: CreateTemplateDto): Promise<{
         id: string;
         createdAt: Date;
         updatedAt: Date;
@@ -53,7 +54,7 @@ export declare class PlatformController {
         events: import("@prisma/client/runtime/library").JsonValue;
         active: boolean;
     }[]>;
-    createWebhook(orgId: string, dto: any): Promise<{
+    createWebhook(orgId: string, dto: CreateWebhookDto): Promise<{
         id: string;
         createdAt: Date;
         updatedAt: Date;
@@ -74,9 +75,7 @@ export declare class PlatformController {
         expiresAt: Date | null;
         revokedAt: Date | null;
     }[]>;
-    createApiKey(orgId: string, body: {
-        name: string;
-    }): Promise<{
+    createApiKey(orgId: string, body: CreateApiKeyDto): Promise<{
         id: string;
         createdAt: Date;
         name: string;

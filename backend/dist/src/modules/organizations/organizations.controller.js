@@ -21,6 +21,7 @@ const roles_decorator_1 = require("../auth/decorators/roles.decorator");
 const create_organization_dto_1 = require("./dto/create-organization.dto");
 const update_organization_dto_1 = require("./dto/update-organization.dto");
 const organizations_service_1 = require("./organizations.service");
+const organization_user_dto_1 = require("./dto/organization-user.dto");
 let OrganizationsController = class OrganizationsController {
     constructor(organizationsService) {
         this.organizationsService = organizationsService;
@@ -111,7 +112,7 @@ __decorate([
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:paramtypes", [String, organization_user_dto_1.AddOrganizationUserDto]),
     __metadata("design:returntype", Promise)
 ], OrganizationsController.prototype, "addUser", null);
 __decorate([
@@ -121,7 +122,7 @@ __decorate([
     __param(1, (0, common_1.Param)('userId')),
     __param(2, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String, Object]),
+    __metadata("design:paramtypes", [String, String, organization_user_dto_1.UpdateOrganizationUserDto]),
     __metadata("design:returntype", Promise)
 ], OrganizationsController.prototype, "updateUser", null);
 __decorate([

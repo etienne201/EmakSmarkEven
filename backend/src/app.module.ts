@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+
 import { PrismaModule } from './database/prisma.module';
+
 import { AuthModule } from './modules/auth/auth.module';
 import { SuperAdminModule } from './modules/super-admin/super-admin.module';
 import { AdminModule } from './modules/admin/admin.module';
@@ -16,8 +18,10 @@ import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { PlatformModule } from './modules/platform/platform.module';
 import { PublicModule } from './modules/public/public.module';
+
 import appConfig from './config/app.config';
 import databaseConfig from './config/database.config';
+import { AppController } from './app.controller';
 
 @Module({
   imports: [
@@ -25,7 +29,9 @@ import databaseConfig from './config/database.config';
       isGlobal: true,
       load: [appConfig, databaseConfig],
     }),
+
     PrismaModule,
+
     AuthModule,
     SuperAdminModule,
     AdminModule,
@@ -42,7 +48,7 @@ import databaseConfig from './config/database.config';
     PlatformModule,
     PublicModule,
   ],
-  controllers: [],
+  controllers: [AppController],
   providers: [],
 })
 export class AppModule {}

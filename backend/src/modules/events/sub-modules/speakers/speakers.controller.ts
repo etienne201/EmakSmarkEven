@@ -2,6 +2,8 @@ import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards } from '@nes
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../../auth/guards/jwt-auth.guard';
 
+import { CreateSpeakerDto, UpdateSpeakerDto } from './dto/speaker.dto';
+
 @ApiTags('Event Logistics')
 @Controller()
 @UseGuards(JwtAuthGuard)
@@ -16,13 +18,13 @@ export class SpeakersController {
 
   @Post('events/:id/speakers')
   @ApiOperation({ summary: 'Ajouter un intervenant' })
-  async create(@Param('id') id: string, @Body() dto: any) {
+  async create(@Param('id') id: string, @Body() dto: CreateSpeakerDto) {
     return { success: true };
   }
 
   @Put('speakers/:id')
   @ApiOperation({ summary: 'Modifier un intervenant' })
-  async update(@Param('id') id: string, @Body() dto: any) {
+  async update(@Param('id') id: string, @Body() dto: UpdateSpeakerDto) {
     return { success: true };
   }
 

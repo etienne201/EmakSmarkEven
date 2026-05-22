@@ -20,6 +20,7 @@ const roles_guard_1 = require("../auth/guards/roles.guard");
 const roles_decorator_1 = require("../auth/decorators/roles.decorator");
 const platform_service_1 = require("./platform.service");
 const update_setting_dto_1 = require("./dto/update-setting.dto");
+const platform_dto_1 = require("./dto/platform.dto");
 let PlatformController = class PlatformController {
     constructor(platformService) {
         this.platformService = platformService;
@@ -95,7 +96,7 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: 'Créer un template (Super Admin)' }),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", [platform_dto_1.CreateTemplateDto]),
     __metadata("design:returntype", Promise)
 ], PlatformController.prototype, "createTemplate", null);
 __decorate([
@@ -112,7 +113,7 @@ __decorate([
     __param(0, (0, common_1.Query)('organizationId')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:paramtypes", [String, platform_dto_1.CreateWebhookDto]),
     __metadata("design:returntype", Promise)
 ], PlatformController.prototype, "createWebhook", null);
 __decorate([
@@ -129,7 +130,7 @@ __decorate([
     __param(0, (0, common_1.Query)('organizationId')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:paramtypes", [String, platform_dto_1.CreateApiKeyDto]),
     __metadata("design:returntype", Promise)
 ], PlatformController.prototype, "createApiKey", null);
 __decorate([

@@ -1,5 +1,5 @@
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
+import { ValidationPipe, VersioningType } from '@nestjs/common';
 import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
@@ -8,42 +8,57 @@ import { TransformInterceptor } from './common/interceptors/transform.intercepto
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  
+
   const configService = app.get(ConfigService);
   const port = configService.get<number>('PORT') || 4000;
 
-  // Global Prefix
-  app.setGlobalPrefix('api/v1');
+  // Global prefix - EXCLUDE the root '/' so AppController can respond at http://localhost:4000/
+  app.setGlobalPrefix('api', {
+    exclude: ['/'],
+  });
 
-  // Swagger Configuration
+  // Enable URI versioning (clean architecture)
+  // This will add /v1 to all routes by default
+  app.enableVersioning({
+    type: VersioningType.URI,
+    defaultVersion: '1',
+  });
+
+  // Swagger setup
   const config = new DocumentBuilder()
     .setTitle('Emak Smart Even API')
-    .setDescription('The Emak Smart Even Experience Operating System API')
+    .setDescription('Event management system API')
     .setVersion('1.0')
     .addBearerAuth()
     .build();
+
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api/docs', app, document);
+  SwaggerModule.setup('api/v1/docs', app, document);
 
   // Global filters & interceptors
   app.useGlobalFilters(new AllExceptionsFilter());
   app.useGlobalInterceptors(new TransformInterceptor());
 
-  // Global validation
-  app.useGlobalPipes(new ValidationPipe({
-    whitelist: true,
-    forbidNonWhitelisted: true,
-    transform: true,
-  }));
+  // Validation
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    }),
+  );
 
-  // Enable CORS for frontend apps
+  // CORS (secure for production-ready setup)
   app.enableCors({
-    origin: '*', // In production, replace with specific origins
+    origin: ['http://localhost:3000'],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
   });
 
   await app.listen(port);
-  console.log(`Backend API is running on: http://localhost:${port}`);
+
+  console.log(`🚀 Backend running on: http://localhost:${port}`);
+  console.log(`📚 Swagger docs: http://localhost:${port}/api/v1/docs`);
 }
+
 bootstrap();

@@ -2,6 +2,8 @@ import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards } from '@nes
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../../auth/guards/jwt-auth.guard';
 
+import { CreateTableDto, UpdateTableDto } from './dto/table.dto';
+
 @ApiTags('Guests & Attendance')
 @Controller()
 @UseGuards(JwtAuthGuard)
@@ -16,13 +18,13 @@ export class TablesController {
 
   @Post('events/:id/tables')
   @ApiOperation({ summary: 'Créer une table' })
-  async create(@Param('id') id: string, @Body() dto: any) {
+  async create(@Param('id') id: string, @Body() dto: CreateTableDto) {
     return { success: true };
   }
 
   @Put('tables/:id')
   @ApiOperation({ summary: 'Modifier une table' })
-  async update(@Param('id') id: string, @Body() dto: any) {
+  async update(@Param('id') id: string, @Body() dto: UpdateTableDto) {
     return { success: true };
   }
 

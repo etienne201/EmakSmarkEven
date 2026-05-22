@@ -18,6 +18,7 @@ const super_admin_service_1 = require("./super-admin.service");
 const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
 const roles_guard_1 = require("../auth/guards/roles.guard");
 const roles_decorator_1 = require("../auth/decorators/roles.decorator");
+const create_admin_dto_1 = require("./dto/create-admin.dto");
 let SuperAdminController = class SuperAdminController {
     constructor(superAdminService) {
         this.superAdminService = superAdminService;
@@ -34,8 +35,8 @@ let SuperAdminController = class SuperAdminController {
     async getLogs() {
         return this.superAdminService.getAllSystemLogs();
     }
-    async createAdmin(data) {
-        return this.superAdminService.createAdminAccount(data);
+    async createAdmin(dto) {
+        return this.superAdminService.createAdminAccount(dto);
     }
 };
 exports.SuperAdminController = SuperAdminController;
@@ -68,7 +69,7 @@ __decorate([
     (0, common_1.Post)('admins'),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", [create_admin_dto_1.CreateAdminDto]),
     __metadata("design:returntype", Promise)
 ], SuperAdminController.prototype, "createAdmin", null);
 exports.SuperAdminController = SuperAdminController = __decorate([
