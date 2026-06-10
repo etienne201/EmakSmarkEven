@@ -4,17 +4,17 @@ export declare class PlatformService {
     constructor(prisma: PrismaService);
     getSettings(): Promise<{
         id: string;
-        key: string;
-        value: string;
         createdAt: Date;
         updatedAt: Date;
+        key: string;
+        value: string;
     }[]>;
     updateSetting(key: string, value: string): Promise<{
         id: string;
-        key: string;
-        value: string;
         createdAt: Date;
         updatedAt: Date;
+        key: string;
+        value: string;
     }>;
     getHealth(): Promise<{
         status: string;
@@ -22,76 +22,76 @@ export declare class PlatformService {
     }>;
     findAllTemplates(): Promise<{
         id: string;
+        organizationId: string | null;
         createdAt: Date;
         updatedAt: Date;
         name: string;
-        organizationId: string | null;
+        config: import("@prisma/client/runtime/library").JsonValue;
         category: string;
         previewUrl: string;
-        config: import("@prisma/client/runtime/library").JsonValue;
         isPremium: boolean;
     }[]>;
     createTemplate(data: any): Promise<{
         id: string;
+        organizationId: string | null;
         createdAt: Date;
         updatedAt: Date;
         name: string;
-        organizationId: string | null;
+        config: import("@prisma/client/runtime/library").JsonValue;
         category: string;
         previewUrl: string;
-        config: import("@prisma/client/runtime/library").JsonValue;
         isPremium: boolean;
     }>;
     findAllWebhooks(orgId: string): Promise<{
         id: string;
+        organizationId: string;
         createdAt: Date;
         updatedAt: Date;
-        organizationId: string;
-        endpoint: string;
+        active: boolean;
         secret: string;
         events: import("@prisma/client/runtime/library").JsonValue;
-        active: boolean;
+        endpoint: string;
     }[]>;
     createWebhook(orgId: string, data: any): Promise<{
         id: string;
+        organizationId: string;
         createdAt: Date;
         updatedAt: Date;
-        organizationId: string;
-        endpoint: string;
+        active: boolean;
         secret: string;
         events: import("@prisma/client/runtime/library").JsonValue;
-        active: boolean;
+        endpoint: string;
     }>;
     findAllApiKeys(orgId: string): Promise<{
         id: string;
+        organizationId: string;
         createdAt: Date;
         name: string;
-        organizationId: string;
+        expiresAt: Date | null;
         keyHash: string;
         scopes: import("@prisma/client/runtime/library").JsonValue | null;
         lastUsedAt: Date | null;
-        expiresAt: Date | null;
         revokedAt: Date | null;
     }[]>;
     createApiKey(orgId: string, name: string): Promise<{
         id: string;
+        organizationId: string;
         createdAt: Date;
         name: string;
-        organizationId: string;
+        expiresAt: Date | null;
         keyHash: string;
         scopes: import("@prisma/client/runtime/library").JsonValue | null;
         lastUsedAt: Date | null;
-        expiresAt: Date | null;
         revokedAt: Date | null;
     }>;
     getAuditLogs(): Promise<{
         id: string;
         createdAt: Date;
+        metadata: import("@prisma/client/runtime/library").JsonValue | null;
         userId: string | null;
-        action: string;
-        severity: string;
         ipAddress: string | null;
         userAgent: string | null;
-        metadata: import("@prisma/client/runtime/library").JsonValue | null;
+        action: string;
+        severity: string;
     }[]>;
 }

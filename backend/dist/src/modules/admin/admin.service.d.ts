@@ -26,12 +26,13 @@ export declare class AdminService {
         status: import("@prisma/client").$Enums.GuestStatus;
         createdAt: Date;
         updatedAt: Date;
+        metadata: import("@prisma/client/runtime/library").JsonValue | null;
         eventId: string;
         guestRole: import("@prisma/client").$Enums.GuestRole;
         qrCode: string | null;
         invitationUrl: string | null;
         ticketId: string | null;
-        metadata: import("@prisma/client/runtime/library").JsonValue | null;
+        tableId: string | null;
     })[]>;
     updateEventConfig(eventId: string, data: any): Promise<{
         id: string;
@@ -40,10 +41,9 @@ export declare class AdminService {
         createdAt: Date;
         updatedAt: Date;
         description: string | null;
-        metadata: import("@prisma/client/runtime/library").JsonValue | null;
-        slug: string;
         createdById: string;
         title: string;
+        slug: string;
         eventType: import("@prisma/client").$Enums.EventTypeKey;
         visibility: import("@prisma/client").$Enums.VisibilityType;
         language: string;
@@ -56,6 +56,7 @@ export declare class AdminService {
         country: string | null;
         setupCompleted: boolean;
         currentStep: number;
+        metadata: import("@prisma/client/runtime/library").JsonValue | null;
     }>;
     addGuest(eventId: string, guestData: CreateGuestDto): Promise<{
         id: string;
@@ -65,11 +66,12 @@ export declare class AdminService {
         status: import("@prisma/client").$Enums.GuestStatus;
         createdAt: Date;
         updatedAt: Date;
+        metadata: import("@prisma/client/runtime/library").JsonValue | null;
         eventId: string;
         guestRole: import("@prisma/client").$Enums.GuestRole;
         qrCode: string | null;
         invitationUrl: string | null;
         ticketId: string | null;
-        metadata: import("@prisma/client/runtime/library").JsonValue | null;
+        tableId: string | null;
     }>;
 }

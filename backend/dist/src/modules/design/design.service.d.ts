@@ -83,8 +83,8 @@ export declare class DesignService {
     getAssets(eventId: string): Promise<{
         id: string;
         organizationId: string | null;
-        metadata: import("@prisma/client/runtime/library").JsonValue | null;
         createdAt: Date;
+        metadata: import("@prisma/client/runtime/library").JsonValue | null;
         eventId: string | null;
         url: string;
         uploadedById: string;
@@ -96,8 +96,8 @@ export declare class DesignService {
     createAsset(eventId: string, data: any): Promise<{
         id: string;
         organizationId: string | null;
-        metadata: import("@prisma/client/runtime/library").JsonValue | null;
         createdAt: Date;
+        metadata: import("@prisma/client/runtime/library").JsonValue | null;
         eventId: string | null;
         url: string;
         uploadedById: string;

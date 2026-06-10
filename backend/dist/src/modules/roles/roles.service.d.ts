@@ -9,10 +9,10 @@ export declare class RolesService {
         }[];
     } & {
         id: string;
-        description: string | null;
         createdAt: Date;
         updatedAt: Date;
         name: string;
+        description: string | null;
         isSystem: boolean;
     })[]>;
     findOne(id: string): Promise<{
@@ -22,34 +22,34 @@ export declare class RolesService {
         }[];
     } & {
         id: string;
-        description: string | null;
         createdAt: Date;
         updatedAt: Date;
         name: string;
+        description: string | null;
         isSystem: boolean;
     }>;
     create(data: any): Promise<{
         id: string;
-        description: string | null;
         createdAt: Date;
         updatedAt: Date;
         name: string;
+        description: string | null;
         isSystem: boolean;
     }>;
     update(id: string, data: any): Promise<{
         id: string;
-        description: string | null;
         createdAt: Date;
         updatedAt: Date;
         name: string;
+        description: string | null;
         isSystem: boolean;
     }>;
     remove(id: string): Promise<{
         id: string;
-        description: string | null;
         createdAt: Date;
         updatedAt: Date;
         name: string;
+        description: string | null;
         isSystem: boolean;
     }>;
     findAllPermissions(): Promise<{

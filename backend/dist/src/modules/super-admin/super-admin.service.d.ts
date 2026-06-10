@@ -8,50 +8,50 @@ export declare class SuperAdminService {
         totalEvents: number;
     }>;
     getAllAdmins(): Promise<({
-        organization: {
+        role: {
             id: string;
-            slug: string;
             createdAt: Date;
             updatedAt: Date;
             name: string;
+            description: string | null;
+            isSystem: boolean;
+        };
+        organization: {
+            id: string;
             email: string | null;
             phone: string | null;
+            createdAt: Date;
+            updatedAt: Date;
+            name: string;
+            slug: string;
             logoUrl: string | null;
             website: string | null;
             ownerId: string;
             isActive: boolean;
         };
-        role: {
-            id: string;
-            description: string | null;
-            createdAt: Date;
-            updatedAt: Date;
-            name: string;
-            isSystem: boolean;
-        };
     } & {
         id: string;
         organizationId: string | null;
-        status: import("@prisma/client").$Enums.UserStatus;
-        createdAt: Date;
-        updatedAt: Date;
-        fullName: string;
-        email: string;
-        phone: string | null;
         roleId: string;
+        email: string;
         passwordHash: string;
+        fullName: string;
         avatarUrl: string | null;
+        phone: string | null;
+        status: import("@prisma/client").$Enums.UserStatus;
         emailVerified: boolean;
         lastLoginAt: Date | null;
+        createdAt: Date;
+        updatedAt: Date;
     })[]>;
     blockOrganization(id: string): Promise<{
         id: string;
-        slug: string;
+        email: string | null;
+        phone: string | null;
         createdAt: Date;
         updatedAt: Date;
         name: string;
-        email: string | null;
-        phone: string | null;
+        slug: string;
         logoUrl: string | null;
         website: string | null;
         ownerId: string;
@@ -62,12 +62,12 @@ export declare class SuperAdminService {
         createdAt: Date;
         eventId: string | null;
         userId: string | null;
+        ipAddress: string | null;
+        userAgent: string | null;
         action: string;
         targetType: string | null;
         targetId: string | null;
         details: import("@prisma/client/runtime/library").JsonValue | null;
-        ipAddress: string | null;
-        userAgent: string | null;
     }[]>;
     createAdminAccount(data: {
         email: string;
@@ -79,26 +79,26 @@ export declare class SuperAdminService {
         owner: {
             id: string;
             organizationId: string | null;
-            status: import("@prisma/client").$Enums.UserStatus;
-            createdAt: Date;
-            updatedAt: Date;
-            fullName: string;
-            email: string;
-            phone: string | null;
             roleId: string;
+            email: string;
             passwordHash: string;
+            fullName: string;
             avatarUrl: string | null;
+            phone: string | null;
+            status: import("@prisma/client").$Enums.UserStatus;
             emailVerified: boolean;
             lastLoginAt: Date | null;
+            createdAt: Date;
+            updatedAt: Date;
         };
     } & {
         id: string;
-        slug: string;
+        email: string | null;
+        phone: string | null;
         createdAt: Date;
         updatedAt: Date;
         name: string;
-        email: string | null;
-        phone: string | null;
+        slug: string;
         logoUrl: string | null;
         website: string | null;
         ownerId: string;

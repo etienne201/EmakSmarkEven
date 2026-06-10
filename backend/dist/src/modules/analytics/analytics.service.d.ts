@@ -11,27 +11,28 @@ export declare class AnalyticsService {
         createdAt: Date;
         eventId: string | null;
         userId: string | null;
+        ipAddress: string | null;
+        userAgent: string | null;
         action: string;
         targetType: string | null;
         targetId: string | null;
         details: import("@prisma/client/runtime/library").JsonValue | null;
-        ipAddress: string | null;
-        userAgent: string | null;
     }[]>;
     getCheckins(eventId: string): Promise<{
         id: string;
+        email: string | null;
+        fullName: string;
+        phone: string | null;
         status: import("@prisma/client").$Enums.GuestStatus;
-        metadata: import("@prisma/client/runtime/library").JsonValue | null;
         createdAt: Date;
         updatedAt: Date;
+        metadata: import("@prisma/client/runtime/library").JsonValue | null;
         eventId: string;
-        fullName: string;
-        email: string | null;
-        phone: string | null;
         guestRole: import("@prisma/client").$Enums.GuestRole;
         qrCode: string | null;
         invitationUrl: string | null;
         ticketId: string | null;
+        tableId: string | null;
     }[]>;
     getEngagement(eventId: string): Promise<{
         rate: number;

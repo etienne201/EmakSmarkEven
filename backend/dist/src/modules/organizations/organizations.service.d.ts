@@ -18,9 +18,9 @@ export declare class OrganizationsService {
     findOne(id: string): Promise<{
         owner: {
             id: string;
-            email: string;
             organizationId: string | null;
             roleId: string;
+            email: string;
             passwordHash: string;
             fullName: string;
             avatarUrl: string | null;
@@ -85,9 +85,9 @@ export declare class OrganizationsService {
     }>;
     findUsers(orgId: string): Promise<{
         id: string;
-        email: string;
         organizationId: string | null;
         roleId: string;
+        email: string;
         passwordHash: string;
         fullName: string;
         avatarUrl: string | null;
@@ -100,9 +100,9 @@ export declare class OrganizationsService {
     }[]>;
     addUser(orgId: string, userData: any): Promise<{
         id: string;
-        email: string;
         organizationId: string | null;
         roleId: string;
+        email: string;
         passwordHash: string;
         fullName: string;
         avatarUrl: string | null;
@@ -115,9 +115,9 @@ export declare class OrganizationsService {
     }>;
     updateUser(orgId: string, userId: string, data: any): Promise<{
         id: string;
-        email: string;
         organizationId: string | null;
         roleId: string;
+        email: string;
         passwordHash: string;
         fullName: string;
         avatarUrl: string | null;
@@ -130,9 +130,9 @@ export declare class OrganizationsService {
     }>;
     removeUser(orgId: string, userId: string): Promise<{
         id: string;
-        email: string;
         organizationId: string | null;
         roleId: string;
+        email: string;
         passwordHash: string;
         fullName: string;
         avatarUrl: string | null;

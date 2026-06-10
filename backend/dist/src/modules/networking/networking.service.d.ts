@@ -10,17 +10,17 @@ export declare class NetworkingService {
         }[];
     } & {
         id: string;
+        createdAt: Date;
         title: string | null;
         metadata: import("@prisma/client/runtime/library").JsonValue | null;
-        createdAt: Date;
         eventId: string;
         isGroup: boolean;
     })[]>;
     createConnection(eventId: string, guestIds: string[]): Promise<{
         id: string;
+        createdAt: Date;
         title: string | null;
         metadata: import("@prisma/client/runtime/library").JsonValue | null;
-        createdAt: Date;
         eventId: string;
         isGroup: boolean;
     }>;
@@ -32,9 +32,9 @@ export declare class NetworkingService {
         }[];
     } & {
         id: string;
+        createdAt: Date;
         title: string | null;
         metadata: import("@prisma/client/runtime/library").JsonValue | null;
-        createdAt: Date;
         eventId: string;
         isGroup: boolean;
     })[]>;
@@ -42,16 +42,16 @@ export declare class NetworkingService {
         id: string;
         createdAt: Date;
         content: string;
+        attachments: import("@prisma/client/runtime/library").JsonValue | null;
         conversationId: string;
         senderGuestId: string | null;
-        attachments: import("@prisma/client/runtime/library").JsonValue | null;
     }[]>;
     sendMessage(conversationId: string, senderGuestId: string, content: string): Promise<{
         id: string;
         createdAt: Date;
         content: string;
+        attachments: import("@prisma/client/runtime/library").JsonValue | null;
         conversationId: string;
         senderGuestId: string | null;
-        attachments: import("@prisma/client/runtime/library").JsonValue | null;
     }>;
 }

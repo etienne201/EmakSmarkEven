@@ -5,24 +5,24 @@ export declare class NotificationsController {
     constructor(notificationsService: NotificationsService);
     findAll(): Promise<{
         id: string;
+        createdAt: Date;
         title: string;
         metadata: import("@prisma/client/runtime/library").JsonValue | null;
-        createdAt: Date;
         content: string;
         eventId: string | null;
-        userId: string | null;
         type: import("@prisma/client").$Enums.NotificationType;
+        userId: string | null;
         sentAt: Date | null;
     }[]>;
     send(dto: SendNotificationDto): Promise<{
         id: string;
+        createdAt: Date;
         title: string;
         metadata: import("@prisma/client/runtime/library").JsonValue | null;
-        createdAt: Date;
         content: string;
         eventId: string | null;
-        userId: string | null;
         type: import("@prisma/client").$Enums.NotificationType;
+        userId: string | null;
         sentAt: Date | null;
     }>;
     sendBulk(dto: SendBulkNotificationDto): Promise<import("@prisma/client").Prisma.BatchPayload>;
