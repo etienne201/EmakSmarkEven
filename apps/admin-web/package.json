@@ -18,11 +18,13 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-hook-form": "^7.76.0",
-    "zod": "^4.4.3"
+    "zod": "^4.4.3",
+    "zustand": "^5.0.14"
   },
   "devDependencies": {
     "@emak-smark-even-monorepo/eslint-config": "workspace:*",
     "@emak-smark-even-monorepo/tsconfig": "workspace:*",
+    "@types/js-cookie": "^3.0.6",
     "typescript": "^5.5.4"
   }
 }
