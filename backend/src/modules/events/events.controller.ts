@@ -1,18 +1,36 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Body,
+  Param,
+  UseGuards,
+  Query,
+  ParseIntPipe,
+} from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
+import { PermissionsGuard } from '../auth/guards/permissions.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { Permissions } from '../auth/decorators/permissions.decorator';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { EventsService } from './events.service';
 
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
+import { UpdateEventSettingsDto, UpdateEventModulesDto } from './dto/event-setup.dto';
 
-import { EventSetupStepDto, UpdateEventSettingsDto, UpdateEventModulesDto } from './dto/event-setup.dto';
+interface AuthUser {
+  id: string;
+  organizationId?: string | null;
+}
 
 @ApiTags('Events')
 @Controller('events')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
 @ApiBearerAuth()
 export class EventsController {
   constructor(private readonly eventsService: EventsService) {}
@@ -24,11 +42,11 @@ export class EventsController {
   }
 
   @Post()
+  @Permissions('events.create')
   @ApiOperation({ summary: 'Créer un événement' })
   @ApiResponse({ status: 201, description: 'Événement créé avec succès' })
-  async create(@Body() dto: CreateEventDto) {
-    // In a real scenario, we'd get organizationId and createdById from the request user
-    return this.eventsService.create(dto);
+  async create(@Body() dto: CreateEventDto, @CurrentUser() user: AuthUser) {
+    return this.eventsService.create(dto, user);
   }
 
   @Get(':id')
@@ -38,104 +56,119 @@ export class EventsController {
   }
 
   @Put(':id')
+  @Permissions('events.update')
   @ApiOperation({ summary: 'Modifier un événement' })
   async update(@Param('id') id: string, @Body() dto: UpdateEventDto) {
     return this.eventsService.update(id, dto);
   }
 
   @Delete(':id')
+  @Permissions('events.delete')
   @ApiOperation({ summary: 'Supprimer un événement' })
   async remove(@Param('id') id: string) {
     return this.eventsService.remove(id);
   }
 
-  // EVENT SETUP
+  // ===================== EVENT SETUP =====================
   @Get(':id/setup/status')
   @ApiOperation({ summary: 'Récupérer le statut du wizard de configuration' })
   async setupStatus(@Param('id') id: string) {
-    return { currentStep: 1 };
+    return this.eventsService.getSetupStatus(id);
   }
 
   @Post(':id/setup/step/:stepId')
+  @Permissions('events.settings')
   @ApiOperation({ summary: 'Enregistrer une étape du wizard (1-5)' })
-  async setupStep(@Param('id') id: string, @Param('stepId') stepId: string, @Body() dto: EventSetupStepDto) {
-    return { success: true };
+  async setupStep(
+    @Param('id') id: string,
+    @Param('stepId', ParseIntPipe) stepId: number,
+    @Body() body: Record<string, unknown>,
+  ) {
+    return this.eventsService.saveStep(id, stepId, body);
   }
 
   @Post(':id/setup/finalize')
+  @Permissions('events.settings')
   @ApiOperation({ summary: 'Finaliser la configuration initiale' })
   async setupFinalize(@Param('id') id: string) {
-    return { success: true };
+    return this.eventsService.finalizeSetup(id);
   }
 
-  // EVENT SETTINGS
+  // ===================== EVENT SETTINGS =====================
   @Get(':id/settings')
-  @ApiOperation({ summary: 'Récupérer les réglages de l événement' })
+  @ApiOperation({ summary: "Récupérer les réglages de l'événement" })
   async getSettings(@Param('id') id: string) {
-    return {};
+    return this.eventsService.getSettings(id);
   }
 
   @Put(':id/settings')
-  @ApiOperation({ summary: 'Modifier les réglages de l événement' })
+  @Permissions('events.settings')
+  @ApiOperation({ summary: "Modifier les réglages de l'événement" })
   async updateSettings(@Param('id') id: string, @Body() dto: UpdateEventSettingsDto) {
-    return { success: true };
+    return this.eventsService.updateSettings(id, dto);
   }
 
-  // EVENT MODULES
+  // ===================== EVENT MODULES =====================
   @Get(':id/modules')
   @ApiOperation({ summary: 'Lister les modules activés' })
   async getModules(@Param('id') id: string) {
-    return [];
+    return this.eventsService.getModules(id);
   }
 
   @Put(':id/modules')
-  @ApiOperation({ summary: 'Activer/Désactiver des modules' })
+  @Permissions('events.settings')
+  @ApiOperation({ summary: 'Activer/Désactiver des modules (contraintes appliquées)' })
   async updateModules(@Param('id') id: string, @Body() body: UpdateEventModulesDto) {
-    return { success: true };
+    return this.eventsService.updateModules(id, body.modules);
   }
 
-  // EVENT WORKFLOW
+  // ===================== EVENT WORKFLOW =====================
   @Get(':id/workflow')
   @ApiOperation({ summary: 'Récupérer le statut du workflow de validation' })
   async getWorkflow(@Param('id') id: string) {
-    return { status: 'draft' };
+    return this.eventsService.getWorkflow(id);
   }
 
   @Post(':id/workflow/review')
+  @Permissions('events.workflow')
   @ApiOperation({ summary: 'Soumettre pour revue' })
   async workflowReview(@Param('id') id: string) {
-    return { success: true };
+    return this.eventsService.submitForReview(id);
   }
 
   @Post(':id/workflow/approve')
   @Roles('Super Admin')
-  @ApiOperation({ summary: 'Approuver l événement (Super Admin)' })
-  async workflowApprove(@Param('id') id: string) {
-    return { success: true };
+  @ApiOperation({ summary: "Approuver l'événement (Super Admin)" })
+  async workflowApprove(@Param('id') id: string, @CurrentUser() user: AuthUser) {
+    return this.eventsService.approve(id, user.id);
   }
 
   @Post(':id/workflow/publish')
-  @ApiOperation({ summary: 'Publier l événement' })
+  @Permissions('events.publish')
+  @ApiOperation({ summary: "Publier l'événement" })
   async workflowPublish(@Param('id') id: string) {
-    return { success: true };
+    return this.eventsService.publish(id);
   }
 
   @Post(':id/workflow/archive')
-  @ApiOperation({ summary: 'Archiver l événement' })
+  @Permissions('events.workflow')
+  @ApiOperation({ summary: "Archiver l'événement" })
   async workflowArchive(@Param('id') id: string) {
-    return { success: true };
+    return this.eventsService.archive(id);
   }
 
-  // PUBLISHING
+  // ===================== PUBLISHING =====================
   @Post(':id/publish')
+  @Permissions('events.publish')
   @ApiOperation({ summary: 'Publier' })
   async publish(@Param('id') id: string) {
-    return { success: true };
+    return this.eventsService.publish(id);
   }
 
   @Post(':id/unpublish')
+  @Permissions('events.publish')
   @ApiOperation({ summary: 'Dépublier' })
   async unpublish(@Param('id') id: string) {
-    return { success: true };
+    return this.eventsService.unpublish(id);
   }
 }

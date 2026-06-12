@@ -3,6 +3,15 @@ import { IsNotEmpty, IsString, IsOptional, IsEnum, IsDateString, IsUUID } from '
 import { EventTypeKey, VisibilityType } from '@prisma/client';
 
 export class CreateEventDto {
+  @ApiProperty({
+    required: false,
+    description:
+      "Organisation cible. Optionnel : par défaut l'organisation de l'utilisateur authentifié (requis pour un Super Admin sans organisation).",
+  })
+  @IsUUID()
+  @IsOptional()
+  organizationId?: string;
+
   @ApiProperty({ example: 'My Awesome Event' })
   @IsString()
   @IsNotEmpty()
