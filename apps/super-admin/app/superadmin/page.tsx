@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { ShieldCheck, Plus, Search, X, Lock, Eye, EyeOff, Loader2, AlertCircle, Mail, Fingerprint, ArrowRight, Layout } from "lucide-react";
+import { ShieldCheck, Plus, Search, X, Lock, Eye, EyeOff, Loader2, AlertCircle, Mail, Fingerprint, ArrowRight, Layout, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { EventConfig } from "@backend/eventConfig";
 import { useToast } from "@frontend/hooks/useToast";
@@ -252,13 +252,13 @@ export default function SuperAdminPage() {
   // ── Loading or Auth Screen ────────────────────────────────────────────────
   if (authLoading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-950 p-6 text-white">
-        <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-600/20 animate-pulse">
+      <div className="theme-dark es-app min-h-screen flex flex-col items-center justify-center p-6">
+        <div className="w-16 h-16 rounded-2xl flex items-center justify-center animate-pulse" style={{ background: "var(--brand-blue-600)" }}>
           <ShieldCheck className="w-8 h-8 text-white" />
         </div>
-        <div className="mt-4 flex items-center gap-2 text-slate-400 text-sm">
+        <div className="mt-4 flex items-center gap-2 text-sm" style={{ color: "var(--text-secondary)" }}>
           <Loader2 className="w-4 h-4 animate-spin" />
-          <span>Vérification des accès sécurisés...</span>
+          <span>Vérification des accès sécurisés…</span>
         </div>
       </div>
     );
@@ -269,9 +269,9 @@ export default function SuperAdminPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white selection:bg-[#28A745]/30">
+    <div className="theme-dark es-app min-h-screen selection:bg-[#28A745]/30">
       {/* ── Navigation ──────────────────────────────────────────────────────── */}
-      <nav className="sticky top-0 z-50 border-b border-white/5 bg-black/80 backdrop-blur-xl">
+      <nav className="sticky top-0 z-50 border-b border-[color:var(--border)] bg-[color:var(--bg-surface)]/85 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between gap-4">
           {/* Logo */}
           <div className="flex items-center gap-4 shrink-0">
@@ -279,19 +279,19 @@ export default function SuperAdminPage() {
               <ShieldCheck className="w-6 h-6 text-white" />
             </div>
             <div className="hidden sm:block">
-              <p className="font-black text-base leading-tight text-white uppercase tracking-tighter">System Master</p>
+              <p className="font-bold text-base leading-tight text-[color:var(--text-primary)]">Console Super Admin</p>
               <div className="flex items-center gap-1.5">
                 <div className="w-1.5 h-1.5 rounded-full bg-[#28A745] animate-pulse" />
-                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">EMAKO OS Online</p>
+                <p className="text-xs text-[color:var(--text-secondary)] font-medium">Système en ligne</p>
               </div>
             </div>
           </div>
 
           {/* Tabs */}
-          <div className="hidden md:flex items-center gap-2 bg-white/5 p-1.5 rounded-2xl border border-white/5">
+          <div className="hidden md:flex es-segment" role="tablist" aria-label="Sections">
             {TABS.map(({ key, label }) => (
-              <button key={key} onClick={() => setActiveTab(key)}
-                className={`px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === key ? "bg-[#3B3B6D] text-white shadow-lg" : "text-slate-500 hover:text-white hover:bg-white/5"}`}>
+              <button key={key} role="tab" aria-selected={activeTab === key} onClick={() => setActiveTab(key)}
+                className="es-tab es-focusable">
                 {label}
               </button>
             ))}
@@ -299,26 +299,26 @@ export default function SuperAdminPage() {
 
           {/* Right — profile + logout */}
           <div className="flex items-center gap-4 shrink-0">
-            <button 
+            <button
               onClick={() => {
                 const targetUrl = window.location.port === "3002" ? `http://${window.location.hostname}:3000/home` : "/home";
                 window.location.href = targetUrl;
               }}
-              className="hidden lg:flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
+              className="hidden lg:flex es-btn es-btn--secondary es-btn--sm es-focusable"
             >
               <Layout className="w-3.5 h-3.5" />
-              Espace Organisateur
+              Espace organisateur
             </button>
-            
-            <div className="w-px h-8 bg-white/10 hidden sm:block" />
+
+            <div className="w-px h-8 bg-[color:var(--border)] hidden sm:block" />
 
             <div className="hidden sm:block text-right">
-              <p className="text-xs font-black text-white leading-tight uppercase tracking-tight">{profile.name}</p>
-              <p className="text-[9px] text-[#28A745] font-bold uppercase tracking-widest">Global Admin</p>
+              <p className="text-sm font-semibold text-[color:var(--text-primary)] leading-tight">{profile.name}</p>
+              <p className="text-xs text-[#28A745] font-semibold">Administrateur global</p>
             </div>
             
             <div className="relative group">
-              <div className="w-11 h-11 rounded-2xl overflow-hidden bg-white/5 border border-white/10 p-0.5 group-hover:border-[#3B3B6D] transition-all cursor-pointer">
+              <div className="w-11 h-11 rounded-2xl overflow-hidden bg-[color:var(--bg-subtle)] border border-[color:var(--border)] p-0.5 group-hover:border-[#3B3B6D] transition-all cursor-pointer">
                 {profile.avatarUrl ? (
                   <img src={profile.avatarUrl} alt={profile.name} className="w-full h-full object-cover rounded-[14px]" />
                 ) : (
@@ -333,24 +333,26 @@ export default function SuperAdminPage() {
       </nav>
 
       {/* ── Main Content ──────────────────────────────────────────────────── */}
-      <main className="max-w-7xl mx-auto px-6 py-12">
+      <main className="max-w-7xl mx-auto px-6 py-10">
         <AnimatePresence mode="wait">
           {activeTab === "events" && (
-            <motion.div key="events" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="space-y-12">
+            <motion.div key="events" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -16 }} className="space-y-8">
+              <nav className="es-breadcrumb" aria-label="Fil d'ariane">
+                <span>Console</span><ChevronRight /><span aria-current="page">Événements</span>
+              </nav>
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div className="space-y-1">
-                  <h2 className="text-3xl font-black text-white uppercase tracking-tighter">Gestion des Événements</h2>
-                  <p className="text-slate-500 text-sm">Contrôle et monitoring de la flotte EMAKO</p>
+                  <h2 className="es-h2">Gestion des événements</h2>
+                  <p className="es-subtle">Supervisez et contrôlez tous les événements de la plateforme.</p>
                 </div>
                 <div className="flex items-center gap-3">
-                  <div className="relative">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                    <input type="text" placeholder="Rechercher..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
-                      className="bg-white/5 border border-white/10 rounded-2xl pl-12 pr-6 py-3 text-sm text-white outline-none focus:border-[#3B3B6D] w-64 transition-all" />
+                  <div className="es-input-group w-64">
+                    <Search />
+                    <input type="text" aria-label="Rechercher un événement" placeholder="Rechercher un événement…" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
+                      className="es-input" />
                   </div>
-                  <button onClick={() => setIsCreateModalOpen(true)}
-                    className="flex items-center gap-2 px-6 py-3 bg-[#28A745] hover:bg-[#218838] text-white rounded-2xl text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-[#28A745]/20 hover:scale-[1.02]">
-                    <Plus className="w-4 h-4" /> Créer
+                  <button onClick={() => setIsCreateModalOpen(true)} className="es-btn es-btn--primary es-focusable">
+                    <Plus className="w-4 h-4" /> Nouvel événement
                   </button>
                 </div>
               </div>
@@ -370,14 +372,16 @@ export default function SuperAdminPage() {
 
           {activeTab === "users" && (
             <motion.div key="users" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="space-y-12">
+              <nav className="es-breadcrumb" aria-label="Fil d'ariane">
+                <span>Console</span><ChevronRight /><span aria-current="page">Utilisateurs</span>
+              </nav>
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div className="space-y-1">
-                  <h2 className="text-3xl font-black text-white uppercase tracking-tighter">Gestion des Comptes</h2>
-                  <p className="text-slate-500 text-sm">Administrateurs système et propriétaires d&apos;événements</p>
+                  <h2 className="es-h2">Gestion des comptes</h2>
+                  <p className="es-subtle">Administrateurs système et propriétaires d&apos;événements.</p>
                 </div>
-                <button onClick={() => setIsCreateAdminOpen(true)}
-                  className="flex items-center gap-2 px-6 py-3 bg-[#3B3B6D] hover:bg-[#2F2F5A] text-white rounded-2xl text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-[#3B3B6D]/20 hover:scale-[1.02]">
-                  <Plus className="w-4 h-4" /> Nouvel Admin
+                <button onClick={() => setIsCreateAdminOpen(true)} className="es-btn es-btn--primary es-focusable">
+                  <Plus className="w-4 h-4" /> Nouvel administrateur
                 </button>
               </div>
               <AdminsTable 
