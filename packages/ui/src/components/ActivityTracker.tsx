@@ -3,6 +3,7 @@
 import { useEffect, useCallback } from "react";
 import { usePathname } from "next/navigation";
 import Cookies from "js-cookie";
+import { fetchApi } from "@frontend/utils/api";
 
 /**
  * ActivityTracker: Monitors user activity (click, keydown, scroll)
@@ -18,11 +19,8 @@ export function ActivityTracker() {
     // We just need to make a small authenticated request.
     // The middleware (proxy.ts) will detect this and refresh the cookie.
     try {
-      await fetch("/api/health", {
-        headers: {
-          "Authorization": `Bearer ${token}`,
-          "x-activity-ping": "true"
-        }
+      await fetchApi("/api/v1/health", {
+        headers: { "x-activity-ping": "true" },
       });
       console.log("[ActivityTracker] Session refreshed");
     } catch (e) {

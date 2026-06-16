@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, Save, Lock, Eye, EyeOff, Loader2 } from "lucide-react";
 import { EventConfig, EventType } from "@backend/eventConfig";
 import Cookies from "js-cookie";
+import { fetchApi, parseApiJson } from "@frontend/utils/api";
 
 const EVENT_TYPES: { value: EventType; label: string; icon: string }[] = [
   { value: "wedding",    label: "Mariage",       icon: "💍" },
@@ -31,22 +32,22 @@ export function EditEventModal({ isOpen, event, onClose, onSuccess }: EditEventM
   }, [event]);
 
   const handleSave = async () => {
-    if (!form.ownerId) return;
+    const eventId = (form as Record<string, unknown>).id ?? form.ownerId;
+    if (!eventId) return;
     setLoading(true); setError("");
     const token = Cookies.get("auth-token");
     try {
-      const res = await fetch(`/api/superadmin/events/${form.ownerId}`, {
-        method: "PATCH",
-        headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
+      const res = await fetchApi(`/api/v1/events/${eventId}`, {
+        method: "PUT",
+        headers: { Authorization: `Bearer ${token}` },
         body: JSON.stringify({
-          adminPassword: form.adminPassword,
-          eventName: form.eventName,
+          title: form.eventName,
           eventType: form.eventType,
-          isBlocked: form.isBlocked,
         }),
       });
-      if (res.ok) { onSuccess(); onClose(); }
-      else { const d = await res.json(); setError(d.error || "Erreur de mise à jour."); }
+      const { error } = await parseApiJson(res);
+      if (res.ok && !error) { onSuccess(); onClose(); }
+      else setError(error || "Erreur de mise à jour.");
     } catch { setError("Erreur réseau."); }
     finally { setLoading(false); }
   };

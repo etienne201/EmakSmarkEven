@@ -9,10 +9,10 @@ export declare class FormsService {
         name: string;
         description: string | null;
         slug: string;
-        settings: import("@prisma/client/runtime/library").JsonValue | null;
-        eventId: string;
         isActive: boolean;
-        schema: import("@prisma/client/runtime/library").JsonValue;
+        eventId: string;
+        settings: import("node_modules/@prisma/client/runtime/library").JsonValue | null;
+        schema: import("node_modules/@prisma/client/runtime/library").JsonValue;
     }>;
     getForms(eventId: string): Promise<{
         id: string;
@@ -21,10 +21,10 @@ export declare class FormsService {
         name: string;
         description: string | null;
         slug: string;
-        settings: import("@prisma/client/runtime/library").JsonValue | null;
-        eventId: string;
         isActive: boolean;
-        schema: import("@prisma/client/runtime/library").JsonValue;
+        eventId: string;
+        settings: import("node_modules/@prisma/client/runtime/library").JsonValue | null;
+        schema: import("node_modules/@prisma/client/runtime/library").JsonValue;
     }[]>;
     getFormById(id: string): Promise<{
         id: string;
@@ -33,10 +33,10 @@ export declare class FormsService {
         name: string;
         description: string | null;
         slug: string;
-        settings: import("@prisma/client/runtime/library").JsonValue | null;
-        eventId: string;
         isActive: boolean;
-        schema: import("@prisma/client/runtime/library").JsonValue;
+        eventId: string;
+        settings: import("node_modules/@prisma/client/runtime/library").JsonValue | null;
+        schema: import("node_modules/@prisma/client/runtime/library").JsonValue;
     }>;
     updateForm(id: string, data: any): Promise<{
         id: string;
@@ -45,10 +45,10 @@ export declare class FormsService {
         name: string;
         description: string | null;
         slug: string;
-        settings: import("@prisma/client/runtime/library").JsonValue | null;
-        eventId: string;
         isActive: boolean;
-        schema: import("@prisma/client/runtime/library").JsonValue;
+        eventId: string;
+        settings: import("node_modules/@prisma/client/runtime/library").JsonValue | null;
+        schema: import("node_modules/@prisma/client/runtime/library").JsonValue;
     }>;
     deleteForm(id: string): Promise<{
         id: string;
@@ -57,23 +57,23 @@ export declare class FormsService {
         name: string;
         description: string | null;
         slug: string;
-        settings: import("@prisma/client/runtime/library").JsonValue | null;
-        eventId: string;
         isActive: boolean;
-        schema: import("@prisma/client/runtime/library").JsonValue;
+        eventId: string;
+        settings: import("node_modules/@prisma/client/runtime/library").JsonValue | null;
+        schema: import("node_modules/@prisma/client/runtime/library").JsonValue;
     }>;
     getSubmissions(formId: string): Promise<{
         id: string;
         guestId: string | null;
-        answers: import("@prisma/client/runtime/library").JsonValue;
         formId: string;
+        answers: import("node_modules/@prisma/client/runtime/library").JsonValue;
         submittedAt: Date;
     }[]>;
     createSubmission(formId: string, data: any): Promise<{
         id: string;
         guestId: string | null;
-        answers: import("@prisma/client/runtime/library").JsonValue;
         formId: string;
+        answers: import("node_modules/@prisma/client/runtime/library").JsonValue;
         submittedAt: Date;
     }>;
 }

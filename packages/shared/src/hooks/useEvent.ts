@@ -5,6 +5,16 @@ import { EventConfig, DEFAULT_EVENT_CONFIG } from "@backend/eventConfig";
 import { Guest, Table } from "@backend/eventConfig";
 import { Language } from "@backend/translations";
 import Cookies from "js-cookie";
+import {
+  ensureEventId,
+  getEvent,
+  getEventCheckins,
+  getEventGuests,
+  getEventTables,
+  getStoredEventId,
+  persistEventContext,
+} from "@frontend/utils/event-api";
+import { fetchApi } from "@frontend/utils/api";
 
 export function useEvent() {
   const [eventConfig, setEventConfig] = useLocalStorage<EventConfig | null>("event-config", null);
@@ -43,56 +53,48 @@ export function useEvent() {
       }
     } catch { /* use ref fallback */ }
 
-    const headers = { "Authorization": `Bearer ${token}` };
+    const headers = { Authorization: `Bearer ${token}` };
 
     try {
-      // 1. Fetch Event Config First (Chicken-and-egg fix)
-      const confRes = await fetch(`/api/event-config?ownerId=${currentOwnerId}`, { headers });
-      if (confRes.status === 403) {
-        const err = await confRes.json();
-        if (err.isBlocked) {
-          setEventConfig((prev: any) => ({ ...prev, isBlocked: true }));
-          setIsSyncing(false);
-          return;
-        }
-      } else if (confRes.ok) {
-        const json = await confRes.json();
-        if (json.data) {
-          setEventConfig(json.data);
-          currentOwnerId = json.data.ownerId;
-        }
-      }
-
-      // If we still don't have a valid ownerId, skip fetching private data
-      if (!currentOwnerId || currentOwnerId === "default") {
+      const eventId = (await ensureEventId(token)) ?? getStoredEventId();
+      if (!eventId) {
         if (isInitial) setIsSyncing(false);
         return;
       }
 
-      // 2. Fetch Guests
-      const resGuests = await fetch(`/api/guests?ownerId=${currentOwnerId}&limit=1000`, { headers });
-      if (resGuests.ok) {
-        const json = await resGuests.json();
-        const rawData = json.data?.items || json.data || json;
-        const data = Array.isArray(rawData) ? rawData : [];
-        if (data.length > 0 || isInitial) setGuests(data);
+      const eventRes = await getEvent(eventId);
+      if (eventRes.data) {
+        const ev = eventRes.data as Record<string, unknown>;
+        const mapped: EventConfig = {
+          ...DEFAULT_EVENT_CONFIG,
+          id: String(ev.id ?? eventId),
+          eventId: String(ev.id ?? eventId),
+          ownerId: String(ev.organizationId ?? ev.slug ?? eventId),
+          eventName: String(ev.title ?? ev.eventName ?? ""),
+          title: String(ev.title ?? ""),
+          eventType: (ev.eventType as EventConfig["eventType"]) ?? DEFAULT_EVENT_CONFIG.eventType,
+          status: (ev.status as EventConfig["status"]) ?? DEFAULT_EVENT_CONFIG.status,
+        };
+        setEventConfig(mapped);
+        persistEventContext(eventId);
+        currentOwnerId = mapped.ownerId;
       }
 
-      // 2. Tables
-      const resTables = await fetch(`/api/tables?ownerId=${currentOwnerId}`, { headers });
-      if (resTables.ok) {
-        const json = await resTables.json();
-        const rawData = json.data?.items || json.data || json;
-        const data = Array.isArray(rawData) ? rawData : [];
-        if (data.length > 0 || isInitial) setCustomTables(data);
+      const guestsRes = await getEventGuests(eventId);
+      if (guestsRes.data) {
+        const data = Array.isArray(guestsRes.data) ? guestsRes.data : [];
+        if (data.length > 0 || isInitial) setGuests(data as Guest[]);
       }
 
-      // 3. Attendance
-      const resAtt = await fetch(`/api/attendance?ownerId=${currentOwnerId}&limit=1000`, { headers });
-      if (resAtt.ok) {
-        const json = await resAtt.json();
-        const rawData = json.data?.items || json.data || json;
-        const data = Array.isArray(rawData) ? rawData : [];
+      const tablesRes = await getEventTables(eventId);
+      if (tablesRes.data) {
+        const data = Array.isArray(tablesRes.data) ? tablesRes.data : [];
+        if (data.length > 0 || isInitial) setCustomTables(data as Table[]);
+      }
+
+      const checkinsRes = await getEventCheckins(eventId);
+      if (checkinsRes.data) {
+        const data = Array.isArray(checkinsRes.data) ? checkinsRes.data : [];
         if (data.length > 0 || isInitial) setAttendance(data);
       }
 
@@ -113,15 +115,12 @@ export function useEvent() {
 
   const updateTables = async (newTables: Table[]) => {
     setCustomTables(newTables);
-    const token = Cookies.get("auth-token");
+    const eventId = getStoredEventId();
+    if (!eventId) return;
     try {
-      await fetch("/api/tables", {
+      await fetchApi(`/api/v1/events/${eventId}/tables`, {
         method: "POST",
-        headers: { 
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify({ ownerId, tables: newTables }),
+        body: JSON.stringify({ tables: newTables }),
       });
     } catch (err) {
       console.error("Failed to sync tables", err);

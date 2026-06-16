@@ -7,7 +7,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { EventConfig } from "@backend/eventConfig";
 import { useToast } from "@frontend/hooks/useToast";
 import { useAuth } from "@frontend/context/AuthContext";
-import { apiRequest } from "@frontend/utils/api";
+import { fetchApi, parseApiJson } from "@frontend/utils/api";
+import { isSuperAdminRole } from "@frontend/utils/api-config";
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 import { StatsGrid }          from "@frontend/components/superadmin/StatsGrid";
@@ -35,10 +36,19 @@ const TABS: { key: Tab; label: string }[] = [
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 async function apiFetch(url: string, token: string, options: RequestInit = {}) {
-  return fetch(url, {
+  return fetchApi(url, {
     ...options,
-    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json", ...(options.headers || {}) },
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+      ...(options.headers || {}),
+    },
   });
+}
+
+async function readJson<T>(res: Response): Promise<T | null> {
+  const { data } = await parseApiJson<T>(res);
+  return data ?? null;
 }
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
@@ -48,7 +58,7 @@ export default function SuperAdminPage() {
 
   // Auth from global context
   const { user, token, loading: authLoading, logout: globalLogout } = useAuth();
-  const isAuthenticated = !!user && user.role === "super-admin";
+  const isAuthenticated = !!user && isSuperAdminRole(user.role);
 
   // Data
   const [events,  setEvents]  = useState<EventConfig[]>([]);
@@ -70,45 +80,51 @@ export default function SuperAdminPage() {
   // ── Fetch helpers ──────────────────────────────────────────────────────────
   const refreshAll = (authToken: string) => {
     const fetchEvents = async (t: string) => {
-      const res = await apiFetch("/api/superadmin/events", t);
+      const res = await apiFetch("/api/v1/events", t);
       if (res.ok) {
-        const data = await res.json();
-        setEvents(Array.isArray(data) ? data : (data?.data || []));
+        const data = await readJson<unknown[]>(res);
+        setEvents(Array.isArray(data) ? (data as EventConfig[]) : []);
       }
     };
     const fetchAdmins = async (t: string) => {
-      const res = await apiFetch("/api/superadmin/admins", t);
+      const res = await apiFetch("/api/v1/super-admin/admins", t);
       if (res.ok) {
-        const json = await res.json();
-        setAdmins(json.data?.items || json.data || []);
+        const data = await readJson<unknown[]>(res);
+        setAdmins(Array.isArray(data) ? data : []);
       }
     };
     const fetchLogs = async (t: string) => {
-      const res = await apiFetch("/api/superadmin/logs", t);
+      const res = await apiFetch("/api/v1/super-admin/logs", t);
       if (res.ok) {
-        const data = await res.json();
-        setLogs(Array.isArray(data) ? data : (data?.data || []));
+        const data = await readJson<unknown[]>(res);
+        setLogs(Array.isArray(data) ? data : []);
       }
     };
     const fetchStats = async (t: string) => {
-      const res = await apiFetch("/api/superadmin/stats", t);
+      const res = await apiFetch("/api/v1/super-admin/stats", t);
       if (res.ok) {
-        const json = await res.json();
-        setStats(json.data || json);
+        const data = await readJson<Record<string, unknown>>(res);
+        setStats(data);
       }
     };
     const fetchSystem = async (t: string) => {
-      const res = await apiFetch("/api/superadmin/system/info", t);
+      const res = await apiFetch("/api/v1/platform/health", t);
       if (res.ok) {
-        const json = await res.json();
-        setSystem(json.data || json);
+        const data = await readJson<Record<string, unknown>>(res);
+        setSystem(data);
       }
     };
     const fetchProfile = async (t: string) => {
-      const res = await apiFetch("/api/superadmin/profile", t);
+      const res = await apiFetch("/api/v1/users/profile", t);
       if (res.ok) {
-        const json = await res.json();
-        setProfile(json.data || json);
+        const data = await readJson<Record<string, unknown>>(res);
+        if (data) {
+          setProfile({
+            name: data.fullName ?? data.name ?? "Super Admin",
+            email: data.email,
+            avatarUrl: data.avatarUrl,
+          });
+        }
       }
     };
     fetchEvents(authToken);
@@ -139,9 +155,9 @@ export default function SuperAdminPage() {
     if (!token) return;
     const newStatus = currentStatus === "active" ? "blocked" : "active";
     try {
-      const res = await apiFetch(`/api/superadmin/admins/${id}/status`, token, {
-        method: "PATCH",
-        body: JSON.stringify({ status: newStatus })
+      const res = await apiFetch(`/api/v1/users/${id}`, token, {
+        method: "PUT",
+        body: JSON.stringify({ status: newStatus }),
       });
       if (res.ok) {
         showToast(`Compte ${newStatus === "active" ? "activé" : "bloqué"}`, "success");
@@ -154,27 +170,9 @@ export default function SuperAdminPage() {
     }
   };
 
-  const handleResetAdminPassword = async (id: string) => {
+  const handleResetAdminPassword = async (_id: string) => {
     if (!token) return;
-    const newPassword = Math.random().toString(36).slice(-10) + "A1!";
-    if (!confirm(`Générer un nouveau mot de passe pour cet administrateur ?\nNouveau mot de passe : ${newPassword}`)) return;
-
-    try {
-      const res = await apiFetch(`/api/superadmin/admins/${id}/reset-password`, token, {
-        method: "POST",
-        body: JSON.stringify({ password: newPassword })
-      });
-      if (res.ok) {
-        showToast("Mot de passe réinitialisé avec succès", "success");
-        // Optionnel: copier dans le presse-papier
-        navigator.clipboard.writeText(newPassword);
-        showToast("Nouveau mot de passe copié dans le presse-papier", "info");
-      } else {
-        showToast("Erreur lors de la réinitialisation", "error");
-      }
-    } catch (err) {
-      showToast("Erreur réseau", "error");
-    }
+    showToast("Réinitialisation mot de passe : endpoint backend à venir", "info");
   };
 
   // ── Event actions ──────────────────────────────────────────────────────────
@@ -182,7 +180,7 @@ export default function SuperAdminPage() {
 
   const handleToggleBlock = async (ownerId: string, isBlocked: boolean) => {
     if (!token) return;
-    await apiFetch(`/api/superadmin/events/${ownerId}`, token, { method: "PATCH", body: JSON.stringify({ isBlocked: !isBlocked }) });
+    await apiFetch(`/api/v1/super-admin/organizations/${ownerId}/block`, token, { method: "PATCH" });
     refreshAll(token);
   };
 
@@ -195,7 +193,7 @@ export default function SuperAdminPage() {
   const confirmAdminDelete = async () => {
     if (!adminToDelete || !token) return;
     try {
-      const res = await apiFetch(`/api/superadmin/admins/${adminToDelete.id}`, token, { method: "DELETE" });
+      const res = await apiFetch(`/api/v1/users/${adminToDelete.id}`, token, { method: "DELETE" });
       if (res.ok) {
         showToast("Administrateur supprimé", "success");
         refreshAll(token);
@@ -219,7 +217,7 @@ export default function SuperAdminPage() {
   const handleDelete = async (ownerId: string) => {
     if (!token) return;
     if (!confirm(`Supprimer définitivement l'événement "${ownerId}" ? Cette action est irréversible.`)) return;
-    await apiFetch(`/api/superadmin/events/${ownerId}`, token, { method: "DELETE" });
+    await apiFetch(`/api/v1/events/${ownerId}`, token, { method: "DELETE" });
     refreshAll(token);
   };
 
@@ -233,9 +231,9 @@ export default function SuperAdminPage() {
 
   const handleSaveProfile = async (data: { name: string; avatarUrl?: string }) => {
     if (!token) return;
-    await apiFetch("/api/superadmin/profile", token, { 
-      method: "PATCH", 
-      body: JSON.stringify(data) 
+    await apiFetch("/api/v1/users/profile", token, {
+      method: "PUT",
+      body: JSON.stringify({ fullName: data.name, avatarUrl: data.avatarUrl }),
     });
     setProfile((p: any) => ({ ...p, ...data }));
   };

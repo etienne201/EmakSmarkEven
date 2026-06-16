@@ -78,7 +78,7 @@ export async function GET(
         rsvpStatus: guest.rsvpStatus,
         checkinStatus: guest.checkinStatus,
         eventId: guest.eventId,
-        ownerId: guest.event?.adminId, // Helpful if available
+        ownerId: guest.event?.createdById, // Helpful if available
         smartDesign: guest.event?.design?.smartDesign ?? null,
         layoutElements: guest.event?.design?.layoutElements ?? null,
       },

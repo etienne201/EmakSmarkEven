@@ -26,7 +26,7 @@ export declare class PlatformService {
         createdAt: Date;
         updatedAt: Date;
         name: string;
-        config: import("@prisma/client/runtime/library").JsonValue;
+        config: import("node_modules/@prisma/client/runtime/library").JsonValue;
         category: string;
         previewUrl: string;
         isPremium: boolean;
@@ -37,7 +37,7 @@ export declare class PlatformService {
         createdAt: Date;
         updatedAt: Date;
         name: string;
-        config: import("@prisma/client/runtime/library").JsonValue;
+        config: import("node_modules/@prisma/client/runtime/library").JsonValue;
         category: string;
         previewUrl: string;
         isPremium: boolean;
@@ -48,8 +48,8 @@ export declare class PlatformService {
         createdAt: Date;
         updatedAt: Date;
         active: boolean;
+        events: import("node_modules/@prisma/client/runtime/library").JsonValue;
         secret: string;
-        events: import("@prisma/client/runtime/library").JsonValue;
         endpoint: string;
     }[]>;
     createWebhook(orgId: string, data: any): Promise<{
@@ -58,8 +58,8 @@ export declare class PlatformService {
         createdAt: Date;
         updatedAt: Date;
         active: boolean;
+        events: import("node_modules/@prisma/client/runtime/library").JsonValue;
         secret: string;
-        events: import("@prisma/client/runtime/library").JsonValue;
         endpoint: string;
     }>;
     findAllApiKeys(orgId: string): Promise<{
@@ -69,7 +69,7 @@ export declare class PlatformService {
         name: string;
         expiresAt: Date | null;
         keyHash: string;
-        scopes: import("@prisma/client/runtime/library").JsonValue | null;
+        scopes: import("node_modules/@prisma/client/runtime/library").JsonValue | null;
         lastUsedAt: Date | null;
         revokedAt: Date | null;
     }[]>;
@@ -80,18 +80,18 @@ export declare class PlatformService {
         name: string;
         expiresAt: Date | null;
         keyHash: string;
-        scopes: import("@prisma/client/runtime/library").JsonValue | null;
+        scopes: import("node_modules/@prisma/client/runtime/library").JsonValue | null;
         lastUsedAt: Date | null;
         revokedAt: Date | null;
     }>;
     getAuditLogs(): Promise<{
         id: string;
         createdAt: Date;
-        metadata: import("@prisma/client/runtime/library").JsonValue | null;
-        userId: string | null;
         ipAddress: string | null;
         userAgent: string | null;
+        userId: string | null;
         action: string;
+        metadata: import("node_modules/@prisma/client/runtime/library").JsonValue | null;
         severity: string;
     }[]>;
 }

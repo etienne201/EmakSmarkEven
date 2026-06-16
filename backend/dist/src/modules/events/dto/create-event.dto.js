@@ -17,6 +17,15 @@ class CreateEventDto {
 }
 exports.CreateEventDto = CreateEventDto;
 __decorate([
+    (0, swagger_1.ApiProperty)({
+        required: false,
+        description: "Organisation cible. Optionnel : par défaut l'organisation de l'utilisateur authentifié (requis pour un Super Admin sans organisation).",
+    }),
+    (0, class_validator_1.IsUUID)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], CreateEventDto.prototype, "organizationId", void 0);
+__decorate([
     (0, swagger_1.ApiProperty)({ example: 'My Awesome Event' }),
     (0, class_validator_1.IsString)(),
     (0, class_validator_1.IsNotEmpty)(),

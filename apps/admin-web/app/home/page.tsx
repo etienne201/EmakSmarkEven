@@ -29,6 +29,7 @@ import { useToast } from "@frontend/hooks/useToast";
 import { useAuth } from "@frontend/context/AuthContext";
 import { translations } from "@backend/translations";
 
+import { createGuest, deleteGuest, getStoredEventId } from "@frontend/utils/event-api";
 import { Suspense } from "react";
 
 function DashboardContent() {
@@ -119,46 +120,40 @@ function DashboardContent() {
   };
 
   const handleSaveGuest = async (title: string, name: string, table: number, tableName: string, lang: any) => {
-    const guestData = { 
-      id: editId ? String(editId) : undefined, 
-      uuid: crypto.randomUUID(), 
-      title, 
-      fullName: name, // mapped to Zod schema expected format
-      name, // keep name for immediate frontend state update compatibility
-      table, 
-      tableName, 
-      lang, 
-      ownerId 
+    const eventId = getStoredEventId();
+    if (!eventId) {
+      showToast(t.toasts.connError, "error");
+      return;
+    }
+    const guestData = {
+      title,
+      fullName: name,
+      name,
+      table,
+      tableName,
+      lang,
     };
-    const token = Cookies.get("auth-token");
     try {
-      const res = await fetch("/api/guests", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
-        body: JSON.stringify(guestData),
-      });
-      if (res.ok) {
-        const json = await res.json();
-        const savedGuest = json.data || guestData; // fallback to guestData if data missing
+      const { data, error } = await createGuest(eventId, guestData);
+      if (data && !error) {
+        const savedGuest = (data as Record<string, unknown>) || { ...guestData, id: editId ? String(editId) : crypto.randomUUID() };
         setGuests(prev => {
           const arr = Array.isArray(prev) ? prev : [];
-          return editId ? arr.map(g => g.id === editId ? savedGuest : g) : [...arr, savedGuest];
+          return editId ? arr.map(g => g.id === editId ? savedGuest as typeof g : g) : [...arr, savedGuest as typeof arr[0]];
         });
         showToast(editId ? t.toasts.successUpdate : t.toasts.successAdd, "success");
         setView("list");
         setEditId(null);
+      } else {
+        showToast(t.toasts.connError, "error");
       }
     } catch { showToast(t.toasts.connError, "error"); }
   };
 
   const handleDeleteGuest = async (id: string | number) => {
-    const token = Cookies.get("auth-token");
     try {
-      const res = await fetch(`/api/guests?id=${id}&ownerId=${ownerId}`, { 
-        method: "DELETE",
-        headers: { "Authorization": `Bearer ${token}` }
-      });
-      if (res.ok) {
+      const { error } = await deleteGuest(String(id));
+      if (!error) {
         setGuests(prev => Array.isArray(prev) ? prev.filter(g => g.id !== id) : []);
         showToast(t.toasts.successDelete, "info");
       }

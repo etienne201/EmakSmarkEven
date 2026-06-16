@@ -4,7 +4,7 @@ export declare class CreateSponsorDto {
     website?: string;
     logoUrl?: string;
 }
-declare const UpdateSponsorDto_base: import("@nestjs/common").Type<Partial<CreateSponsorDto>>;
+declare const UpdateSponsorDto_base: import("node_modules/@nestjs/common").Type<Partial<CreateSponsorDto>>;
 export declare class UpdateSponsorDto extends UpdateSponsorDto_base {
 }
 export {};

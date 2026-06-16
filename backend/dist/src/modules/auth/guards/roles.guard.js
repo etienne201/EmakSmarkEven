@@ -13,6 +13,7 @@ exports.RolesGuard = void 0;
 const common_1 = require("@nestjs/common");
 const core_1 = require("@nestjs/core");
 const roles_decorator_1 = require("../decorators/roles.decorator");
+const auth_types_1 = require("../auth.types");
 let RolesGuard = class RolesGuard {
     constructor(reflector) {
         this.reflector = reflector;
@@ -22,20 +23,16 @@ let RolesGuard = class RolesGuard {
             context.getHandler(),
             context.getClass(),
         ]);
-        if (!requiredRoles || requiredRoles.length === 0) {
+        if (!requiredRoles?.length) {
             return true;
         }
         const { user } = context.switchToHttp().getRequest();
-        if (!user || !user.role) {
-            throw new common_1.ForbiddenException('Accès refusé : utilisateur non authentifié ou rôle manquant');
+        if (!user) {
+            throw new common_1.ForbiddenException('Utilisateur non authentifié');
         }
-        const normalizedUser = user.role.name.toLowerCase().replace(/[\s_-]/g, '');
-        const hasRole = requiredRoles.some((role) => {
-            const normalizedReq = role.toLowerCase().replace(/[\s_-]/g, '');
-            return normalizedUser === normalizedReq;
-        });
-        if (!hasRole) {
-            throw new common_1.ForbiddenException(`Accès refusé : le rôle "${user.role.name}" n'est pas autorisé. Rôles requis : ${requiredRoles.join(', ')}`);
+        const userRole = (0, auth_types_1.resolveUserRole)(user);
+        if (!(0, auth_types_1.hasRequiredRole)(userRole, requiredRoles)) {
+            throw new common_1.ForbiddenException(`Accès refusé. Rôle requis: ${requiredRoles.join(', ')}`);
         }
         return true;
     }

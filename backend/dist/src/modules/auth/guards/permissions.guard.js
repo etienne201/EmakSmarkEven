@@ -13,45 +13,31 @@ exports.PermissionsGuard = void 0;
 const common_1 = require("@nestjs/common");
 const core_1 = require("@nestjs/core");
 const permissions_decorator_1 = require("../decorators/permissions.decorator");
-const prisma_service_1 = require("../../../database/prisma.service");
+const auth_types_1 = require("../auth.types");
 let PermissionsGuard = class PermissionsGuard {
-    constructor(reflector, prisma) {
+    constructor(reflector) {
         this.reflector = reflector;
-        this.prisma = prisma;
     }
-    async canActivate(context) {
+    canActivate(context) {
         const requiredPermissions = this.reflector.getAllAndOverride(permissions_decorator_1.PERMISSIONS_KEY, [
             context.getHandler(),
             context.getClass(),
         ]);
-        if (!requiredPermissions || requiredPermissions.length === 0) {
+        if (!requiredPermissions?.length) {
             return true;
         }
         const { user } = context.switchToHttp().getRequest();
-        if (!user || !user.role) {
-            throw new common_1.ForbiddenException('Accès refusé : utilisateur non authentifié');
+        if (!user) {
+            throw new common_1.ForbiddenException('Utilisateur non authentifié');
         }
-        const normalizedRole = user.role.name.toLowerCase().replace(/[\s_-]/g, '');
-        if (normalizedRole === 'superadmin') {
+        const userRole = (0, auth_types_1.resolveUserRole)(user);
+        if ((0, auth_types_1.isSuperAdminRole)(userRole)) {
             return true;
         }
-        const roleWithPermissions = await this.prisma.role.findUnique({
-            where: { id: user.role.id },
-            include: {
-                permissions: {
-                    include: {
-                        permission: true,
-                    },
-                },
-            },
-        });
-        if (!roleWithPermissions) {
-            throw new common_1.ForbiddenException('Rôle introuvable');
-        }
-        const userPermissions = roleWithPermissions.permissions.map((rp) => rp.permission.key);
-        const hasAllPermissions = requiredPermissions.every((perm) => userPermissions.includes(perm));
-        if (!hasAllPermissions) {
-            throw new common_1.ForbiddenException(`Permissions insuffisantes. Requis : ${requiredPermissions.join(', ')}`);
+        const userPermissions = Array.isArray(user.permissions) ? user.permissions : [];
+        const hasPermission = requiredPermissions.every((perm) => userPermissions.includes(perm));
+        if (!hasPermission) {
+            throw new common_1.ForbiddenException(`Permissions insuffisantes. Requis: ${requiredPermissions.join(', ')}`);
         }
         return true;
     }
@@ -59,7 +45,6 @@ let PermissionsGuard = class PermissionsGuard {
 exports.PermissionsGuard = PermissionsGuard;
 exports.PermissionsGuard = PermissionsGuard = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [core_1.Reflector,
-        prisma_service_1.PrismaService])
+    __metadata("design:paramtypes", [core_1.Reflector])
 ], PermissionsGuard);
 //# sourceMappingURL=permissions.guard.js.map

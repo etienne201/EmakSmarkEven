@@ -5,61 +5,40 @@ import { ResetPasswordDto } from './dto/reset-password.dto';
 export declare class AuthController {
     private authService;
     constructor(authService: AuthService);
-    login(loginDto: LoginDto): Promise<{
+    login(dto: LoginDto): Promise<{
         user: {
-            id: string;
-            email: string;
-            fullName: string;
+            uid: string;
+            ownerId: string;
             role: string;
-            organizationId: string;
+            email: string;
+            name: string;
         };
-        token: string;
-    }>;
-    logout(req: any): Promise<{
-        message: string;
-    }>;
-    refresh(body: {
-        refreshToken: string;
-    }): Promise<{
-        token: string;
+        accessToken: string;
+        refreshToken: `${string}-${string}-${string}-${string}-${string}`;
     }>;
     forgotPassword(dto: ForgotPasswordDto): Promise<{
-        message: string;
-    }>;
-    resetPassword(dto: ResetPasswordDto): Promise<{
-        message: string;
-    }>;
-    verifyEmail(body: {
-        token: string;
-    }): Promise<{
-        message: string;
-    }>;
-    enable2FA(): Promise<{
-        qrCode: string;
-    }>;
-    verify2FA(body: {
-        code: string;
-    }): Promise<{
         success: boolean;
     }>;
-    getMe(req: any): Promise<any>;
+    resetPassword(dto: ResetPasswordDto): Promise<{
+        success: boolean;
+    }>;
     getSessions(req: any): Promise<{
         id: string;
         createdAt: Date;
-        userId: string;
         refreshToken: string;
         ipAddress: string | null;
         userAgent: string | null;
         expiresAt: Date;
+        userId: string;
     }[]>;
     deleteSession(id: string): Promise<{
         id: string;
         createdAt: Date;
-        userId: string;
         refreshToken: string;
         ipAddress: string | null;
         userAgent: string | null;
         expiresAt: Date;
+        userId: string;
     }>;
-    revokeAllSessions(req: any): Promise<import("@prisma/client").Prisma.BatchPayload>;
+    revokeAll(req: any): Promise<import("node_modules/@prisma/client/default").Prisma.BatchPayload>;
 }

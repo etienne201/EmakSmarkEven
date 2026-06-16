@@ -1,148 +1,152 @@
 import { EventsService } from './events.service';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
-import { EventSetupStepDto, UpdateEventSettingsDto, UpdateEventModulesDto } from './dto/event-setup.dto';
+import { UpdateEventSettingsDto, UpdateEventModulesDto } from './dto/event-setup.dto';
+interface AuthUser {
+    id: string;
+    organizationId?: string | null;
+}
 export declare class EventsController {
     private readonly eventsService;
     constructor(eventsService: EventsService);
     findAll(organizationId?: string): Promise<({
+        settings: {
+            id: string;
+            updatedAt: Date;
+            eventId: string;
+            rsvpEnabled: boolean;
+            qrEnabled: boolean;
+            checkinEnabled: boolean;
+            networkingEnabled: boolean;
+            livestreamEnabled: boolean;
+            guestLimit: number | null;
+            customRules: import("node_modules/@prisma/client/runtime/library").JsonValue | null;
+        };
+        modules: {
+            id: string;
+            createdAt: Date;
+            updatedAt: Date;
+            eventId: string;
+            version: number;
+            moduleKey: string;
+            enabled: boolean;
+            config: import("node_modules/@prisma/client/runtime/library").JsonValue | null;
+        }[];
+    } & {
+        id: string;
+        organizationId: string;
+        status: import("node_modules/@prisma/client/default").$Enums.EventStatus;
+        createdAt: Date;
+        updatedAt: Date;
+        description: string | null;
+        slug: string;
+        title: string;
+        metadata: import("node_modules/@prisma/client/runtime/library").JsonValue | null;
+        createdById: string;
+        eventType: import("node_modules/@prisma/client/default").$Enums.EventTypeKey;
+        visibility: import("node_modules/@prisma/client/default").$Enums.VisibilityType;
+        language: string;
+        timezone: string | null;
+        startDate: Date;
+        endDate: Date | null;
+        coverImageUrl: string | null;
+        location: string | null;
+        city: string | null;
+        country: string | null;
+        setupCompleted: boolean;
+        currentStep: number;
+    })[]>;
+    create(dto: CreateEventDto, user: AuthUser): Promise<{
+        id: string;
+        organizationId: string;
+        status: import("node_modules/@prisma/client/default").$Enums.EventStatus;
+        createdAt: Date;
+        updatedAt: Date;
+        description: string | null;
+        slug: string;
+        title: string;
+        metadata: import("node_modules/@prisma/client/runtime/library").JsonValue | null;
+        createdById: string;
+        eventType: import("node_modules/@prisma/client/default").$Enums.EventTypeKey;
+        visibility: import("node_modules/@prisma/client/default").$Enums.VisibilityType;
+        language: string;
+        timezone: string | null;
+        startDate: Date;
+        endDate: Date | null;
+        coverImageUrl: string | null;
+        location: string | null;
+        city: string | null;
+        country: string | null;
+        setupCompleted: boolean;
+        currentStep: number;
+    }>;
+    findOne(id: string): Promise<{
         sessions: {
             id: string;
             createdAt: Date;
             updatedAt: Date;
             description: string | null;
-            title: string;
-            metadata: import("@prisma/client/runtime/library").JsonValue | null;
-            eventId: string;
             venue: string | null;
+            eventId: string;
+            title: string;
+            metadata: import("node_modules/@prisma/client/runtime/library").JsonValue | null;
             startAt: Date;
             endAt: Date;
             capacity: number | null;
         }[];
-        guests: {
+        workflow: {
             id: string;
-            email: string | null;
-            fullName: string;
-            phone: string | null;
-            status: import("@prisma/client").$Enums.GuestStatus;
+            status: import("node_modules/@prisma/client/default").$Enums.WorkflowStatus;
+            updatedAt: Date;
+            eventId: string;
+            metadata: import("node_modules/@prisma/client/runtime/library").JsonValue | null;
+            currentStep: string | null;
+            approvedById: string | null;
+            publishedAt: Date | null;
+            archivedAt: Date | null;
+        };
+        settings: {
+            id: string;
+            updatedAt: Date;
+            eventId: string;
+            rsvpEnabled: boolean;
+            qrEnabled: boolean;
+            checkinEnabled: boolean;
+            networkingEnabled: boolean;
+            livestreamEnabled: boolean;
+            guestLimit: number | null;
+            customRules: import("node_modules/@prisma/client/runtime/library").JsonValue | null;
+        };
+        modules: {
+            id: string;
             createdAt: Date;
             updatedAt: Date;
-            metadata: import("@prisma/client/runtime/library").JsonValue | null;
             eventId: string;
-            guestRole: import("@prisma/client").$Enums.GuestRole;
-            qrCode: string | null;
-            invitationUrl: string | null;
-            ticketId: string | null;
-            tableId: string | null;
+            version: number;
+            moduleKey: string;
+            enabled: boolean;
+            config: import("node_modules/@prisma/client/runtime/library").JsonValue | null;
         }[];
-    } & {
-        id: string;
-        organizationId: string;
-        status: import("@prisma/client").$Enums.EventStatus;
-        createdAt: Date;
-        updatedAt: Date;
-        description: string | null;
-        createdById: string;
-        title: string;
-        slug: string;
-        eventType: import("@prisma/client").$Enums.EventTypeKey;
-        visibility: import("@prisma/client").$Enums.VisibilityType;
-        language: string;
-        timezone: string | null;
-        startDate: Date;
-        endDate: Date | null;
-        coverImageUrl: string | null;
-        location: string | null;
-        city: string | null;
-        country: string | null;
-        setupCompleted: boolean;
-        currentStep: number;
-        metadata: import("@prisma/client/runtime/library").JsonValue | null;
-    })[]>;
-    create(dto: CreateEventDto): Promise<{
-        id: string;
-        organizationId: string;
-        status: import("@prisma/client").$Enums.EventStatus;
-        createdAt: Date;
-        updatedAt: Date;
-        description: string | null;
-        createdById: string;
-        title: string;
-        slug: string;
-        eventType: import("@prisma/client").$Enums.EventTypeKey;
-        visibility: import("@prisma/client").$Enums.VisibilityType;
-        language: string;
-        timezone: string | null;
-        startDate: Date;
-        endDate: Date | null;
-        coverImageUrl: string | null;
-        location: string | null;
-        city: string | null;
-        country: string | null;
-        setupCompleted: boolean;
-        currentStep: number;
-        metadata: import("@prisma/client/runtime/library").JsonValue | null;
-    }>;
-    findOne(id: string): Promise<{
-        sessions: ({
-            sessionSpeakers: ({
-                speaker: {
-                    id: string;
-                    organizationId: string | null;
-                    email: string | null;
-                    fullName: string;
-                    avatarUrl: string | null;
-                    phone: string | null;
-                    createdAt: Date;
-                    updatedAt: Date;
-                    title: string | null;
-                    metadata: import("@prisma/client/runtime/library").JsonValue | null;
-                    bio: string | null;
-                    socialLinks: import("@prisma/client/runtime/library").JsonValue | null;
-                };
-            } & {
-                createdAt: Date;
-                role: string | null;
-                sessionId: string;
-                speakerId: string;
-            })[];
-        } & {
+        themes: {
             id: string;
             createdAt: Date;
             updatedAt: Date;
-            description: string | null;
-            title: string;
-            metadata: import("@prisma/client/runtime/library").JsonValue | null;
+            name: string;
             eventId: string;
-            venue: string | null;
-            startAt: Date;
-            endAt: Date;
-            capacity: number | null;
-        })[];
-        guests: {
-            id: string;
-            email: string | null;
-            fullName: string;
-            phone: string | null;
-            status: import("@prisma/client").$Enums.GuestStatus;
-            createdAt: Date;
-            updatedAt: Date;
-            metadata: import("@prisma/client/runtime/library").JsonValue | null;
-            eventId: string;
-            guestRole: import("@prisma/client").$Enums.GuestRole;
-            qrCode: string | null;
-            invitationUrl: string | null;
-            ticketId: string | null;
-            tableId: string | null;
+            version: number;
+            templateId: string | null;
+            tokens: import("node_modules/@prisma/client/runtime/library").JsonValue;
+            canvas: import("node_modules/@prisma/client/runtime/library").JsonValue | null;
+            customCss: string | null;
         }[];
         sponsors: {
             id: string;
             createdAt: Date;
             updatedAt: Date;
-            metadata: import("@prisma/client/runtime/library").JsonValue | null;
-            eventId: string;
             logoUrl: string | null;
             website: string | null;
+            eventId: string;
+            metadata: import("node_modules/@prisma/client/runtime/library").JsonValue | null;
             companyName: string;
             contactEmail: string | null;
             sponsorshipTier: string | null;
@@ -150,15 +154,16 @@ export declare class EventsController {
     } & {
         id: string;
         organizationId: string;
-        status: import("@prisma/client").$Enums.EventStatus;
+        status: import("node_modules/@prisma/client/default").$Enums.EventStatus;
         createdAt: Date;
         updatedAt: Date;
         description: string | null;
-        createdById: string;
-        title: string;
         slug: string;
-        eventType: import("@prisma/client").$Enums.EventTypeKey;
-        visibility: import("@prisma/client").$Enums.VisibilityType;
+        title: string;
+        metadata: import("node_modules/@prisma/client/runtime/library").JsonValue | null;
+        createdById: string;
+        eventType: import("node_modules/@prisma/client/default").$Enums.EventTypeKey;
+        visibility: import("node_modules/@prisma/client/default").$Enums.VisibilityType;
         language: string;
         timezone: string | null;
         startDate: Date;
@@ -169,20 +174,20 @@ export declare class EventsController {
         country: string | null;
         setupCompleted: boolean;
         currentStep: number;
-        metadata: import("@prisma/client/runtime/library").JsonValue | null;
     }>;
     update(id: string, dto: UpdateEventDto): Promise<{
         id: string;
         organizationId: string;
-        status: import("@prisma/client").$Enums.EventStatus;
+        status: import("node_modules/@prisma/client/default").$Enums.EventStatus;
         createdAt: Date;
         updatedAt: Date;
         description: string | null;
-        createdById: string;
-        title: string;
         slug: string;
-        eventType: import("@prisma/client").$Enums.EventTypeKey;
-        visibility: import("@prisma/client").$Enums.VisibilityType;
+        title: string;
+        metadata: import("node_modules/@prisma/client/runtime/library").JsonValue | null;
+        createdById: string;
+        eventType: import("node_modules/@prisma/client/default").$Enums.EventTypeKey;
+        visibility: import("node_modules/@prisma/client/default").$Enums.VisibilityType;
         language: string;
         timezone: string | null;
         startDate: Date;
@@ -193,68 +198,289 @@ export declare class EventsController {
         country: string | null;
         setupCompleted: boolean;
         currentStep: number;
-        metadata: import("@prisma/client/runtime/library").JsonValue | null;
     }>;
     remove(id: string): Promise<{
-        id: string;
-        organizationId: string;
-        status: import("@prisma/client").$Enums.EventStatus;
-        createdAt: Date;
-        updatedAt: Date;
-        description: string | null;
-        createdById: string;
-        title: string;
-        slug: string;
-        eventType: import("@prisma/client").$Enums.EventTypeKey;
-        visibility: import("@prisma/client").$Enums.VisibilityType;
-        language: string;
-        timezone: string | null;
-        startDate: Date;
-        endDate: Date | null;
-        coverImageUrl: string | null;
-        location: string | null;
-        city: string | null;
-        country: string | null;
-        setupCompleted: boolean;
-        currentStep: number;
-        metadata: import("@prisma/client/runtime/library").JsonValue | null;
+        success: boolean;
     }>;
     setupStatus(id: string): Promise<{
+        eventId: string;
         currentStep: number;
+        completedSteps: number[];
+        setupCompleted: boolean;
+        status: import("node_modules/@prisma/client/default").$Enums.EventStatus;
+        steps: {
+            1: {
+                title: string;
+                slug: string;
+                description: string;
+                eventType: import("node_modules/@prisma/client/default").$Enums.EventTypeKey;
+                language: string;
+                visibility: import("node_modules/@prisma/client/default").$Enums.VisibilityType;
+            };
+            2: {
+                location: string;
+                city: string;
+                country: string;
+                timezone: string;
+                startDate: Date;
+                endDate: Date;
+            };
+            3: {
+                modules: Record<string, boolean>;
+                settings: {
+                    id: string;
+                    updatedAt: Date;
+                    eventId: string;
+                    rsvpEnabled: boolean;
+                    qrEnabled: boolean;
+                    checkinEnabled: boolean;
+                    networkingEnabled: boolean;
+                    livestreamEnabled: boolean;
+                    guestLimit: number | null;
+                    customRules: import("node_modules/@prisma/client/runtime/library").JsonValue | null;
+                };
+            };
+            4: {
+                themes: {
+                    id: string;
+                    createdAt: Date;
+                    updatedAt: Date;
+                    name: string;
+                    eventId: string;
+                    version: number;
+                    templateId: string | null;
+                    tokens: import("node_modules/@prisma/client/runtime/library").JsonValue;
+                    canvas: import("node_modules/@prisma/client/runtime/library").JsonValue | null;
+                    customCss: string | null;
+                }[];
+            };
+            5: {
+                access: Record<string, unknown>;
+            };
+        };
     }>;
-    setupStep(id: string, stepId: string, dto: EventSetupStepDto): Promise<{
-        success: boolean;
+    setupStep(id: string, stepId: number, body: Record<string, unknown>): Promise<{
+        eventId: string;
+        currentStep: number;
+        completedSteps: number[];
+        setupCompleted: boolean;
+        status: import("node_modules/@prisma/client/default").$Enums.EventStatus;
+        steps: {
+            1: {
+                title: string;
+                slug: string;
+                description: string;
+                eventType: import("node_modules/@prisma/client/default").$Enums.EventTypeKey;
+                language: string;
+                visibility: import("node_modules/@prisma/client/default").$Enums.VisibilityType;
+            };
+            2: {
+                location: string;
+                city: string;
+                country: string;
+                timezone: string;
+                startDate: Date;
+                endDate: Date;
+            };
+            3: {
+                modules: Record<string, boolean>;
+                settings: {
+                    id: string;
+                    updatedAt: Date;
+                    eventId: string;
+                    rsvpEnabled: boolean;
+                    qrEnabled: boolean;
+                    checkinEnabled: boolean;
+                    networkingEnabled: boolean;
+                    livestreamEnabled: boolean;
+                    guestLimit: number | null;
+                    customRules: import("node_modules/@prisma/client/runtime/library").JsonValue | null;
+                };
+            };
+            4: {
+                themes: {
+                    id: string;
+                    createdAt: Date;
+                    updatedAt: Date;
+                    name: string;
+                    eventId: string;
+                    version: number;
+                    templateId: string | null;
+                    tokens: import("node_modules/@prisma/client/runtime/library").JsonValue;
+                    canvas: import("node_modules/@prisma/client/runtime/library").JsonValue | null;
+                    customCss: string | null;
+                }[];
+            };
+            5: {
+                access: Record<string, unknown>;
+            };
+        };
     }>;
     setupFinalize(id: string): Promise<{
+        eventId: string;
+        currentStep: number;
+        completedSteps: number[];
+        setupCompleted: boolean;
+        status: import("node_modules/@prisma/client/default").$Enums.EventStatus;
+        steps: {
+            1: {
+                title: string;
+                slug: string;
+                description: string;
+                eventType: import("node_modules/@prisma/client/default").$Enums.EventTypeKey;
+                language: string;
+                visibility: import("node_modules/@prisma/client/default").$Enums.VisibilityType;
+            };
+            2: {
+                location: string;
+                city: string;
+                country: string;
+                timezone: string;
+                startDate: Date;
+                endDate: Date;
+            };
+            3: {
+                modules: Record<string, boolean>;
+                settings: {
+                    id: string;
+                    updatedAt: Date;
+                    eventId: string;
+                    rsvpEnabled: boolean;
+                    qrEnabled: boolean;
+                    checkinEnabled: boolean;
+                    networkingEnabled: boolean;
+                    livestreamEnabled: boolean;
+                    guestLimit: number | null;
+                    customRules: import("node_modules/@prisma/client/runtime/library").JsonValue | null;
+                };
+            };
+            4: {
+                themes: {
+                    id: string;
+                    createdAt: Date;
+                    updatedAt: Date;
+                    name: string;
+                    eventId: string;
+                    version: number;
+                    templateId: string | null;
+                    tokens: import("node_modules/@prisma/client/runtime/library").JsonValue;
+                    canvas: import("node_modules/@prisma/client/runtime/library").JsonValue | null;
+                    customCss: string | null;
+                }[];
+            };
+            5: {
+                access: Record<string, unknown>;
+            };
+        };
         success: boolean;
     }>;
-    getSettings(id: string): Promise<{}>;
+    getSettings(id: string): Promise<{
+        eventId: string;
+        rsvpEnabled: boolean;
+        qrEnabled: boolean;
+        checkinEnabled: boolean;
+        networkingEnabled: boolean;
+        livestreamEnabled: boolean;
+        guestLimit: any;
+        customRules: any;
+    }>;
     updateSettings(id: string, dto: UpdateEventSettingsDto): Promise<{
-        success: boolean;
+        id: string;
+        updatedAt: Date;
+        eventId: string;
+        rsvpEnabled: boolean;
+        qrEnabled: boolean;
+        checkinEnabled: boolean;
+        networkingEnabled: boolean;
+        livestreamEnabled: boolean;
+        guestLimit: number | null;
+        customRules: import("node_modules/@prisma/client/runtime/library").JsonValue | null;
     }>;
-    getModules(id: string): Promise<any[]>;
+    getModules(id: string): Promise<Record<string, boolean>>;
     updateModules(id: string, body: UpdateEventModulesDto): Promise<{
-        success: boolean;
+        modules: Record<"notifications" | "invitations" | "analytics" | "guests" | "qrCheckin" | "tables" | "seating" | "badges", boolean>;
     }>;
     getWorkflow(id: string): Promise<{
-        status: string;
+        id: string;
+        status: import("node_modules/@prisma/client/default").$Enums.WorkflowStatus;
+        updatedAt: Date;
+        eventId: string;
+        metadata: import("node_modules/@prisma/client/runtime/library").JsonValue | null;
+        currentStep: string | null;
+        approvedById: string | null;
+        publishedAt: Date | null;
+        archivedAt: Date | null;
+    } | {
+        eventId: string;
+        status: "draft";
     }>;
     workflowReview(id: string): Promise<{
-        success: boolean;
+        id: string;
+        status: import("node_modules/@prisma/client/default").$Enums.WorkflowStatus;
+        updatedAt: Date;
+        eventId: string;
+        metadata: import("node_modules/@prisma/client/runtime/library").JsonValue | null;
+        currentStep: string | null;
+        approvedById: string | null;
+        publishedAt: Date | null;
+        archivedAt: Date | null;
+    } | {
+        eventId: string;
+        status: "draft";
     }>;
-    workflowApprove(id: string): Promise<{
-        success: boolean;
+    workflowApprove(id: string, user: AuthUser): Promise<{
+        id: string;
+        status: import("node_modules/@prisma/client/default").$Enums.WorkflowStatus;
+        updatedAt: Date;
+        eventId: string;
+        metadata: import("node_modules/@prisma/client/runtime/library").JsonValue | null;
+        currentStep: string | null;
+        approvedById: string | null;
+        publishedAt: Date | null;
+        archivedAt: Date | null;
     }>;
     workflowPublish(id: string): Promise<{
-        success: boolean;
+        id: string;
+        eventId: string;
+        metadata: import("node_modules/@prisma/client/runtime/library").JsonValue | null;
+        publishedAt: Date | null;
+        publicUrl: string | null;
+        shortUrl: string | null;
+        seoTitle: string | null;
+        seoDescription: string | null;
+        seoImage: string | null;
+        customDomain: string | null;
+        unpublishedAt: Date | null;
     }>;
     workflowArchive(id: string): Promise<{
-        success: boolean;
+        id: string;
+        status: import("node_modules/@prisma/client/default").$Enums.WorkflowStatus;
+        updatedAt: Date;
+        eventId: string;
+        metadata: import("node_modules/@prisma/client/runtime/library").JsonValue | null;
+        currentStep: string | null;
+        approvedById: string | null;
+        publishedAt: Date | null;
+        archivedAt: Date | null;
+    } | {
+        eventId: string;
+        status: "draft";
     }>;
     publish(id: string): Promise<{
-        success: boolean;
+        id: string;
+        eventId: string;
+        metadata: import("node_modules/@prisma/client/runtime/library").JsonValue | null;
+        publishedAt: Date | null;
+        publicUrl: string | null;
+        shortUrl: string | null;
+        seoTitle: string | null;
+        seoDescription: string | null;
+        seoImage: string | null;
+        customDomain: string | null;
+        unpublishedAt: Date | null;
     }>;
     unpublish(id: string): Promise<{
         success: boolean;
     }>;
 }
+export {};

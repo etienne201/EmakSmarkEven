@@ -57,6 +57,6 @@ export declare class RolesService {
         createdAt: Date;
         key: string;
         label: string;
-        scope: import("@prisma/client").$Enums.PermissionScope;
+        scope: import("node_modules/@prisma/client/default").$Enums.PermissionScope;
     }[]>;
 }

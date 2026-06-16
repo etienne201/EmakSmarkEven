@@ -1,7 +1,9 @@
 import { PrismaService } from '../../database/prisma.service';
+import { MailService } from '../mail/mail.service';
 export declare class SuperAdminService {
     private prisma;
-    constructor(prisma: PrismaService);
+    private mailService;
+    constructor(prisma: PrismaService, mailService: MailService);
     getPlatformStats(): Promise<{
         totalOrganizations: number;
         totalUsers: number;
@@ -31,14 +33,14 @@ export declare class SuperAdminService {
         };
     } & {
         id: string;
+        email: string;
         organizationId: string | null;
         roleId: string;
-        email: string;
         passwordHash: string;
         fullName: string;
         avatarUrl: string | null;
         phone: string | null;
-        status: import("@prisma/client").$Enums.UserStatus;
+        status: import("node_modules/@prisma/client/default").$Enums.UserStatus;
         emailVerified: boolean;
         lastLoginAt: Date | null;
         createdAt: Date;
@@ -60,14 +62,14 @@ export declare class SuperAdminService {
     getAllSystemLogs(): Promise<{
         id: string;
         createdAt: Date;
-        eventId: string | null;
-        userId: string | null;
         ipAddress: string | null;
         userAgent: string | null;
+        userId: string | null;
         action: string;
         targetType: string | null;
         targetId: string | null;
-        details: import("@prisma/client/runtime/library").JsonValue | null;
+        details: import("node_modules/@prisma/client/runtime/library").JsonValue | null;
+        eventId: string | null;
     }[]>;
     createAdminAccount(data: {
         email: string;
@@ -76,22 +78,23 @@ export declare class SuperAdminService {
         organizationName: string;
         organizationSlug: string;
     }): Promise<{
+        emailSent: boolean;
+        emailSimulated: boolean;
         owner: {
             id: string;
+            email: string;
             organizationId: string | null;
             roleId: string;
-            email: string;
             passwordHash: string;
             fullName: string;
             avatarUrl: string | null;
             phone: string | null;
-            status: import("@prisma/client").$Enums.UserStatus;
+            status: import("node_modules/@prisma/client/default").$Enums.UserStatus;
             emailVerified: boolean;
             lastLoginAt: Date | null;
             createdAt: Date;
             updatedAt: Date;
         };
-    } & {
         id: string;
         email: string | null;
         phone: string | null;

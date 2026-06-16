@@ -9,11 +9,11 @@ export declare class ThemesController {
         updatedAt: Date;
         name: string;
         eventId: string;
-        templateId: string | null;
-        tokens: import("@prisma/client/runtime/library").JsonValue;
-        canvas: import("@prisma/client/runtime/library").JsonValue | null;
-        customCss: string | null;
         version: number;
+        templateId: string | null;
+        tokens: import("node_modules/@prisma/client/runtime/library").JsonValue;
+        canvas: import("node_modules/@prisma/client/runtime/library").JsonValue | null;
+        customCss: string | null;
     }[]>;
     create(id: string, dto: UpdateThemeDto): Promise<{
         id: string;
@@ -21,11 +21,11 @@ export declare class ThemesController {
         updatedAt: Date;
         name: string;
         eventId: string;
-        templateId: string | null;
-        tokens: import("@prisma/client/runtime/library").JsonValue;
-        canvas: import("@prisma/client/runtime/library").JsonValue | null;
-        customCss: string | null;
         version: number;
+        templateId: string | null;
+        tokens: import("node_modules/@prisma/client/runtime/library").JsonValue;
+        canvas: import("node_modules/@prisma/client/runtime/library").JsonValue | null;
+        customCss: string | null;
     }>;
     findOne(id: string): Promise<{
         id: string;
@@ -33,11 +33,11 @@ export declare class ThemesController {
         updatedAt: Date;
         name: string;
         eventId: string;
-        templateId: string | null;
-        tokens: import("@prisma/client/runtime/library").JsonValue;
-        canvas: import("@prisma/client/runtime/library").JsonValue | null;
-        customCss: string | null;
         version: number;
+        templateId: string | null;
+        tokens: import("node_modules/@prisma/client/runtime/library").JsonValue;
+        canvas: import("node_modules/@prisma/client/runtime/library").JsonValue | null;
+        customCss: string | null;
     }>;
     update(id: string, dto: UpdateThemeDto): Promise<{
         id: string;
@@ -45,11 +45,11 @@ export declare class ThemesController {
         updatedAt: Date;
         name: string;
         eventId: string;
-        templateId: string | null;
-        tokens: import("@prisma/client/runtime/library").JsonValue;
-        canvas: import("@prisma/client/runtime/library").JsonValue | null;
-        customCss: string | null;
         version: number;
+        templateId: string | null;
+        tokens: import("node_modules/@prisma/client/runtime/library").JsonValue;
+        canvas: import("node_modules/@prisma/client/runtime/library").JsonValue | null;
+        customCss: string | null;
     }>;
     remove(id: string): Promise<{
         id: string;
@@ -57,10 +57,10 @@ export declare class ThemesController {
         updatedAt: Date;
         name: string;
         eventId: string;
-        templateId: string | null;
-        tokens: import("@prisma/client/runtime/library").JsonValue;
-        canvas: import("@prisma/client/runtime/library").JsonValue | null;
-        customCss: string | null;
         version: number;
+        templateId: string | null;
+        tokens: import("node_modules/@prisma/client/runtime/library").JsonValue;
+        canvas: import("node_modules/@prisma/client/runtime/library").JsonValue | null;
+        customCss: string | null;
     }>;
 }

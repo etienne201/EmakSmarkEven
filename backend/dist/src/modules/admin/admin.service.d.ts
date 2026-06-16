@@ -11,7 +11,7 @@ export declare class AdminService {
     getGuests(eventId: string): Promise<({
         ticket: {
             id: string;
-            status: import("@prisma/client").$Enums.TicketStatus;
+            status: import("node_modules/@prisma/client/default").$Enums.TicketStatus;
             expiresAt: Date | null;
             guestId: string;
             code: string;
@@ -23,29 +23,29 @@ export declare class AdminService {
         email: string | null;
         fullName: string;
         phone: string | null;
-        status: import("@prisma/client").$Enums.GuestStatus;
+        status: import("node_modules/@prisma/client/default").$Enums.GuestStatus;
         createdAt: Date;
         updatedAt: Date;
-        metadata: import("@prisma/client/runtime/library").JsonValue | null;
         eventId: string;
-        guestRole: import("@prisma/client").$Enums.GuestRole;
+        guestRole: import("node_modules/@prisma/client/default").$Enums.GuestRole;
         qrCode: string | null;
         invitationUrl: string | null;
         ticketId: string | null;
-        tableId: string | null;
+        metadata: import("node_modules/@prisma/client/runtime/library").JsonValue | null;
     })[]>;
     updateEventConfig(eventId: string, data: any): Promise<{
         id: string;
         organizationId: string;
-        status: import("@prisma/client").$Enums.EventStatus;
+        status: import("node_modules/@prisma/client/default").$Enums.EventStatus;
         createdAt: Date;
         updatedAt: Date;
         description: string | null;
-        createdById: string;
-        title: string;
         slug: string;
-        eventType: import("@prisma/client").$Enums.EventTypeKey;
-        visibility: import("@prisma/client").$Enums.VisibilityType;
+        title: string;
+        metadata: import("node_modules/@prisma/client/runtime/library").JsonValue | null;
+        createdById: string;
+        eventType: import("node_modules/@prisma/client/default").$Enums.EventTypeKey;
+        visibility: import("node_modules/@prisma/client/default").$Enums.VisibilityType;
         language: string;
         timezone: string | null;
         startDate: Date;
@@ -56,22 +56,20 @@ export declare class AdminService {
         country: string | null;
         setupCompleted: boolean;
         currentStep: number;
-        metadata: import("@prisma/client/runtime/library").JsonValue | null;
     }>;
     addGuest(eventId: string, guestData: CreateGuestDto): Promise<{
         id: string;
         email: string | null;
         fullName: string;
         phone: string | null;
-        status: import("@prisma/client").$Enums.GuestStatus;
+        status: import("node_modules/@prisma/client/default").$Enums.GuestStatus;
         createdAt: Date;
         updatedAt: Date;
-        metadata: import("@prisma/client/runtime/library").JsonValue | null;
         eventId: string;
-        guestRole: import("@prisma/client").$Enums.GuestRole;
+        guestRole: import("node_modules/@prisma/client/default").$Enums.GuestRole;
         qrCode: string | null;
         invitationUrl: string | null;
         ticketId: string | null;
-        tableId: string | null;
+        metadata: import("node_modules/@prisma/client/runtime/library").JsonValue | null;
     }>;
 }

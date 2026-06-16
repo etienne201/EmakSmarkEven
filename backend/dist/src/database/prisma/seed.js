@@ -1,40 +1,7 @@
 "use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
 Object.defineProperty(exports, "__esModule", { value: true });
 const client_1 = require("@prisma/client");
-const bcrypt = __importStar(require("bcrypt"));
+const bcrypt = require("bcrypt");
 const prisma = new client_1.PrismaClient();
 async function main() {
     console.log('🌱 Seeding database...');
@@ -142,9 +109,13 @@ async function main() {
         });
     }
     console.log(`✅ SUPER_ADMIN → ${permissions.length} permissions assigned`);
-    const adminPermKeys = permissions.filter((p) => p.scope !== 'global' || [
-        'events.list', 'guests.list', 'analytics.view',
-    ].includes(p.key));
+    const adminGlobalKeys = [
+        'events.list',
+        'guests.list',
+        'analytics.view',
+        'organizations.list',
+    ];
+    const adminPermKeys = permissions.filter((p) => p.scope !== 'global' || adminGlobalKeys.includes(p.key));
     for (const perm of adminPermKeys) {
         await prisma.rolePermission.upsert({
             where: {
@@ -210,23 +181,54 @@ async function main() {
         },
     });
     console.log('✅ Super Admin user created (superadmin@smartevent.com / Superadmin123@)');
-    const adminPassword = await bcrypt.hash('Admin123@', 10);
+    const userEvenId = '00000000-0000-0000-0000-000000000103';
+    const userEvenOrgId = '00000000-0000-0000-0000-000000000201';
+    const userEvenPassword = await bcrypt.hash('User123@', 10);
     await prisma.user.upsert({
-        where: { email: 'admin@smartevent.com' },
-        update: { passwordHash: adminPassword, roleId: adminRole.id },
+        where: { email: 'usereven@smartevent.com' },
+        update: {
+            passwordHash: userEvenPassword,
+            roleId: adminRole.id,
+            fullName: 'UserEven',
+            status: 'active',
+            emailVerified: true,
+        },
         create: {
-            id: '00000000-0000-0000-0000-000000000102',
-            email: 'admin@smartevent.com',
-            passwordHash: adminPassword,
-            fullName: 'Admin Demo',
+            id: userEvenId,
+            email: 'usereven@smartevent.com',
+            passwordHash: userEvenPassword,
+            fullName: 'UserEven',
             roleId: adminRole.id,
             status: 'active',
             emailVerified: true,
         },
     });
-    console.log('✅ Admin user created (admin@smartevent.com / Admin123@)');
+    await prisma.organization.upsert({
+        where: { slug: 'usereven' },
+        update: {
+            name: 'UserEven Events',
+            ownerId: userEvenId,
+            isActive: true,
+        },
+        create: {
+            id: userEvenOrgId,
+            name: 'UserEven Events',
+            slug: 'usereven',
+            ownerId: userEvenId,
+            isActive: true,
+        },
+    });
+    await prisma.user.update({
+        where: { id: userEvenId },
+        data: { organizationId: userEvenOrgId },
+    });
+    console.log('✅ Default Admin user created (UserEven / User123@ → usereven@smartevent.com)');
     console.log('');
     console.log('🚀 Seeding completed successfully!');
+    console.log('');
+    console.log('📋 Default accounts:');
+    console.log('   • Super Admin : superadmin@smartevent.com / Superadmin123@');
+    console.log('   • Organisateur: UserEven / User123@');
     console.log('');
     console.log('📋 Role summary:');
     console.log(`   • SUPER_ADMIN → ${permissions.length} permissions (full system access)`);

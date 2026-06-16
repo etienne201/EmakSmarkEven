@@ -34,14 +34,14 @@ export declare class OrganizationsController {
     findOne(id: string): Promise<{
         owner: {
             id: string;
+            email: string;
             organizationId: string | null;
             roleId: string;
-            email: string;
             passwordHash: string;
             fullName: string;
             avatarUrl: string | null;
             phone: string | null;
-            status: import("@prisma/client").$Enums.UserStatus;
+            status: import("node_modules/@prisma/client/default").$Enums.UserStatus;
             emailVerified: boolean;
             lastLoginAt: Date | null;
             createdAt: Date;
@@ -88,14 +88,14 @@ export declare class OrganizationsController {
     }>;
     findUsers(id: string): Promise<{
         id: string;
+        email: string;
         organizationId: string | null;
         roleId: string;
-        email: string;
         passwordHash: string;
         fullName: string;
         avatarUrl: string | null;
         phone: string | null;
-        status: import("@prisma/client").$Enums.UserStatus;
+        status: import("node_modules/@prisma/client/default").$Enums.UserStatus;
         emailVerified: boolean;
         lastLoginAt: Date | null;
         createdAt: Date;
@@ -103,14 +103,14 @@ export declare class OrganizationsController {
     }[]>;
     addUser(id: string, dto: AddOrganizationUserDto): Promise<{
         id: string;
+        email: string;
         organizationId: string | null;
         roleId: string;
-        email: string;
         passwordHash: string;
         fullName: string;
         avatarUrl: string | null;
         phone: string | null;
-        status: import("@prisma/client").$Enums.UserStatus;
+        status: import("node_modules/@prisma/client/default").$Enums.UserStatus;
         emailVerified: boolean;
         lastLoginAt: Date | null;
         createdAt: Date;
@@ -118,14 +118,14 @@ export declare class OrganizationsController {
     }>;
     updateUser(id: string, userId: string, dto: UpdateOrganizationUserDto): Promise<{
         id: string;
+        email: string;
         organizationId: string | null;
         roleId: string;
-        email: string;
         passwordHash: string;
         fullName: string;
         avatarUrl: string | null;
         phone: string | null;
-        status: import("@prisma/client").$Enums.UserStatus;
+        status: import("node_modules/@prisma/client/default").$Enums.UserStatus;
         emailVerified: boolean;
         lastLoginAt: Date | null;
         createdAt: Date;
@@ -133,14 +133,14 @@ export declare class OrganizationsController {
     }>;
     removeUser(id: string, userId: string): Promise<{
         id: string;
+        email: string;
         organizationId: string | null;
         roleId: string;
-        email: string;
         passwordHash: string;
         fullName: string;
         avatarUrl: string | null;
         phone: string | null;
-        status: import("@prisma/client").$Enums.UserStatus;
+        status: import("node_modules/@prisma/client/default").$Enums.UserStatus;
         emailVerified: boolean;
         lastLoginAt: Date | null;
         createdAt: Date;

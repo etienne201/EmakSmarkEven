@@ -28,9 +28,29 @@ let JwtStrategy = class JwtStrategy extends (0, passport_1.PassportStrategy)(pas
     async validate(payload) {
         const user = await this.prisma.user.findUnique({
             where: { id: payload.sub },
-            include: { role: true, organization: true },
+            include: {
+                role: {
+                    include: {
+                        permissions: {
+                            include: { permission: true },
+                        },
+                    },
+                },
+                organization: true,
+            },
         });
-        return user;
+        if (!user || user.status !== 'active') {
+            throw new common_1.UnauthorizedException('Session invalide ou compte inactif');
+        }
+        return {
+            id: user.id,
+            email: user.email,
+            fullName: user.fullName,
+            organizationId: user.organizationId,
+            role: user.role.name,
+            permissions: user.role.permissions.map((entry) => entry.permission.key),
+            organization: user.organization,
+        };
     }
 };
 exports.JwtStrategy = JwtStrategy;

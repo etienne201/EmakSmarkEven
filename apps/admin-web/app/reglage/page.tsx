@@ -14,7 +14,9 @@ import { useLocalStorage } from "@frontend/hooks/useLocalStorage";
 import { useToast } from "@frontend/hooks/useToast";
 import Cookies from "js-cookie";
 import { Language, translations } from "@backend/translations";
-import { apiRequest } from "@frontend/utils/api";
+import { getUserProfile, updateUserProfile } from "@frontend/utils/auth-api";
+import { ensureEventId, getEvent, updateEvent } from "@frontend/utils/event-api";
+import { isSuperAdminRole } from "@frontend/utils/api-config";
 import {
   EventConfig, EventType, DecorationType, Ceremony,
   EVENT_TYPES, PRESET_PALETTES, DEFAULT_DECORATION,
@@ -52,65 +54,57 @@ export default function ConfigurationSuite() {
   const [designEditorOpen, setDesignEditorOpen] = useState(false);
 
   useEffect(() => {
-    const token = Cookies.get("auth-token");
-    if (!token) { router.push("/login"); return; }
-    
-    const payload = JSON.parse(atob(token.split(".")[1]));
-    let currentOwnerId = payload.ownerId;
-    
-    // Support d'impersonation pour les super-admins
-    if (payload.role === "super-admin" || payload.ownerId === "system") {
-      try {
-        const storedConfig = localStorage.getItem("event-config");
-        if (storedConfig) {
-          const parsed = JSON.parse(storedConfig);
-          if (parsed?.ownerId) currentOwnerId = parsed.ownerId;
-        }
-      } catch (e) { /* ignore */ }
-    }
-    
-    fetchData(currentOwnerId);
-  }, []);
+    const load = async () => {
+      const token = Cookies.get("auth-token");
+      if (!token) { router.push("/login"); return; }
 
-  const fetchData = async (oid: string) => {
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      let eventId: string | null = null;
+
+      if (isSuperAdminRole(payload.role) || payload.ownerId === "system") {
+        try {
+          const storedConfig = localStorage.getItem("event-config");
+          if (storedConfig) {
+            const parsed = JSON.parse(storedConfig);
+            eventId = parsed?.id ?? parsed?.eventId ?? null;
+          }
+        } catch { /* ignore */ }
+      } else {
+        eventId = await ensureEventId(token);
+      }
+
+      await fetchData(eventId);
+    };
+    load();
+  }, [router, showToast]);
+
+  const fetchData = async (eventId: string | null) => {
     try {
-      const [configRes, profileRes] = await Promise.all([
-        apiRequest<EventConfig>(`/api/event-config?ownerId=${oid}`),
-        apiRequest<any>(`/api/auth/admin/profile?ownerId=${oid}`)
-      ]);
-
-      if (configRes.data) {
-        // Deep merge with defaults to prevent undefined properties
-        const mergedConfig = {
-          ...DEFAULT_EVENT_CONFIG,
-          ...configRes.data,
-          palette: { ...DEFAULT_EVENT_CONFIG.palette, ...(configRes.data.palette || {}) },
-          uiSettings: { ...DEFAULT_EVENT_CONFIG.uiSettings, ...(configRes.data.uiSettings || {}) }
-        };
-        setConfig(mergedConfig);
-
-        // Restore Smart Design Engine store state from db if present
-        const dbSmartDesign = (configRes.data as any)?.smartDesign;
-        const dbLayoutElements = (configRes.data as any)?.layoutElements;
-        if (dbSmartDesign?.templateId) {
-          const store = useSmartDesignStore.getState();
-          store.setTemplate(dbSmartDesign.templateId);
-          if (dbSmartDesign.dynamicValues) {
-            Object.entries(dbSmartDesign.dynamicValues).forEach(([k, v]) => {
-              store.updateDynamicValue(k, v as string);
-            });
-          }
-          if (dbLayoutElements && dbLayoutElements.length > 0) {
-            store.setElements(dbLayoutElements);
-          }
+      const profileRes = await getUserProfile();
+      if (eventId) {
+        const configRes = await getEvent(eventId);
+        if (configRes.data) {
+          const ev = configRes.data as Record<string, unknown>;
+          const mergedConfig = {
+            ...DEFAULT_EVENT_CONFIG,
+            id: String(ev.id ?? eventId),
+            eventId: String(ev.id ?? eventId),
+            ownerId: String(ev.organizationId ?? ev.slug ?? eventId),
+            eventName: String(ev.title ?? ""),
+            title: String(ev.title ?? ""),
+            eventType: (ev.eventType as EventConfig["eventType"]) ?? DEFAULT_EVENT_CONFIG.eventType,
+            description: ev.description ? String(ev.description) : DEFAULT_EVENT_CONFIG.description,
+          };
+          setConfig(mergedConfig as EventConfig);
         }
       }
       if (profileRes.data) {
+        const p = profileRes.data as Record<string, unknown>;
         setAdminProfile({
-          name: profileRes.data.name || "",
-          email: profileRes.data.email || "",
-          phone: profileRes.data.phone || "",
-          password: ""
+          name: String(p.fullName ?? p.name ?? ""),
+          email: String(p.email ?? ""),
+          phone: String(p.phone ?? ""),
+          password: "",
         });
       }
     } catch (e) {
@@ -139,9 +133,10 @@ export default function ConfigurationSuite() {
         layoutElements: storeState.elements
       };
 
-      const { error } = await apiRequest("/api/event-config", {
-        method: "POST",
-        body: JSON.stringify(updatedConfig),
+      const { error } = await updateEvent(config.eventId || "", {
+        title: updatedConfig.eventName || updatedConfig.title,
+        eventType: updatedConfig.eventType,
+        description: updatedConfig.description,
       });
       if (error) throw new Error(error);
       showToast("Configuration enregistrée !", "success");
@@ -155,9 +150,9 @@ export default function ConfigurationSuite() {
   const handleSaveProfile = async () => {
     setSaving(true);
     try {
-      const { error } = await apiRequest("/api/auth/admin/profile", {
-        method: "PUT",
-        body: JSON.stringify({ ...adminProfile, ownerId: config.ownerId }),
+      const { error } = await updateUserProfile({
+        fullName: adminProfile.name,
+        email: adminProfile.email,
       });
       if (error) throw new Error(error);
       showToast("Profil admin mis à jour !", "success");
@@ -749,9 +744,10 @@ export default function ConfigurationSuite() {
                         },
                         layoutElements: storeState.elements
                       };
-                      const { error } = await apiRequest("/api/event-config", {
-                        method: "POST",
-                        body: JSON.stringify(updatedConfig),
+                      const { error } = await updateEvent(config.eventId || String((config as Record<string, unknown>).id ?? ""), {
+                        title: updatedConfig.eventName || updatedConfig.title,
+                        eventType: updatedConfig.eventType,
+                        description: updatedConfig.description,
                       });
                       if (error) throw new Error(error);
                       setConfig(updatedConfig);

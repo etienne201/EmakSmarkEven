@@ -1,5 +1,6 @@
 import { EventTypeKey, VisibilityType } from '@prisma/client';
 export declare class CreateEventDto {
+    organizationId?: string;
     title: string;
     slug: string;
     eventType: EventTypeKey;

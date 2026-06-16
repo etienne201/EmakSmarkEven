@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, Plus, Lock, Eye, EyeOff, Loader2 } from "lucide-react";
 import { EventType } from "@backend/eventConfig";
 import Cookies from "js-cookie";
+import { fetchApi, parseApiJson } from "@frontend/utils/api";
 
 const EVENT_TYPES: { value: EventType; label: string; icon: string }[] = [
   { value: "wedding",    label: "Mariage",       icon: "💍" },
@@ -37,14 +38,39 @@ export function CreateEventModal({ isOpen, onClose, onSuccess }: CreateEventModa
     setLoading(true); setError("");
     const token = Cookies.get("auth-token");
     try {
-      const res = await fetch("/api/superadmin/events", {
+      const slug = ownerId.trim().toLowerCase().replace(/\s+/g, "-");
+      const adminRes = await fetchApi("/api/v1/super-admin/admins", {
         method: "POST",
-        headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ ownerId, adminPassword: password, eventName: eventName || "Nouvel Événement", eventType }),
+        headers: { Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          email: `${slug}@organizer.local`,
+          passwordHash: password,
+          fullName: eventName || "Organisateur",
+          organizationName: eventName || slug,
+          organizationSlug: slug,
+        }),
       });
-      const data = await res.json();
-      if (res.ok) { reset(); onSuccess(); onClose(); }
-      else setError(data.error || "Erreur lors de la création.");
+      const adminJson = await parseApiJson<{ id?: string; owner?: { organizationId?: string } }>(adminRes);
+      if (!adminRes.ok || !adminJson.data) {
+        setError(adminJson.error || "Erreur lors de la création de l'organisateur.");
+        return;
+      }
+
+      const orgId = (adminJson.data as Record<string, unknown>).id;
+      const res = await fetchApi("/api/v1/events", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          title: eventName || "Nouvel Événement",
+          slug,
+          eventType,
+          startDate: new Date().toISOString(),
+          organizationId: orgId,
+        }),
+      });
+      const { error } = await parseApiJson(res);
+      if (res.ok && !error) { reset(); onSuccess(); onClose(); }
+      else setError(error || "Erreur lors de la création.");
     } catch { setError("Erreur réseau."); }
     finally { setLoading(false); }
   };

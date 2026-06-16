@@ -3,10 +3,12 @@
 import { useState, useEffect, useRef } from "react";
 import { ShieldCheck, Lock, Eye, EyeOff, Loader2, AlertCircle, Mail, Fingerprint, ArrowRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@frontend/context/AuthContext";
-import { apiRequest } from "@frontend/utils/api";
+import { loginWithEmail, isSuperAdminRole } from "@frontend/utils/auth-api";
 
 export function SuperAdminLoginUI() {
+  const router = useRouter();
   const { login } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -65,23 +67,16 @@ export function SuperAdminLoginUI() {
     const formData = new FormData(e.currentTarget);
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
-    const totp = formData.get("totp") as string;
-
-    const { data, error: apiError } = await apiRequest<any>("/api/auth/superadmin/login", {
-      method: "POST",
-      body: JSON.stringify({ email, password, totp }),
-    });
+    const { data, error: apiError } = await loginWithEmail(email, password);
 
     if (data) {
-      const userObj = data.user || data;
-      const userData = {
-        uid: userObj.uid || userObj.ownerId || userObj.id,
-        ownerId: userObj.ownerId || userObj.id || "system",
-        role: "super-admin" as const,
-        email: userObj.email,
-        name: userObj.name || userObj.email?.split("@")[0] || "Super Admin",
-      };
-      login(data.token || data.accessToken, data.refreshToken || "", userData);
+      if (!isSuperAdminRole(data.user.role)) {
+        setError("Ce compte n'a pas les droits Super Administrateur.");
+        setLoading(false);
+        return;
+      }
+      login(data.accessToken, data.refreshToken, data.user);
+      router.push("/superadmin?welcome=true");
     } else {
       setError(apiError || "Accès refusé. Vérifiez vos identifiants.");
       setLoading(false);

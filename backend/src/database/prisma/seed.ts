@@ -150,10 +150,14 @@ async function main() {
   console.log(`✅ SUPER_ADMIN → ${permissions.length} permissions assigned`);
 
   // ADMIN gets organization-level and event-level permissions
+  const adminGlobalKeys = [
+    'events.list',
+    'guests.list',
+    'analytics.view',
+    'organizations.list',
+  ];
   const adminPermKeys = permissions.filter(
-    (p) => p.scope !== 'global' || [
-      'events.list', 'guests.list', 'analytics.view',
-    ].includes(p.key),
+    (p) => p.scope !== 'global' || adminGlobalKeys.includes(p.key),
   );
   for (const perm of adminPermKeys) {
     await prisma.rolePermission.upsert({
@@ -234,25 +238,60 @@ async function main() {
 
   console.log('✅ Super Admin user created (superadmin@smartevent.com / Superadmin123@)');
 
-  const adminPassword = await bcrypt.hash('Admin123@', 10);
+  // Default organizer account — login: UserEven / User123@ (alias → usereven@smartevent.com)
+  const userEvenId = '00000000-0000-0000-0000-000000000103';
+  const userEvenOrgId = '00000000-0000-0000-0000-000000000201';
+  const userEvenPassword = await bcrypt.hash('User123@', 10);
+
   await prisma.user.upsert({
-    where: { email: 'admin@smartevent.com' },
-    update: { passwordHash: adminPassword, roleId: adminRole.id },
+    where: { email: 'usereven@smartevent.com' },
+    update: {
+      passwordHash: userEvenPassword,
+      roleId: adminRole.id,
+      fullName: 'UserEven',
+      status: 'active',
+      emailVerified: true,
+    },
     create: {
-      id: '00000000-0000-0000-0000-000000000102',
-      email: 'admin@smartevent.com',
-      passwordHash: adminPassword,
-      fullName: 'Admin Demo',
+      id: userEvenId,
+      email: 'usereven@smartevent.com',
+      passwordHash: userEvenPassword,
+      fullName: 'UserEven',
       roleId: adminRole.id,
       status: 'active',
       emailVerified: true,
     },
   });
 
-  console.log('✅ Admin user created (admin@smartevent.com / Admin123@)');
+  await prisma.organization.upsert({
+    where: { slug: 'usereven' },
+    update: {
+      name: 'UserEven Events',
+      ownerId: userEvenId,
+      isActive: true,
+    },
+    create: {
+      id: userEvenOrgId,
+      name: 'UserEven Events',
+      slug: 'usereven',
+      ownerId: userEvenId,
+      isActive: true,
+    },
+  });
+
+  await prisma.user.update({
+    where: { id: userEvenId },
+    data: { organizationId: userEvenOrgId },
+  });
+
+  console.log('✅ Default Admin user created (UserEven / User123@ → usereven@smartevent.com)');
 
   console.log('');
   console.log('🚀 Seeding completed successfully!');
+  console.log('');
+  console.log('📋 Default accounts:');
+  console.log('   • Super Admin : superadmin@smartevent.com / Superadmin123@');
+  console.log('   • Organisateur: UserEven / User123@');
   console.log('');
   console.log('📋 Role summary:');
   console.log(`   • SUPER_ADMIN → ${permissions.length} permissions (full system access)`);

@@ -36,6 +36,7 @@ export class EventsController {
   constructor(private readonly eventsService: EventsService) {}
 
   @Get()
+  @Permissions('events.list')
   @ApiOperation({ summary: 'Lister tous les événements' })
   async findAll(@Query('organizationId') organizationId?: string) {
     return this.eventsService.findAll(organizationId);
@@ -50,6 +51,7 @@ export class EventsController {
   }
 
   @Get(':id')
+  @Permissions('events.list')
   @ApiOperation({ summary: 'Récupérer un événement par ID' })
   async findOne(@Param('id') id: string) {
     return this.eventsService.findOne(id);

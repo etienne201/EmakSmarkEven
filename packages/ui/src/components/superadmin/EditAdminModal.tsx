@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { X, User, Mail, Lock, Shield, Loader2, Fingerprint, Save } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@frontend/hooks/useToast";
+import { fetchApi, parseApiJson } from "@frontend/utils/api";
 
 interface EditAdminModalProps {
   isOpen: boolean;
@@ -40,22 +41,23 @@ export function EditAdminModal({ isOpen, admin, onClose, onSuccess, token }: Edi
     if (!admin) return;
     setIsSaving(true);
     try {
-      const res = await fetch(`/api/superadmin/admins/${admin.id}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify(formData)
+      const res = await fetchApi(`/api/v1/users/${admin.id}`, {
+        method: "PUT",
+        headers: { Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          fullName: formData.name,
+          email: formData.email,
+          status: formData.status,
+        }),
       });
 
-      if (res.ok) {
+      const { data, error } = await parseApiJson(res);
+      if (data && !error) {
         showToast("Compte mis à jour avec succès", "success");
         onSuccess();
         onClose();
       } else {
-        const err = await res.json();
-        showToast(err.message || "Erreur lors de la mise à jour", "error");
+        showToast(error || "Erreur lors de la mise à jour", "error");
       }
     } catch (err) {
       showToast("Erreur réseau", "error");

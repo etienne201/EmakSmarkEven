@@ -11,10 +11,13 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SuperAdminService = void 0;
 const common_1 = require("@nestjs/common");
+const bcrypt = require("bcrypt");
 const prisma_service_1 = require("../../database/prisma.service");
+const mail_service_1 = require("../mail/mail.service");
 let SuperAdminService = class SuperAdminService {
-    constructor(prisma) {
+    constructor(prisma, mailService) {
         this.prisma = prisma;
+        this.mailService = mailService;
     }
     async getPlatformStats() {
         const totalOrganizations = await this.prisma.organization.count();
@@ -40,6 +43,8 @@ let SuperAdminService = class SuperAdminService {
         });
     }
     async createAdminAccount(data) {
+        const plainPassword = data.passwordHash;
+        const hashedPassword = await bcrypt.hash(plainPassword, 10);
         const organization = await this.prisma.organization.create({
             data: {
                 name: data.organizationName,
@@ -47,22 +52,24 @@ let SuperAdminService = class SuperAdminService {
                 owner: {
                     create: {
                         email: data.email,
-                        passwordHash: data.passwordHash,
+                        passwordHash: hashedPassword,
                         fullName: data.fullName,
                         role: {
-                            connect: { name: 'Admin' }
-                        }
-                    }
-                }
+                            connect: { name: 'ADMIN' },
+                        },
+                    },
+                },
             },
-            include: { owner: true }
+            include: { owner: true },
         });
-        return organization;
+        const emailResult = await this.mailService.sendAdminInvitation(data.email, data.fullName, plainPassword, data.organizationSlug);
+        return { ...organization, emailSent: emailResult.success, emailSimulated: !!emailResult.simulated };
     }
 };
 exports.SuperAdminService = SuperAdminService;
 exports.SuperAdminService = SuperAdminService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [prisma_service_1.PrismaService])
+    __metadata("design:paramtypes", [prisma_service_1.PrismaService,
+        mail_service_1.MailService])
 ], SuperAdminService);
 //# sourceMappingURL=super-admin.service.js.map

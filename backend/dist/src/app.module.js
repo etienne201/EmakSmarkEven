@@ -5,9 +5,6 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AppModule = void 0;
 const common_1 = require("@nestjs/common");
@@ -28,8 +25,8 @@ const analytics_module_1 = require("./modules/analytics/analytics.module");
 const notifications_module_1 = require("./modules/notifications/notifications.module");
 const platform_module_1 = require("./modules/platform/platform.module");
 const public_module_1 = require("./modules/public/public.module");
-const app_config_1 = __importDefault(require("./config/app.config"));
-const database_config_1 = __importDefault(require("./config/database.config"));
+const app_config_1 = require("./config/app.config");
+const database_config_1 = require("./config/database.config");
 const app_controller_1 = require("./app.controller");
 let AppModule = class AppModule {
 };

@@ -1,6 +1,7 @@
 // Typed client for the Setup Wizard. Consumes ONLY existing NestJS endpoints
 // (events.controller) under the /api/v1 prefix. No new endpoints are introduced.
 import Cookies from "js-cookie";
+import { API_V1_ROOT } from "@frontend/utils/api-config";
 import type {
   SetupStatus,
   Step1Data,
@@ -13,9 +14,7 @@ import type {
   EventTypeKey,
 } from "./types";
 
-const API_ROOT =
-  (process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001").replace(/\/$/, "") +
-  "/api/v1";
+const API_ROOT = API_V1_ROOT;
 
 function authHeaders(): HeadersInit {
   const token = Cookies.get("auth-token");

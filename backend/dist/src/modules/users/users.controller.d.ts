@@ -28,14 +28,14 @@ export declare class UsersController {
         };
     } & {
         id: string;
+        email: string;
         organizationId: string | null;
         roleId: string;
-        email: string;
         passwordHash: string;
         fullName: string;
         avatarUrl: string | null;
         phone: string | null;
-        status: import("@prisma/client").$Enums.UserStatus;
+        status: import("node_modules/@prisma/client/default").$Enums.UserStatus;
         emailVerified: boolean;
         lastLoginAt: Date | null;
         createdAt: Date;
@@ -43,14 +43,14 @@ export declare class UsersController {
     })[]>;
     create(dto: CreateUserDto): Promise<{
         id: string;
+        email: string;
         organizationId: string | null;
         roleId: string;
-        email: string;
         passwordHash: string;
         fullName: string;
         avatarUrl: string | null;
         phone: string | null;
-        status: import("@prisma/client").$Enums.UserStatus;
+        status: import("node_modules/@prisma/client/default").$Enums.UserStatus;
         emailVerified: boolean;
         lastLoginAt: Date | null;
         createdAt: Date;
@@ -59,14 +59,14 @@ export declare class UsersController {
     getProfile(req: any): Promise<any>;
     updateProfile(req: any, dto: UpdateUserDto): Promise<{
         id: string;
+        email: string;
         organizationId: string | null;
         roleId: string;
-        email: string;
         passwordHash: string;
         fullName: string;
         avatarUrl: string | null;
         phone: string | null;
-        status: import("@prisma/client").$Enums.UserStatus;
+        status: import("node_modules/@prisma/client/default").$Enums.UserStatus;
         emailVerified: boolean;
         lastLoginAt: Date | null;
         createdAt: Date;
@@ -76,14 +76,14 @@ export declare class UsersController {
         avatarUrl: string;
     }): Promise<{
         id: string;
+        email: string;
         organizationId: string | null;
         roleId: string;
-        email: string;
         passwordHash: string;
         fullName: string;
         avatarUrl: string | null;
         phone: string | null;
-        status: import("@prisma/client").$Enums.UserStatus;
+        status: import("node_modules/@prisma/client/default").$Enums.UserStatus;
         emailVerified: boolean;
         lastLoginAt: Date | null;
         createdAt: Date;
@@ -113,14 +113,14 @@ export declare class UsersController {
         };
     } & {
         id: string;
+        email: string;
         organizationId: string | null;
         roleId: string;
-        email: string;
         passwordHash: string;
         fullName: string;
         avatarUrl: string | null;
         phone: string | null;
-        status: import("@prisma/client").$Enums.UserStatus;
+        status: import("node_modules/@prisma/client/default").$Enums.UserStatus;
         emailVerified: boolean;
         lastLoginAt: Date | null;
         createdAt: Date;
@@ -128,14 +128,14 @@ export declare class UsersController {
     }>;
     update(id: string, dto: UpdateUserDto): Promise<{
         id: string;
+        email: string;
         organizationId: string | null;
         roleId: string;
-        email: string;
         passwordHash: string;
         fullName: string;
         avatarUrl: string | null;
         phone: string | null;
-        status: import("@prisma/client").$Enums.UserStatus;
+        status: import("node_modules/@prisma/client/default").$Enums.UserStatus;
         emailVerified: boolean;
         lastLoginAt: Date | null;
         createdAt: Date;
@@ -143,14 +143,14 @@ export declare class UsersController {
     }>;
     remove(id: string): Promise<{
         id: string;
+        email: string;
         organizationId: string | null;
         roleId: string;
-        email: string;
         passwordHash: string;
         fullName: string;
         avatarUrl: string | null;
         phone: string | null;
-        status: import("@prisma/client").$Enums.UserStatus;
+        status: import("node_modules/@prisma/client/default").$Enums.UserStatus;
         emailVerified: boolean;
         lastLoginAt: Date | null;
         createdAt: Date;

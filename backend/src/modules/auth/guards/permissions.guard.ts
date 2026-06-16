@@ -1,65 +1,65 @@
-import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  CanActivate,
+  ExecutionContext,
+  ForbiddenException,
+} from '@nestjs/common';
+
 import { Reflector } from '@nestjs/core';
 import { PERMISSIONS_KEY } from '../decorators/permissions.decorator';
-import { PrismaService } from '../../../database/prisma.service';
+import { isSuperAdminRole, resolveUserRole } from '../auth.types';
 
 @Injectable()
-export class PermissionsGuard implements CanActivate {
-  constructor(
-    private reflector: Reflector,
-    private prisma: PrismaService,
-  ) {}
+export class PermissionsGuard
+  implements CanActivate
+{
+  constructor(private reflector: Reflector) {}
 
-  async canActivate(context: ExecutionContext): Promise<boolean> {
-    const requiredPermissions = this.reflector.getAllAndOverride<string[]>(PERMISSIONS_KEY, [
-      context.getHandler(),
-      context.getClass(),
-    ]);
+  canActivate(
+    context: ExecutionContext,
+  ): boolean {
+    const requiredPermissions =
+      this.reflector.getAllAndOverride<
+        string[]
+      >(PERMISSIONS_KEY, [
+        context.getHandler(),
+        context.getClass(),
+      ]);
 
-    // No @Permissions() decorator → allow access
-    if (!requiredPermissions || requiredPermissions.length === 0) {
+    // no permissions required
+    if (!requiredPermissions?.length) {
       return true;
     }
 
-    const { user } = context.switchToHttp().getRequest();
+    const { user } =
+      context.switchToHttp().getRequest();
 
-    if (!user || !user.role) {
-      throw new ForbiddenException('Accès refusé : utilisateur non authentifié');
-    }
-
-    // SUPER_ADMIN bypasses all permission checks
-    const normalizedRole = user.role.name.toLowerCase().replace(/[\s_-]/g, '');
-    if (normalizedRole === 'superadmin') {
-      return true;
-    }
-
-    // Fetch permissions for this role from DB
-    const roleWithPermissions = await this.prisma.role.findUnique({
-      where: { id: user.role.id },
-      include: {
-        permissions: {
-          include: {
-            permission: true,
-          },
-        },
-      },
-    });
-
-    if (!roleWithPermissions) {
-      throw new ForbiddenException('Rôle introuvable');
-    }
-
-    const userPermissions = roleWithPermissions.permissions.map(
-      (rp) => rp.permission.key,
-    );
-
-    const hasAllPermissions = requiredPermissions.every((perm) =>
-      userPermissions.includes(perm),
-    );
-
-    if (!hasAllPermissions) {
+    if (!user) {
       throw new ForbiddenException(
-        `Permissions insuffisantes. Requis : ${requiredPermissions.join(', ')}`,
+        'Utilisateur non authentifié',
+      );
+    }
+
+    const userRole = resolveUserRole(user);
+
+    // SUPER ADMIN bypass (seed assigns all permissions)
+    if (isSuperAdminRole(userRole)) {
+      return true;
+    }
+
+    const userPermissions: string[] =
+      Array.isArray(user.permissions) ? user.permissions : [];
+
+    const hasPermission =
+      requiredPermissions.every((perm) =>
+        userPermissions.includes(perm),
+      );
+
+    if (!hasPermission) {
+      throw new ForbiddenException(
+        `Permissions insuffisantes. Requis: ${requiredPermissions.join(
+          ', ',
+        )}`,
       );
     }
 

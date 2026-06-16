@@ -10,11 +10,13 @@ exports.SuperAdminModule = void 0;
 const common_1 = require("@nestjs/common");
 const super_admin_service_1 = require("./super-admin.service");
 const super_admin_controller_1 = require("./super-admin.controller");
+const mail_module_1 = require("../mail/mail.module");
 let SuperAdminModule = class SuperAdminModule {
 };
 exports.SuperAdminModule = SuperAdminModule;
 exports.SuperAdminModule = SuperAdminModule = __decorate([
     (0, common_1.Module)({
+        imports: [mail_module_1.MailModule],
         controllers: [super_admin_controller_1.SuperAdminController],
         providers: [super_admin_service_1.SuperAdminService],
     })

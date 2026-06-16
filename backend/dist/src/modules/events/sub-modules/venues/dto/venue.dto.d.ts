@@ -4,7 +4,7 @@ export declare class CreateVenueDto {
     capacity?: number;
     mapUrl?: string;
 }
-declare const UpdateVenueDto_base: import("@nestjs/common").Type<Partial<CreateVenueDto>>;
+declare const UpdateVenueDto_base: import("node_modules/@nestjs/common").Type<Partial<CreateVenueDto>>;
 export declare class UpdateVenueDto extends UpdateVenueDto_base {
 }
 export {};

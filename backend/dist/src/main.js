@@ -33,9 +33,11 @@ async function bootstrap() {
         forbidNonWhitelisted: true,
         transform: true,
     }));
+    const corsOrigins = configService.get('app.corsOrigins') ?? ['http://localhost:3000'];
     app.enableCors({
-        origin: ['http://localhost:3000'],
-        methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+        origin: corsOrigins,
+        methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+        allowedHeaders: ['Content-Type', 'Authorization'],
         credentials: true,
     });
     await app.listen(port);

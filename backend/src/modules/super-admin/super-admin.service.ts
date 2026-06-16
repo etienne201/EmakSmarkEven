@@ -1,9 +1,14 @@
 import { Injectable } from '@nestjs/common';
+import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../../database/prisma.service';
+import { MailService } from '../mail/mail.service';
 
 @Injectable()
 export class SuperAdminService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private mailService: MailService,
+  ) {}
 
   async getPlatformStats() {
     const totalOrganizations = await this.prisma.organization.count();
@@ -33,30 +38,41 @@ export class SuperAdminService {
     });
   }
 
-  async createAdminAccount(data: { email: string; passwordHash: string; fullName: string; organizationName: string; organizationSlug: string }) {
-    // 1. Create Organization
+  async createAdminAccount(data: {
+    email: string;
+    passwordHash: string;
+    fullName: string;
+    organizationName: string;
+    organizationSlug: string;
+  }) {
+    const plainPassword = data.passwordHash;
+    const hashedPassword = await bcrypt.hash(plainPassword, 10);
+
     const organization = await this.prisma.organization.create({
       data: {
         name: data.organizationName,
         slug: data.organizationSlug,
-        // In a real app, the ownerId will be the user we're about to create
-        // But Prisma needs one first. We'll use a hack or a better transaction.
-        // Let's find the 'Admin' role ID first
         owner: {
-           create: {
-             email: data.email,
-             passwordHash: data.passwordHash,
-             fullName: data.fullName,
-             role: {
-                connect: { name: 'Admin' } // Assuming 'Admin' role exists
-             }
-           }
-        }
+          create: {
+            email: data.email,
+            passwordHash: hashedPassword,
+            fullName: data.fullName,
+            role: {
+              connect: { name: 'ADMIN' },
+            },
+          },
+        },
       },
-      include: { owner: true }
+      include: { owner: true },
     });
-    
-    // Update organization owner link if needed (Prisma handles it via connect/create)
-    return organization;
+
+    const emailResult = await this.mailService.sendAdminInvitation(
+      data.email,
+      data.fullName,
+      plainPassword,
+      data.organizationSlug,
+    );
+
+    return { ...organization, emailSent: emailResult.success, emailSimulated: !!emailResult.simulated };
   }
 }

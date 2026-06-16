@@ -16,6 +16,8 @@ exports.GuestsController = void 0;
 const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
 const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
+const permissions_guard_1 = require("../auth/guards/permissions.guard");
+const permissions_decorator_1 = require("../auth/decorators/permissions.decorator");
 const guest_service_1 = require("./guest.service");
 const create_guest_dto_1 = require("./dto/create-guest.dto");
 const update_guest_dto_1 = require("./dto/update-guest.dto");
@@ -51,6 +53,7 @@ let GuestsController = class GuestsController {
 exports.GuestsController = GuestsController;
 __decorate([
     (0, common_1.Get)('events/:id/guests'),
+    (0, permissions_decorator_1.Permissions)('guests.list'),
     (0, swagger_1.ApiOperation)({ summary: 'Lister les invités d un événement' }),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
@@ -59,6 +62,7 @@ __decorate([
 ], GuestsController.prototype, "findAll", null);
 __decorate([
     (0, common_1.Post)('events/:id/guests'),
+    (0, permissions_decorator_1.Permissions)('guests.create'),
     (0, swagger_1.ApiOperation)({ summary: 'Ajouter un invité' }),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
@@ -68,6 +72,7 @@ __decorate([
 ], GuestsController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)('guests/:guestId'),
+    (0, permissions_decorator_1.Permissions)('guests.list'),
     (0, swagger_1.ApiOperation)({ summary: 'Récupérer un invité par ID' }),
     __param(0, (0, common_1.Param)('guestId')),
     __metadata("design:type", Function),
@@ -76,6 +81,7 @@ __decorate([
 ], GuestsController.prototype, "findOne", null);
 __decorate([
     (0, common_1.Put)('guests/:guestId'),
+    (0, permissions_decorator_1.Permissions)('guests.update'),
     (0, swagger_1.ApiOperation)({ summary: 'Modifier un invité' }),
     __param(0, (0, common_1.Param)('guestId')),
     __param(1, (0, common_1.Body)()),
@@ -85,6 +91,7 @@ __decorate([
 ], GuestsController.prototype, "update", null);
 __decorate([
     (0, common_1.Delete)('guests/:guestId'),
+    (0, permissions_decorator_1.Permissions)('guests.delete'),
     (0, swagger_1.ApiOperation)({ summary: 'Supprimer un invité' }),
     __param(0, (0, common_1.Param)('guestId')),
     __metadata("design:type", Function),
@@ -93,6 +100,7 @@ __decorate([
 ], GuestsController.prototype, "remove", null);
 __decorate([
     (0, common_1.Post)('events/:id/guests/import'),
+    (0, permissions_decorator_1.Permissions)('guests.import'),
     (0, swagger_1.ApiOperation)({ summary: 'Importer des invités via CSV/Excel' }),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
@@ -102,6 +110,7 @@ __decorate([
 ], GuestsController.prototype, "importGuests", null);
 __decorate([
     (0, common_1.Post)('events/:id/guests/export'),
+    (0, permissions_decorator_1.Permissions)('guests.list'),
     (0, swagger_1.ApiOperation)({ summary: 'Exporter la liste des invités' }),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
@@ -120,7 +129,7 @@ __decorate([
 exports.GuestsController = GuestsController = __decorate([
     (0, swagger_1.ApiTags)('Guests & Attendance'),
     (0, common_1.Controller)(),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, permissions_guard_1.PermissionsGuard),
     (0, swagger_1.ApiBearerAuth)(),
     __metadata("design:paramtypes", [guest_service_1.GuestService])
 ], GuestsController);

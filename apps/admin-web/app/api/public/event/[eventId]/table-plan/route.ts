@@ -1,6 +1,7 @@
 import { handleApiError, AppError } from "@backend/middleware/error-handler";
 import { createSuccessResponse } from "@backend/middleware/response-handler";
 import { prisma } from "@backend/prisma";
+import { Storage } from "@backend/storage/storage";
 
 /**
  * @swagger
@@ -36,25 +37,17 @@ export async function GET(
 
     // Find the event first so we can scope the tables query safely
     const whereClause = isValidUUID(eventId)
-      ? { OR: [{ id: eventId }, { adminId: eventId }] }
-      : { adminId: eventId };
+      ? { OR: [{ id: eventId }, { createdById: eventId }] }
+      : { createdById: eventId };
 
     const event = await prisma.event.findFirst({
       where: whereClause,
-      select: { id: true },
+      select: { id: true, createdById: true },
     });
 
     if (!event) throw new AppError("Event not found", 404);
 
-    const tables = await prisma.table.findMany({
-      where: { eventId: event.id },
-      include: {
-        guests: {
-          select: { fullName: true, id: true },
-        },
-      },
-      orderBy: { name: "asc" },
-    });
+    const tables = await Storage.getTables(event.createdById || "default");
 
     return createSuccessResponse(tables, "TABLE_PLAN_FETCHED");
   } catch (error) {

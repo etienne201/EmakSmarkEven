@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   Lock,
-  User,
+  Mail,
   ArrowRight,
   Loader2,
   AlertCircle,
@@ -17,14 +17,18 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@frontend/context/AuthContext";
-import { apiRequest } from "@frontend/utils/api";
+import {
+  isSuperAdminRole,
+  loginWithEmail,
+  resolveOrganizerRedirect,
+} from "@frontend/utils/auth-api";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 
 /* ── Schema ── */
 const loginSchema = z.object({
-  id: z.string().min(1, "L'identifiant est requis"),
+  email: z.string().min(3, "Identifiant requis (ex. UserEven ou email)"),
   password: z.string().min(6, "Le mot de passe doit faire au moins 6 caractères"),
 });
 type LoginFormValues = z.infer<typeof loginSchema>;
@@ -83,29 +87,20 @@ export default function AdminLoginPage() {
   useEffect(() => {
     const checkStatusAndRedirect = async () => {
       if (isAuthenticated && user && token) {
-        if (user.role === "super-admin") {
+        if (isSuperAdminRole(user.role)) {
           router.replace("/superadmin");
         } else {
-          // Check if already configured
           try {
-            const res = await fetch("/api/setup/status", {
-              headers: { "Authorization": `Bearer ${token}` }
-            });
-            if (res.status === 401) return; // Silent return on auth error
-            const { data } = await res.json();
-            if (data?.isConfigured) {
-              router.replace("/home");
-            } else {
-              router.replace("/setup");
-            }
-          } catch (e) {
-            // Error fetching status, default to setup or stay on login
+            const path = await resolveOrganizerRedirect(token);
+            router.replace(path);
+          } catch {
+            /* stay on login */
           }
         }
       }
     };
     checkStatusAndRedirect();
-  }, [isAuthenticated, user, router]);
+  }, [isAuthenticated, user, token, router]);
 
   // Animated background canvas
   useEffect(() => {
@@ -170,45 +165,19 @@ export default function AdminLoginPage() {
     setLoading(true);
     setError("");
 
-    const { data, error: apiError } = await apiRequest<any>("/api/auth/admin/login", {
-      method: "POST",
-      body: JSON.stringify({ event_id: values.id, password: values.password }),
-    });
+    const { data, error: apiError } = await loginWithEmail(values.email, values.password);
 
     if (data) {
-      const userObj = data.user || data;
-      const role = userObj.role === "superadmin" ? "super-admin" : (userObj.role || (userObj.isAdmin ? "super-admin" : "admin"));
-      const userData = {
-        uid: userObj.uid || userObj.ownerId || userObj.id,
-        ownerId: userObj.ownerId || userObj.id || "system",
-        role: role as "admin" | "super-admin",
-        email: userObj.email,
-        name: userObj.name || userObj.email?.split("@")[0] || (role === "super-admin" ? "Super Admin" : "Organisateur"),
-      };
-      const accessToken = data.token || data.accessToken;
-      const refreshToken = data.refreshToken || "";
-      login(accessToken, refreshToken, userData);
-      
-      // Dynamic redirect based on setup status
-      if (role === "super-admin") {
+      login(data.accessToken, data.refreshToken, data.user);
+
+      if (isSuperAdminRole(data.user.role)) {
         router.push("/superadmin?welcome=true");
       } else {
-        try {
-          const statusRes = await fetch("/api/setup/status", {
-            headers: { "Authorization": `Bearer ${accessToken}` }
-          });
-          const statusData = await statusRes.json();
-          if (statusData.data?.isConfigured) {
-            router.push("/home?welcome=true");
-          } else {
-            router.push("/setup?welcome=true");
-          }
-        } catch (e) {
-          router.push("/setup?welcome=true");
-        }
+        const path = await resolveOrganizerRedirect(data.accessToken);
+        router.push(path);
       }
     } else {
-      setError(apiError || "Identifiants invalides. Vérifiez votre ID événement et mot de passe.");
+      setError(apiError || "Identifiants invalides. Vérifiez votre email et mot de passe.");
       setLoading(false);
     }
   };
@@ -273,20 +242,20 @@ export default function AdminLoginPage() {
           onSubmit={handleSubmit(onLogin)}
           className="login-form"
         >
-          {/* ID Field */}
+          {/* Email Field */}
           <div className="form-group">
-            <label className="form-label">ID Événement</label>
+            <label className="form-label">Identifiant</label>
             <div className="input-wrapper">
-              <User className="input-icon" />
+              <Mail className="input-icon" />
               <input
-                {...register("id")}
+                {...register("email")}
                 type="text"
-                className="form-input font-mono"
-                placeholder="ex: mariage-2024"
+                className="form-input"
+                placeholder="UserEven ou organisateur@example.com"
                 autoComplete="username"
               />
             </div>
-            {errors.id && <p className="form-error">{errors.id.message}</p>}
+            {errors.email && <p className="form-error">{errors.email.message}</p>}
           </div>
 
           {/* Password Field */}

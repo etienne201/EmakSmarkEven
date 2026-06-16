@@ -4,7 +4,7 @@ export declare class CreateFormDto {
     isActive?: boolean;
     fields: any[];
 }
-declare const UpdateFormDto_base: import("@nestjs/common").Type<Partial<CreateFormDto>>;
+declare const UpdateFormDto_base: import("node_modules/@nestjs/common").Type<Partial<CreateFormDto>>;
 export declare class UpdateFormDto extends UpdateFormDto_base {
 }
 export declare class FormResponseDto {

@@ -3,6 +3,7 @@ import { useState } from "react";
 import { X, User, Mail, Lock, Shield, Loader2, Fingerprint } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@frontend/hooks/useToast";
+import { fetchApi, parseApiJson } from "@frontend/utils/api";
 
 interface CreateAdminModalProps {
   isOpen: boolean;
@@ -26,23 +27,35 @@ export function CreateAdminModal({ isOpen, onClose, onSuccess, token }: CreateAd
     e.preventDefault();
     setIsSaving(true);
     try {
-      const res = await fetch("/api/superadmin/admins", {
+      const res = await fetchApi("/api/v1/super-admin/admins", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify(formData)
+        headers: { Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          email: formData.email,
+          passwordHash: formData.password,
+          fullName: formData.name,
+          organizationName: formData.name,
+          organizationSlug: formData.id || formData.email.split("@")[0],
+        }),
       });
 
-      if (res.ok) {
-        showToast("Compte créé avec succès", "success");
+      const { data, error } = await parseApiJson<{
+        emailSent?: boolean;
+        emailSimulated?: boolean;
+      }>(res);
+      if (data && !error) {
+        if (data.emailSimulated) {
+          showToast("Compte créé. Email simulé — configurez SMTP dans .env", "info");
+        } else if (data.emailSent === false) {
+          showToast("Compte créé, mais l'email n'a pas pu être envoyé", "error");
+        } else {
+          showToast("Compte créé — email d'invitation envoyé", "success");
+        }
         onSuccess();
         onClose();
         setFormData({ id: "", name: "", email: "", password: "", role: "admin" });
       } else {
-        const err = await res.json();
-        showToast(err.message || "Erreur lors de la création", "error");
+        showToast(error || "Erreur lors de la création", "error");
       }
     } catch (err) {
       showToast("Erreur réseau", "error");

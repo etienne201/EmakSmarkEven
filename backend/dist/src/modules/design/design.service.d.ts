@@ -8,11 +8,11 @@ export declare class DesignService {
         updatedAt: Date;
         name: string;
         eventId: string;
-        templateId: string | null;
-        tokens: import("@prisma/client/runtime/library").JsonValue;
-        canvas: import("@prisma/client/runtime/library").JsonValue | null;
-        customCss: string | null;
         version: number;
+        templateId: string | null;
+        tokens: import("node_modules/@prisma/client/runtime/library").JsonValue;
+        canvas: import("node_modules/@prisma/client/runtime/library").JsonValue | null;
+        customCss: string | null;
     }[]>;
     findOneTheme(id: string): Promise<{
         id: string;
@@ -20,11 +20,11 @@ export declare class DesignService {
         updatedAt: Date;
         name: string;
         eventId: string;
-        templateId: string | null;
-        tokens: import("@prisma/client/runtime/library").JsonValue;
-        canvas: import("@prisma/client/runtime/library").JsonValue | null;
-        customCss: string | null;
         version: number;
+        templateId: string | null;
+        tokens: import("node_modules/@prisma/client/runtime/library").JsonValue;
+        canvas: import("node_modules/@prisma/client/runtime/library").JsonValue | null;
+        customCss: string | null;
     }>;
     createEventTheme(eventId: string, data: any): Promise<{
         id: string;
@@ -32,11 +32,11 @@ export declare class DesignService {
         updatedAt: Date;
         name: string;
         eventId: string;
-        templateId: string | null;
-        tokens: import("@prisma/client/runtime/library").JsonValue;
-        canvas: import("@prisma/client/runtime/library").JsonValue | null;
-        customCss: string | null;
         version: number;
+        templateId: string | null;
+        tokens: import("node_modules/@prisma/client/runtime/library").JsonValue;
+        canvas: import("node_modules/@prisma/client/runtime/library").JsonValue | null;
+        customCss: string | null;
     }>;
     updateEventTheme(id: string, data: any): Promise<{
         id: string;
@@ -44,11 +44,11 @@ export declare class DesignService {
         updatedAt: Date;
         name: string;
         eventId: string;
-        templateId: string | null;
-        tokens: import("@prisma/client/runtime/library").JsonValue;
-        canvas: import("@prisma/client/runtime/library").JsonValue | null;
-        customCss: string | null;
         version: number;
+        templateId: string | null;
+        tokens: import("node_modules/@prisma/client/runtime/library").JsonValue;
+        canvas: import("node_modules/@prisma/client/runtime/library").JsonValue | null;
+        customCss: string | null;
     }>;
     deleteEventTheme(id: string): Promise<{
         id: string;
@@ -56,11 +56,11 @@ export declare class DesignService {
         updatedAt: Date;
         name: string;
         eventId: string;
-        templateId: string | null;
-        tokens: import("@prisma/client/runtime/library").JsonValue;
-        canvas: import("@prisma/client/runtime/library").JsonValue | null;
-        customCss: string | null;
         version: number;
+        templateId: string | null;
+        tokens: import("node_modules/@prisma/client/runtime/library").JsonValue;
+        canvas: import("node_modules/@prisma/client/runtime/library").JsonValue | null;
+        customCss: string | null;
     }>;
     getEventDesign(eventId: string): Promise<{
         id: string;
@@ -68,8 +68,8 @@ export declare class DesignService {
         updatedAt: Date;
         eventId: string;
         locale: string;
-        blocks: import("@prisma/client/runtime/library").JsonValue;
-        variables: import("@prisma/client/runtime/library").JsonValue | null;
+        blocks: import("node_modules/@prisma/client/runtime/library").JsonValue;
+        variables: import("node_modules/@prisma/client/runtime/library").JsonValue | null;
     }>;
     updateEventDesign(eventId: string, data: any): Promise<{
         id: string;
@@ -77,18 +77,18 @@ export declare class DesignService {
         updatedAt: Date;
         eventId: string;
         locale: string;
-        blocks: import("@prisma/client/runtime/library").JsonValue;
-        variables: import("@prisma/client/runtime/library").JsonValue | null;
+        blocks: import("node_modules/@prisma/client/runtime/library").JsonValue;
+        variables: import("node_modules/@prisma/client/runtime/library").JsonValue | null;
     }>;
     getAssets(eventId: string): Promise<{
         id: string;
         organizationId: string | null;
         createdAt: Date;
-        metadata: import("@prisma/client/runtime/library").JsonValue | null;
         eventId: string | null;
         url: string;
+        metadata: import("node_modules/@prisma/client/runtime/library").JsonValue | null;
         uploadedById: string;
-        assetType: import("@prisma/client").$Enums.AssetType;
+        assetType: import("node_modules/@prisma/client/default").$Enums.AssetType;
         fileName: string;
         mimeType: string | null;
         sizeBytes: number | null;
@@ -97,11 +97,11 @@ export declare class DesignService {
         id: string;
         organizationId: string | null;
         createdAt: Date;
-        metadata: import("@prisma/client/runtime/library").JsonValue | null;
         eventId: string | null;
         url: string;
+        metadata: import("node_modules/@prisma/client/runtime/library").JsonValue | null;
         uploadedById: string;
-        assetType: import("@prisma/client").$Enums.AssetType;
+        assetType: import("node_modules/@prisma/client/default").$Enums.AssetType;
         fileName: string;
         mimeType: string | null;
         sizeBytes: number | null;

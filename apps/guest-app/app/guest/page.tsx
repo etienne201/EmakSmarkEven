@@ -9,6 +9,7 @@ import { LoadingScreen } from "@frontend/components/LoadingScreen";
 import { FloatingDecorations } from "@frontend/components/FloatingDecorations";
 import { translations, Language } from "@backend/translations";
 import { useToast } from "@frontend/hooks/useToast";
+import { fetchApi, parseApiJson } from "@frontend/utils/api";
 import { useSmartDesignStore } from "@frontend/store/useSmartDesignStore";
 import dynamic from "next/dynamic";
 
@@ -112,19 +113,13 @@ function GuestContent() {
     if (!id) return;
     
     try {
-      const res = await fetch("/api/attendance", {
+      const res = await fetchApi("/api/v1/checkins", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          guestId: id, 
-          name: fullName, 
-          status, 
-          tableNumber: table, 
-          tableName: tableName 
-        }),
+        body: JSON.stringify({ guestId: id, status }),
       });
+      const { data, error } = await parseApiJson(res);
 
-      if (res.ok) {
+      if (data && !error) {
         setHasCheckedIn(true);
         setCheckInStatus(status);
         setShowModal(false);

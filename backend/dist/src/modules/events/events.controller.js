@@ -17,7 +17,10 @@ const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
 const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
 const roles_guard_1 = require("../auth/guards/roles.guard");
+const permissions_guard_1 = require("../auth/guards/permissions.guard");
 const roles_decorator_1 = require("../auth/decorators/roles.decorator");
+const permissions_decorator_1 = require("../auth/decorators/permissions.decorator");
+const current_user_decorator_1 = require("../auth/decorators/current-user.decorator");
 const events_service_1 = require("./events.service");
 const create_event_dto_1 = require("./dto/create-event.dto");
 const update_event_dto_1 = require("./dto/update-event.dto");
@@ -29,8 +32,8 @@ let EventsController = class EventsController {
     async findAll(organizationId) {
         return this.eventsService.findAll(organizationId);
     }
-    async create(dto) {
-        return this.eventsService.create(dto);
+    async create(dto, user) {
+        return this.eventsService.create(dto, user);
     }
     async findOne(id) {
         return this.eventsService.findOne(id);
@@ -42,51 +45,52 @@ let EventsController = class EventsController {
         return this.eventsService.remove(id);
     }
     async setupStatus(id) {
-        return { currentStep: 1 };
+        return this.eventsService.getSetupStatus(id);
     }
-    async setupStep(id, stepId, dto) {
-        return { success: true };
+    async setupStep(id, stepId, body) {
+        return this.eventsService.saveStep(id, stepId, body);
     }
     async setupFinalize(id) {
-        return { success: true };
+        return this.eventsService.finalizeSetup(id);
     }
     async getSettings(id) {
-        return {};
+        return this.eventsService.getSettings(id);
     }
     async updateSettings(id, dto) {
-        return { success: true };
+        return this.eventsService.updateSettings(id, dto);
     }
     async getModules(id) {
-        return [];
+        return this.eventsService.getModules(id);
     }
     async updateModules(id, body) {
-        return { success: true };
+        return this.eventsService.updateModules(id, body.modules);
     }
     async getWorkflow(id) {
-        return { status: 'draft' };
+        return this.eventsService.getWorkflow(id);
     }
     async workflowReview(id) {
-        return { success: true };
+        return this.eventsService.submitForReview(id);
     }
-    async workflowApprove(id) {
-        return { success: true };
+    async workflowApprove(id, user) {
+        return this.eventsService.approve(id, user.id);
     }
     async workflowPublish(id) {
-        return { success: true };
+        return this.eventsService.publish(id);
     }
     async workflowArchive(id) {
-        return { success: true };
+        return this.eventsService.archive(id);
     }
     async publish(id) {
-        return { success: true };
+        return this.eventsService.publish(id);
     }
     async unpublish(id) {
-        return { success: true };
+        return this.eventsService.unpublish(id);
     }
 };
 exports.EventsController = EventsController;
 __decorate([
     (0, common_1.Get)(),
+    (0, permissions_decorator_1.Permissions)('events.list'),
     (0, swagger_1.ApiOperation)({ summary: 'Lister tous les événements' }),
     __param(0, (0, common_1.Query)('organizationId')),
     __metadata("design:type", Function),
@@ -95,15 +99,18 @@ __decorate([
 ], EventsController.prototype, "findAll", null);
 __decorate([
     (0, common_1.Post)(),
+    (0, permissions_decorator_1.Permissions)('events.create'),
     (0, swagger_1.ApiOperation)({ summary: 'Créer un événement' }),
     (0, swagger_1.ApiResponse)({ status: 201, description: 'Événement créé avec succès' }),
     __param(0, (0, common_1.Body)()),
+    __param(1, (0, current_user_decorator_1.CurrentUser)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [create_event_dto_1.CreateEventDto]),
+    __metadata("design:paramtypes", [create_event_dto_1.CreateEventDto, Object]),
     __metadata("design:returntype", Promise)
 ], EventsController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)(':id'),
+    (0, permissions_decorator_1.Permissions)('events.list'),
     (0, swagger_1.ApiOperation)({ summary: 'Récupérer un événement par ID' }),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
@@ -112,6 +119,7 @@ __decorate([
 ], EventsController.prototype, "findOne", null);
 __decorate([
     (0, common_1.Put)(':id'),
+    (0, permissions_decorator_1.Permissions)('events.update'),
     (0, swagger_1.ApiOperation)({ summary: 'Modifier un événement' }),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
@@ -121,6 +129,7 @@ __decorate([
 ], EventsController.prototype, "update", null);
 __decorate([
     (0, common_1.Delete)(':id'),
+    (0, permissions_decorator_1.Permissions)('events.delete'),
     (0, swagger_1.ApiOperation)({ summary: 'Supprimer un événement' }),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
@@ -137,16 +146,18 @@ __decorate([
 ], EventsController.prototype, "setupStatus", null);
 __decorate([
     (0, common_1.Post)(':id/setup/step/:stepId'),
+    (0, permissions_decorator_1.Permissions)('events.settings'),
     (0, swagger_1.ApiOperation)({ summary: 'Enregistrer une étape du wizard (1-5)' }),
     __param(0, (0, common_1.Param)('id')),
-    __param(1, (0, common_1.Param)('stepId')),
+    __param(1, (0, common_1.Param)('stepId', common_1.ParseIntPipe)),
     __param(2, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String, event_setup_dto_1.EventSetupStepDto]),
+    __metadata("design:paramtypes", [String, Number, Object]),
     __metadata("design:returntype", Promise)
 ], EventsController.prototype, "setupStep", null);
 __decorate([
     (0, common_1.Post)(':id/setup/finalize'),
+    (0, permissions_decorator_1.Permissions)('events.settings'),
     (0, swagger_1.ApiOperation)({ summary: 'Finaliser la configuration initiale' }),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
@@ -155,7 +166,7 @@ __decorate([
 ], EventsController.prototype, "setupFinalize", null);
 __decorate([
     (0, common_1.Get)(':id/settings'),
-    (0, swagger_1.ApiOperation)({ summary: 'Récupérer les réglages de l événement' }),
+    (0, swagger_1.ApiOperation)({ summary: "Récupérer les réglages de l'événement" }),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
@@ -163,7 +174,8 @@ __decorate([
 ], EventsController.prototype, "getSettings", null);
 __decorate([
     (0, common_1.Put)(':id/settings'),
-    (0, swagger_1.ApiOperation)({ summary: 'Modifier les réglages de l événement' }),
+    (0, permissions_decorator_1.Permissions)('events.settings'),
+    (0, swagger_1.ApiOperation)({ summary: "Modifier les réglages de l'événement" }),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -180,7 +192,8 @@ __decorate([
 ], EventsController.prototype, "getModules", null);
 __decorate([
     (0, common_1.Put)(':id/modules'),
-    (0, swagger_1.ApiOperation)({ summary: 'Activer/Désactiver des modules' }),
+    (0, permissions_decorator_1.Permissions)('events.settings'),
+    (0, swagger_1.ApiOperation)({ summary: 'Activer/Désactiver des modules (contraintes appliquées)' }),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -197,6 +210,7 @@ __decorate([
 ], EventsController.prototype, "getWorkflow", null);
 __decorate([
     (0, common_1.Post)(':id/workflow/review'),
+    (0, permissions_decorator_1.Permissions)('events.workflow'),
     (0, swagger_1.ApiOperation)({ summary: 'Soumettre pour revue' }),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
@@ -206,15 +220,17 @@ __decorate([
 __decorate([
     (0, common_1.Post)(':id/workflow/approve'),
     (0, roles_decorator_1.Roles)('Super Admin'),
-    (0, swagger_1.ApiOperation)({ summary: 'Approuver l événement (Super Admin)' }),
+    (0, swagger_1.ApiOperation)({ summary: "Approuver l'événement (Super Admin)" }),
     __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, current_user_decorator_1.CurrentUser)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", Promise)
 ], EventsController.prototype, "workflowApprove", null);
 __decorate([
     (0, common_1.Post)(':id/workflow/publish'),
-    (0, swagger_1.ApiOperation)({ summary: 'Publier l événement' }),
+    (0, permissions_decorator_1.Permissions)('events.publish'),
+    (0, swagger_1.ApiOperation)({ summary: "Publier l'événement" }),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
@@ -222,7 +238,8 @@ __decorate([
 ], EventsController.prototype, "workflowPublish", null);
 __decorate([
     (0, common_1.Post)(':id/workflow/archive'),
-    (0, swagger_1.ApiOperation)({ summary: 'Archiver l événement' }),
+    (0, permissions_decorator_1.Permissions)('events.workflow'),
+    (0, swagger_1.ApiOperation)({ summary: "Archiver l'événement" }),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
@@ -230,6 +247,7 @@ __decorate([
 ], EventsController.prototype, "workflowArchive", null);
 __decorate([
     (0, common_1.Post)(':id/publish'),
+    (0, permissions_decorator_1.Permissions)('events.publish'),
     (0, swagger_1.ApiOperation)({ summary: 'Publier' }),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
@@ -238,6 +256,7 @@ __decorate([
 ], EventsController.prototype, "publish", null);
 __decorate([
     (0, common_1.Post)(':id/unpublish'),
+    (0, permissions_decorator_1.Permissions)('events.publish'),
     (0, swagger_1.ApiOperation)({ summary: 'Dépublier' }),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
@@ -247,7 +266,7 @@ __decorate([
 exports.EventsController = EventsController = __decorate([
     (0, swagger_1.ApiTags)('Events'),
     (0, common_1.Controller)('events'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard, permissions_guard_1.PermissionsGuard),
     (0, swagger_1.ApiBearerAuth)(),
     __metadata("design:paramtypes", [events_service_1.EventsService])
 ], EventsController);

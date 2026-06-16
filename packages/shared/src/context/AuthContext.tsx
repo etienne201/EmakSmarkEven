@@ -72,6 +72,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     Cookies.remove("auth-token");
     localStorage.removeItem("refresh-token");
     localStorage.removeItem("auth-user");
+    localStorage.removeItem("current-event-id");
     localStorage.removeItem("event-config");
     localStorage.removeItem("session-last-activity");
     // Redirect to the appropriate login page based on role

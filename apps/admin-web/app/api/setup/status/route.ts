@@ -1,6 +1,6 @@
 import { handleApiError } from "@backend/middleware/error-handler";
 import { createSuccessResponse } from "@backend/middleware/response-handler";
-import { prisma } from "@backend/prisma";
+import { Storage } from "@backend/storage/storage";
 import { AuthGuard } from "@backend/middleware/auth-guard";
 
 /**
@@ -10,17 +10,17 @@ import { AuthGuard } from "@backend/middleware/auth-guard";
 export async function GET(request: Request) {
   try {
     const payload = await AuthGuard.admin(request);
-    
-    // On cherche un événement appartenant à cet ownerId
-    const event = await prisma.event.findFirst({
-      where: { adminId: payload.ownerId },
-      select: { id: true, title: true, setupCompleted: true }
-    });
+    const ownerId = String(payload.ownerId || "");
+    const config = await Storage.getEventConfig(ownerId);
+
+    const isConfigured = config?.status !== "draft" && config?.setupCompleted === true;
+    const eventId = config?.id || ownerId;
+    const eventName = config?.title || config?.eventName || null;
 
     return createSuccessResponse({
-      isConfigured: !!event && event.setupCompleted === true,
-      eventId: event?.id || null,
-      eventName: event?.title || null
+      isConfigured,
+      eventId,
+      eventName
     }, "SETUP_STATUS_FETCHED");
   } catch (error) {
     return handleApiError(error);
