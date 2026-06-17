@@ -57,14 +57,25 @@ export async function listEvents(token?: string) {
 }
 
 export async function getPrimaryEventId(token?: string): Promise<string | null> {
-  const stored = getStoredEventId();
-  if (stored) return stored;
-
   const { data } = await listEvents(token);
-  if (!Array.isArray(data) || data.length === 0) return null;
+  const events = (Array.isArray(data) ? data : []) as Array<{ id?: string }>;
 
-  const first = data[0] as { id?: string };
-  return first.id ?? null;
+  const stored = getStoredEventId();
+  if (stored) {
+    // Validate that the stored event actually belongs to this user
+    const ownsStored = events.some((e) => e.id === stored);
+    if (ownsStored) return stored;
+
+    // Stale event from another user — clear it
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("current-event-id");
+      localStorage.removeItem("event-config");
+    }
+  }
+
+  if (events.length === 0) return null;
+
+  return events[0].id ?? null;
 }
 
 export async function ensureEventId(token?: string): Promise<string | null> {

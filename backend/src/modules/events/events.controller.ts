@@ -38,8 +38,13 @@ export class EventsController {
   @Get()
   @Permissions('events.list')
   @ApiOperation({ summary: 'Lister tous les événements' })
-  async findAll(@Query('organizationId') organizationId?: string) {
-    return this.eventsService.findAll(organizationId);
+  async findAll(
+    @Query('organizationId') organizationId?: string,
+    @CurrentUser() user?: AuthUser,
+  ) {
+    // Un admin ne voit que les événements de son organisation
+    const orgId = organizationId || user?.organizationId || undefined;
+    return this.eventsService.findAll(orgId);
   }
 
   @Post()

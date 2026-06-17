@@ -49,6 +49,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const login = useCallback((newToken: string, refreshToken: string, userData: User) => {
+    // ── Clear stale event context from any previous session ──
+    // Without this, a new admin could inherit another user's event
+    // and be redirected to a dashboard that doesn't belong to them.
+    localStorage.removeItem("current-event-id");
+    localStorage.removeItem("event-config");
+
     setToken(newToken);
     setUser(userData);
     

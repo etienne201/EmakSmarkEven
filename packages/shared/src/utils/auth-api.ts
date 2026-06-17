@@ -67,7 +67,7 @@ export async function updateUserProfile(body: Record<string, unknown>) {
 /** Resolves post-login redirect for organizer accounts. */
 export async function resolveOrganizerRedirect(accessToken: string): Promise<string> {
   const eventId = await getPrimaryEventId(accessToken);
-  if (!eventId) return "/setup";
+  if (!eventId) return "/setup?welcome=true";
 
   const status = await getSetupStatus(eventId, accessToken);
   if (!status) return `/setup?eventId=${eventId}`;
