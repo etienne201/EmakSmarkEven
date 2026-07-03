@@ -7,6 +7,7 @@ interface StepFooterProps {
   onNext: () => void;
   nextLabel?: string;
   busy?: boolean;
+  disabled?: boolean;
   hideBack?: boolean;
   optional?: boolean;
   onSkip?: () => void;
@@ -17,6 +18,7 @@ export function StepFooter({
   onNext,
   nextLabel = "Continuer",
   busy = false,
+  disabled = false,
   hideBack = false,
   optional = false,
   onSkip,
@@ -51,7 +53,7 @@ export function StepFooter({
           type="button"
           className="es-btn es-btn--primary"
           onClick={onNext}
-          disabled={busy}
+          disabled={busy || disabled}
         >
           {busy ? (
             <Loader2 className="w-4 h-4 es-spin" aria-hidden />

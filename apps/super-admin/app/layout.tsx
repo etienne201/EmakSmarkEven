@@ -4,7 +4,6 @@ import "../styles/design-system.css";
 import { ServiceWorkerCleaner } from "@frontend/components/ServiceWorkerCleaner";
 import { Metadata, Viewport } from 'next';
 import { ToastProvider } from "@frontend/hooks/useToast";
-import { AdminNavbar } from "@frontend/components/AdminNavbar";
 import { ThemeProvider } from "@frontend/components/ThemeProvider";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";

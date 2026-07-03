@@ -2,21 +2,34 @@
 
 import { motion } from "framer-motion";
 import { 
-  Users, 
   BarChart3, 
   Table as TableIcon, 
   UserCheck, 
   Settings, 
-  LogOut,
-  LayoutDashboard,
-  Calendar,
-  MapPin,
-  Globe,
-  ShieldAlert
+  LogOut, 
+  LayoutDashboard, 
+  Calendar, 
+  MapPin, 
+  ShieldAlert,
+  Heart,
+  Cake,
+  Mic,
+  Crown,
+  Sparkles
 } from "lucide-react";
 import { Language, translations } from "@backend/translations";
-import { EventConfig } from "@backend/eventConfig";
+import { EventConfig, EventType } from "@backend/eventConfig";
 import { useAuth } from "@frontend/context/AuthContext";
+import { hasWriteAccess, canViewAnalytics } from "@frontend/utils/api-config";
+import { PremiumLogo } from "../PremiumLogo";
+
+const EVENT_TYPE_ICONS: Record<EventType, React.ComponentType<{ className?: string }>> = {
+  wedding: Heart,
+  birthday: Cake,
+  conference: Mic,
+  gala: Crown,
+  other: Sparkles,
+};
 
 interface SidebarProps {
   currentView: string;
@@ -37,31 +50,34 @@ export function Sidebar({
 }: SidebarProps) {
   const { user } = useAuth();
   const t = translations[lang];
-  const isStaff = user?.role === "staff";
   const isSuperAdmin = user?.role === "super-admin";
+  const canEdit = hasWriteAccess(user?.role);
+  const viewAnalytics = canViewAnalytics(user?.role);
 
   const menuItems = [
     { id: "guests", label: t.nav.dashboard, icon: LayoutDashboard },
     { id: "presence", label: t.nav.presence, icon: UserCheck },
-    ...(isStaff ? [] : [
+    ...(viewAnalytics ? [
       { id: "tables", label: t.nav.tables, icon: TableIcon },
       { id: "analytics", label: t.nav.analytics, icon: BarChart3 },
-    ]),
+    ] : []),
   ];
 
   const initials = eventConfig?.hostInitials || eventConfig?.eventName?.substring(0, 2).toUpperCase() || "E";
+  const EventIcon = eventConfig ? EVENT_TYPE_ICONS[eventConfig.eventType] : Heart;
 
   return (
     <aside className="fixed left-0 top-0 h-full w-72 bg-[color:var(--bg-surface)] border-r border-[color:var(--border)] flex flex-col z-50">
       {/* Brand Area */}
       <div className="p-6">
-        <div className="flex items-center gap-3 mb-6">
-          <div
-            className="w-11 h-11 text-white rounded-xl flex items-center justify-center font-black text-lg"
-            style={{ backgroundColor: 'var(--color-primary)', boxShadow: '0 8px 16px -6px var(--color-primary)' }}
-          >
-            {initials}
-          </div>
+        <div className="flex items-center gap-3.5 mb-6">
+          <PremiumLogo
+            src={eventConfig?.logoUrl}
+            fallbackIcon={EventIcon}
+            initials={initials}
+            size="md"
+            variant="emerald"
+          />
           <div className="min-w-0">
             <h2 className="font-bold text-[color:var(--text-primary)] leading-tight truncate">EMAK Event</h2>
             <p className="es-eyebrow" style={{ color: 'var(--color-primary)' }}>Espace organisateur</p>
@@ -139,7 +155,7 @@ export function Sidebar({
           </button>
         </div>
 
-        <div className={`grid ${isSuperAdmin ? 'grid-cols-3' : isStaff ? 'grid-cols-1' : 'grid-cols-2'} gap-2`}>
+        <div className={`grid ${isSuperAdmin ? 'grid-cols-3' : canEdit ? 'grid-cols-2' : 'grid-cols-1'} gap-2`}>
           {isSuperAdmin && (
             <button
               onClick={() => window.location.href = "/superadmin"}
@@ -150,7 +166,7 @@ export function Sidebar({
               <span className="text-[10px] font-semibold">Admin</span>
             </button>
           )}
-          {!isStaff && (
+          {canEdit && (
             <button
               onClick={() => window.location.href = "/reglage"}
               className="es-focusable flex flex-col items-center justify-center gap-1.5 p-3 rounded-xl bg-[color:var(--bg-subtle)] text-[color:var(--text-secondary)] hover:text-[color:var(--text-primary)] transition-all border border-[color:var(--border)]"

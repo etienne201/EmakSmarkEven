@@ -8,12 +8,15 @@ import { setupApi } from "./api";
 import type { ApiError } from "./types";
 import { WizardShell } from "./components/WizardShell";
 import { CreateEventCard } from "./components/CreateEventCard";
-import { Step1General } from "./components/Step1General";
-import { Step2Location } from "./components/Step2Location";
-import { Step3Modules } from "./components/Step3Modules";
-import { Step4Branding } from "./components/Step4Branding";
-import { Step5Access } from "./components/Step5Access";
-import { Step6Review } from "./components/Step6Review";
+import { Step1BaseInfo } from "./components/Step1BaseInfo";
+import { Step2Modules } from "./components/Step2Modules";
+import { Step3Templates } from "./components/Step3Templates";
+import { Step4FlyerEditor } from "./components/Step4FlyerEditor";
+import { Step5Branding } from "./components/Step5Branding";
+import { Step6Content } from "./components/Step6Content";
+import { Step7Guests } from "./components/Step7Guests";
+import { Step8Review } from "./components/Step8Review";
+import { Step9Publish } from "./components/Step9Publish";
 
 export function SetupWizardClient() {
   const router = useRouter();
@@ -108,12 +111,15 @@ export function SetupWizardClient() {
       completedSteps={completedSteps}
       onStepClick={goToStep}
     >
-      {currentStep === 1 && <Step1General onCompleted={goNext} />}
-      {currentStep === 2 && <Step2Location onCompleted={goNext} onBack={goBack} />}
-      {currentStep === 3 && <Step3Modules onCompleted={goNext} onBack={goBack} />}
-      {currentStep === 4 && <Step4Branding onCompleted={goNext} onBack={goBack} />}
-      {currentStep === 5 && <Step5Access onCompleted={goNext} onBack={goBack} />}
-      {currentStep === 6 && <Step6Review onBack={goBack} onGoToStep={goToStep} />}
+      {currentStep === 1 && <Step1BaseInfo onCompleted={goNext} />}
+      {currentStep === 2 && <Step2Modules onCompleted={goNext} onBack={goBack} />}
+      {currentStep === 3 && <Step3Templates onCompleted={goNext} onBack={goBack} />}
+      {currentStep === 4 && <Step4FlyerEditor onCompleted={goNext} onBack={goBack} />}
+      {currentStep === 5 && <Step5Branding onCompleted={goNext} onBack={goBack} />}
+      {currentStep === 6 && <Step6Content onCompleted={goNext} onBack={goBack} />}
+      {currentStep === 7 && <Step7Guests onCompleted={goNext} onBack={goBack} />}
+      {currentStep === 8 && <Step8Review onCompleted={goNext} onBack={goBack} onGoToStep={goToStep} />}
+      {currentStep === 9 && <Step9Publish onBack={goBack} />}
     </WizardShell>
   );
 }

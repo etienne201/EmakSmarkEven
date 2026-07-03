@@ -1,14 +1,13 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { ShieldCheck, Lock, Eye, EyeOff, Loader2, AlertCircle, Mail, Fingerprint, ArrowRight } from "lucide-react";
+import { Lock, Eye, EyeOff, Loader2, AlertCircle, Mail, Fingerprint, ArrowRight, ShieldCheck } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useRouter } from "next/navigation";
 import { useAuth } from "@frontend/context/AuthContext";
 import { loginWithEmail, isSuperAdminRole } from "@frontend/utils/auth-api";
+import { PremiumLogo } from "../PremiumLogo";
 
 export function SuperAdminLoginUI() {
-  const router = useRouter();
   const { login } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -76,7 +75,10 @@ export function SuperAdminLoginUI() {
         return;
       }
       login(data.accessToken, data.refreshToken, data.user);
-      router.push("/superadmin?welcome=true");
+      const targetUrl = window.location.port === "3000"
+        ? `http://${window.location.hostname}:3002/superadmin?welcome=true`
+        : "/superadmin?welcome=true";
+      window.location.href = targetUrl;
     } else {
       setError(apiError || "Accès refusé. Vérifiez vos identifiants.");
       setLoading(false);
@@ -98,12 +100,13 @@ export function SuperAdminLoginUI() {
         <div className="card-accent-line superadmin-accent" />
         <div className="security-badge"><div className="security-badge-dot" /><span>Accès Sécurisé — Niveau Supérieur</span></div>
         
-        <div className="login-logo-section">
-          <div className="logo-glow-ring superadmin-glow">
-            <div className="logo-inner superadmin-logo-inner">
-              <img src="/images/bleulogo.png" alt="EMAKO" className="logo-image" />
-            </div>
-          </div>
+        <div className="login-logo-section flex justify-center mb-6">
+          <PremiumLogo
+            src="/images/bleulogo.png"
+            fallbackIcon={ShieldCheck}
+            size="xl"
+            variant="blue"
+          />
         </div>
 
         <div className="login-title-section">

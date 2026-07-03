@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString, IsOptional, IsEmail, IsEnum } from 'class-validator';
+import { IsNotEmpty, IsString, IsOptional, IsEmail, IsEnum, IsInt } from 'class-validator';
 import { GuestRole, GuestStatus } from '@prisma/client';
 
 export class CreateGuestDto {
@@ -27,4 +27,30 @@ export class CreateGuestDto {
   @IsEnum(GuestStatus)
   @IsOptional()
   status?: GuestStatus;
+
+  @ApiProperty({ required: false, example: 'M.' })
+  @IsString()
+  @IsOptional()
+  title?: string;
+
+  @ApiProperty({ required: false, example: 'John Doe' })
+  @IsString()
+  @IsOptional()
+  name?: string;
+
+  @ApiProperty({ required: false, example: 1 })
+  @IsInt()
+  @IsOptional()
+  table?: number;
+
+  @ApiProperty({ required: false, example: 'Table 1' })
+  @IsString()
+  @IsOptional()
+  tableName?: string;
+
+  @ApiProperty({ required: false, example: 'fr' })
+  @IsString()
+  @IsOptional()
+  lang?: string;
 }
+

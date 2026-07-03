@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Users, UserCheck, UserX, BarChart3, PieChart, TrendingUp, LayoutDashboard } from "lucide-react";
+import { Users, PieChart, TrendingUp, LayoutDashboard } from "lucide-react";
 import { Language, translations } from "@backend/translations";
 
 interface AnalyticsViewProps {
@@ -16,7 +16,6 @@ export function AnalyticsView({ guests, attendance, appLang, eventConfig }: Anal
 
   const totalGuests = guests.length;
   const presentCount = attendance.length;
-  const pendingCount = Math.max(0, totalGuests - presentCount);
   const attendanceRate = totalGuests > 0 ? Math.round((presentCount / totalGuests) * 100) : 0;
 
   const frCount = guests.filter(g => g.lang === "fr").length;

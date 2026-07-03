@@ -15,14 +15,18 @@ export async function generateUniqueOrgSlug(
   let slug = base;
   let attempt = 0;
 
-  while (true) {
+  let isUnique = false;
+  while (!isUnique) {
     const existing = await prisma.organization.findUnique({
       where: { slug },
     });
 
-    if (!existing) return slug;
-
-    attempt++;
-    slug = `${base}-${attempt}`;
+    if (!existing) {
+      isUnique = true;
+    } else {
+      attempt++;
+      slug = `${base}-${attempt}`;
+    }
   }
+  return slug;
 }

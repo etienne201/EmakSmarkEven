@@ -253,7 +253,7 @@ export function PresenceList({ isOpen, onClose, lang, inline = false }: Presence
         });
 
 
-        // @ts-ignore
+        // @ts-expect-error - lastAutoTable is injected by the autotable plugin and not typed on jsPDF
         currentY = doc.lastAutoTable.finalY + 12;
 
         if (currentY > doc.internal.pageSize.getHeight() - 30 && idx < sortedTables.length - 1) {

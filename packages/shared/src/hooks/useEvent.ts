@@ -64,7 +64,11 @@ export function useEvent() {
 
       const eventRes = await getEvent(eventId);
       if (eventRes.data) {
-        const ev = eventRes.data as Record<string, unknown>;
+        const ev = eventRes.data as any;
+        const themes = ev.themes || [];
+        const themeTokens = themes[0]?.tokens || {};
+        const logoUrl = themeTokens.logoUrl || ev.logoUrl || undefined;
+
         const mapped: EventConfig = {
           ...DEFAULT_EVENT_CONFIG,
           id: String(ev.id ?? eventId),
@@ -74,16 +78,26 @@ export function useEvent() {
           title: String(ev.title ?? ""),
           eventType: (ev.eventType as EventConfig["eventType"]) ?? DEFAULT_EVENT_CONFIG.eventType,
           status: (ev.status as EventConfig["status"]) ?? DEFAULT_EVENT_CONFIG.status,
+          logoUrl: logoUrl,
         };
         setEventConfig(mapped);
         persistEventContext(eventId);
-        currentOwnerId = mapped.ownerId;
+        currentOwnerId = mapped.ownerId || "default";
       }
 
       const guestsRes = await getEventGuests(eventId);
       if (guestsRes.data) {
         const data = Array.isArray(guestsRes.data) ? guestsRes.data : [];
-        if (data.length > 0 || isInitial) setGuests(data as Guest[]);
+        const mappedGuests = data.map((g: any) => ({
+          ...g,
+          name: g.name || g.fullName || "",
+          fullName: g.fullName || g.name || "",
+          tableName: g.tableName || (g.table ? `Table ${g.table}` : "Non assigné"),
+          table: g.table || 0,
+          title: g.title || "M./Mme",
+          lang: g.lang || "fr",
+        }));
+        if (mappedGuests.length > 0 || isInitial) setGuests(mappedGuests);
       }
 
       const tablesRes = await getEventTables(eventId);

@@ -39,7 +39,7 @@ test.describe('👤 Default Admin (UserEven)', () => {
     expect(res.ok()).toBeTruthy();
     const body = await res.json();
     expect(body.data?.accessToken).toBeDefined();
-    expect(body.data?.user?.role).toBe('ADMIN');
+    expect(body.data?.user?.role).toBe('OWNER');
   });
 
   test('UserEven should create an event', async ({ request }) => {

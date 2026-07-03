@@ -86,6 +86,7 @@ export class EventsService {
         data: {
           organizationId,
           createdById: user.id,
+          ownerId: user.id,
           title: dto.title,
           slug: dto.slug,
           eventType: dto.eventType,

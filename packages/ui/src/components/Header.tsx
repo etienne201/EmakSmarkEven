@@ -1,7 +1,8 @@
 import { motion } from "framer-motion";
-import { Users, Heart, Globe, Cake, Mic, Crown, Sparkles, Settings, LogOut } from "lucide-react";
+import { Users, Heart, Globe, Cake, Mic, Crown, Sparkles, Settings } from "lucide-react";
 import { Language, translations } from "@backend/translations";
 import { EventConfig, EventType, formatEventDate } from "@backend/eventConfig";
+import { PremiumLogo } from "./PremiumLogo";
 
 interface HeaderProps {
   guestCount: number;
@@ -35,13 +36,14 @@ export function Header({ guestCount, lang, onLanguageChange, eventConfig }: Head
       
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 relative z-10">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            {eventConfig?.logoUrl ? (
-              <img src={eventConfig.logoUrl} alt="Logo" className="w-8 h-8 object-contain bg-white rounded-lg p-1 shadow-sm border border-white/20" />
-            ) : (
-              <EventIcon className="w-4 h-4 text-gold-light fill-gold-light" />
-            )}
-            <span className="text-[10px] sm:text-xs font-medium tracking-[0.2em] uppercase opacity-80">
+          <div className="flex items-center gap-3 mb-1.5">
+            <PremiumLogo
+              src={eventConfig?.logoUrl}
+              fallbackIcon={EventIcon}
+              size="sm"
+              variant="gold"
+            />
+            <span className="text-[10px] sm:text-xs font-semibold tracking-[0.2em] uppercase opacity-90">
               {ceremony}
             </span>
           </div>

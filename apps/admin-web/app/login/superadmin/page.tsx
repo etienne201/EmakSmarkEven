@@ -12,9 +12,12 @@ export default function SuperAdminLoginPage() {
   // Redirect to dashboard if already logged in
   useEffect(() => {
     if (isAuthenticated && user?.role === "super-admin") {
-      router.replace("/superadmin");
+      const targetUrl = window.location.port === "3000"
+        ? `http://${window.location.hostname}:3002/superadmin`
+        : "/superadmin";
+      window.location.href = targetUrl;
     }
-  }, [isAuthenticated, user, router]);
+  }, [isAuthenticated, user]);
 
   return <SuperAdminLoginUI />;
 }

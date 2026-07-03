@@ -1,10 +1,12 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Plus, UserCheck, Trash2, Filter, ChevronDown } from "lucide-react";
+import { Search, Plus, UserCheck, Filter, ChevronDown } from "lucide-react";
 import { GuestCard } from "@frontend/components/GuestCard";
 import { GuestForm } from "@frontend/components/GuestForm";
 import { Language, translations } from "@backend/translations";
+import { useAuth } from "@frontend/context/AuthContext";
+import { hasWriteAccess } from "@frontend/utils/api-config";
 
 interface GuestsViewProps {
   view: "list" | "form" | "qr";
@@ -19,9 +21,9 @@ interface GuestsViewProps {
   editId: string | number | null;
   setEditId: (id: string | number | null) => void;
   handleSaveGuest: any;
-  handleDeleteGuest: any;
-  setIsClearModalOpen: (b: boolean) => void;
-  setIsTableModalOpen: (b: boolean) => void;
+  _handleDeleteGuest: any;
+  _setIsClearModalOpen: (b: boolean) => void;
+  _setIsTableModalOpen: (b: boolean) => void;
   currentPage: number;
   setCurrentPage: (p: any) => void;
   totalPages: number;
@@ -37,11 +39,13 @@ interface GuestsViewProps {
 export function GuestsView({
   view, setView, search, setSearch, selectedTable, setSelectedTable,
   filteredGuests, paginatedGuests, customTables, editId, setEditId,
-  handleSaveGuest, handleDeleteGuest, setIsClearModalOpen, setIsTableModalOpen,
+  handleSaveGuest, _handleDeleteGuest, _setIsClearModalOpen, _setIsTableModalOpen,
   currentPage, setCurrentPage, totalPages, appLang, origin, ownerId, eventConfig,
   setSelectedGuest, setDeleteGuestId, guests
 }: GuestsViewProps) {
   const t = translations[appLang];
+  const { user } = useAuth();
+  const canEdit = hasWriteAccess(user?.role);
 
   return (
     <div className="space-y-8">
@@ -76,21 +80,23 @@ export function GuestsView({
             <ChevronDown className="absolute right-6 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none group-hover:text-emerald transition-colors" />
           </div>
 
-          <button 
-            onClick={() => { setEditId(null); setView(view === "form" ? "list" : "form"); }}
-            className={`w-full sm:w-auto flex items-center justify-center gap-3 px-8 py-4 rounded-[2rem] font-bold text-sm transition-all duration-300 active:scale-95 ${
-              view === "form" 
-                ? "bg-white/80 backdrop-blur-md border shadow-lg" 
-                : "text-white shadow-lg hover:scale-[1.02]"
-            }`}
-            style={{ 
-              backgroundColor: view === "form" ? 'transparent' : 'var(--color-primary)',
-              borderColor: 'var(--color-primary)',
-              color: view === "form" ? 'var(--color-primary)' : 'white'
-            }}
-          >
-            {view === "form" ? t.viewList : <><Plus className="w-5 h-5" /><span>{t.addGuest}</span></>}
-          </button>
+          {canEdit && (
+            <button 
+              onClick={() => { setEditId(null); setView(view === "form" ? "list" : "form"); }}
+              className={`w-full sm:w-auto flex items-center justify-center gap-3 px-8 py-4 rounded-[2rem] font-bold text-sm transition-all duration-300 active:scale-95 ${
+                view === "form" 
+                  ? "bg-white/80 backdrop-blur-md border shadow-lg" 
+                  : "text-white shadow-lg hover:scale-[1.02]"
+              }`}
+              style={{ 
+                backgroundColor: view === "form" ? 'transparent' : 'var(--color-primary)',
+                borderColor: 'var(--color-primary)',
+                color: view === "form" ? 'var(--color-primary)' : 'white'
+              }}
+            >
+              {view === "form" ? t.viewList : <><Plus className="w-5 h-5" /><span>{t.addGuest}</span></>}
+            </button>
+          )}
         </div>
       </div>
 
@@ -117,7 +123,7 @@ export function GuestsView({
                       ? `Nous n'avons trouvé aucun invité correspondant à "${search}". Essayez de modifier vos filtres.` 
                       : "Commencez par ajouter vos premiers invités pour générer leurs invitations interactives et préparer le plan de table."}
                   </p>
-                  {!search && (
+                  {canEdit && !search && (
                     <button 
                       onClick={() => setView("form")}
                       className="group flex items-center gap-3 px-8 py-4 bg-slate-900 text-white rounded-2xl font-bold shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.2)] hover:bg-slate-800 transition-all duration-300"

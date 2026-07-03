@@ -123,4 +123,39 @@ export const setupApi = {
       method: "POST",
     });
   },
+
+  getDesignTemplates(eventType?: string) {
+    const query = eventType ? `?eventType=${eventType}` : "";
+    return request<any[]>(`/design-templates${query}`);
+  },
+
+  getDesignAssets(category?: string) {
+    const query = category ? `?category=${category}` : "";
+    return request<any[]>(`/design-assets${query}`);
+  },
+
+  getEventDesigns(eventId: string) {
+    return request<any[]>(`/events/${eventId}/designs`);
+  },
+
+  createDesign(eventId: string, data: any) {
+    return request<any>(`/events/${eventId}/designs`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  },
+
+  updateDesign(designId: string, data: any) {
+    return request<any>(`/designs/${designId}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    });
+  },
+
+  createDesignExport(designId: string, data: any) {
+    return request<any>(`/designs/${designId}/exports`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  },
 };

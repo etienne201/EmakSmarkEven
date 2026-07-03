@@ -2,7 +2,7 @@ export type Language = "fr" | "en";
 
 export const translations = {
   fr: {
-    title: "Danie & John",
+    title: "Mon Événement",
     date: "06 Juin 2026",
     location: "Douala",
     ceremony: "Cérémonie de Mariage",
@@ -46,13 +46,47 @@ export const translations = {
     ],
     attendance: {
       title: "Confirmation de Présence",
-      prompt: "Veuillez confirmer votre présence pour aujourd'hui.",
+      prompt: "Veuillez confirmer votre statut pour cet événement.",
       present: "Je suis Présent",
       honored: "Je suis Honoré",
+      absent: "Je serai Absent",
+      outOfSchedule: "Hors Horaire",
       later: "Plus tard",
       status: "Statut",
       presentBadge: "Présent",
-      honoredBadge: "Honoré"
+      honoredBadge: "Honoré",
+      absentBadge: "Absent",
+      outOfScheduleBadge: "Hors horaire",
+      changeStatus: "Modifier mon statut",
+      confirmed: "Votre statut a été enregistré"
+    },
+    programme: {
+      title: "Programme",
+      noSessions: "Le programme sera bientôt disponible.",
+      ongoing: "En cours",
+      upcoming: "À venir",
+      completed: "Terminé",
+      location: "Lieu",
+      time: "Horaire"
+    },
+    guestNav: {
+      invitation: "Invitation",
+      programme: "Programme",
+      confirmation: "Confirmation",
+      next: "Suivant",
+      prev: "Précédent"
+    },
+    adminAttendance: {
+      title: "Options de Confirmation",
+      desc: "Choisissez les options de présence disponibles pour vos invités.",
+      present: "Présent",
+      absent: "Absent",
+      honored: "Honoré",
+      outOfSchedule: "Hors Horaire",
+      presentDesc: "L'invité confirme sa présence",
+      absentDesc: "L'invité ne pourra pas venir",
+      honoredDesc: "L'invité est honoré d'être invité",
+      outOfScheduleDesc: "L'invité arrive en dehors de l'horaire prévu"
     },
     presence: {
       listTitle: "Liste des Présences",
@@ -62,7 +96,7 @@ export const translations = {
       at: "à",
       downloadTitle: "Liste des Invités Présents & Honorés",
       downloadSub: "Généré le",
-      pdfName: "presences-mariage-danie-john.pdf",
+      pdfName: "presences-evenement.pdf",
       errorLoad: "Impossible de charger la liste des présences.",
       errorGeneric: "Une erreur est survenue lors du chargement.",
       retry: "Réessayer"
@@ -145,7 +179,7 @@ export const translations = {
       step6Title: "Gérer votre profil administrateur",
       projectSettings: "Paramètres & Projet",
       eventName: "Nom de l'événement",
-      eventNamePlaceholder: "Ex: Danie & John",
+      eventNamePlaceholder: "Ex: Marie & Pierre",
       eventDate: "Date",
       eventTime: "Heure",
       eventLocation: "Lieu",
@@ -215,7 +249,7 @@ export const translations = {
     }
   },
   en: {
-    title: "Danie & John",
+    title: "My Event",
     date: "June 06, 2026",
     location: "Douala",
     ceremony: "Wedding Ceremony",
@@ -259,13 +293,47 @@ export const translations = {
     ],
     attendance: {
       title: "Attendance Confirmation",
-      prompt: "Please confirm your attendance for today.",
+      prompt: "Please confirm your status for this event.",
       present: "I am Present",
       honored: "I am Honored",
+      absent: "I will be Absent",
+      outOfSchedule: "Out of Schedule",
       later: "Later",
       status: "Status",
       presentBadge: "Present",
-      honoredBadge: "Honored"
+      honoredBadge: "Honored",
+      absentBadge: "Absent",
+      outOfScheduleBadge: "Out of schedule",
+      changeStatus: "Change my status",
+      confirmed: "Your status has been recorded"
+    },
+    programme: {
+      title: "Programme",
+      noSessions: "The programme will be available soon.",
+      ongoing: "Ongoing",
+      upcoming: "Upcoming",
+      completed: "Completed",
+      location: "Venue",
+      time: "Time"
+    },
+    guestNav: {
+      invitation: "Invitation",
+      programme: "Programme",
+      confirmation: "Confirmation",
+      next: "Next",
+      prev: "Previous"
+    },
+    adminAttendance: {
+      title: "Attendance Options",
+      desc: "Choose the attendance options available for your guests.",
+      present: "Present",
+      absent: "Absent",
+      honored: "Honored",
+      outOfSchedule: "Out of Schedule",
+      presentDesc: "Guest confirms attendance",
+      absentDesc: "Guest will not be able to attend",
+      honoredDesc: "Guest is honored to be invited",
+      outOfScheduleDesc: "Guest arrives outside the scheduled time"
     },
     presence: {
       listTitle: "Attendance List",
@@ -275,7 +343,7 @@ export const translations = {
       at: "at",
       downloadTitle: "List of Present & Honored Guests",
       downloadSub: "Generated on",
-      pdfName: "wedding-attendance-danie-john.pdf",
+      pdfName: "event-attendance.pdf",
       errorLoad: "Unable to load the attendance list.",
       errorGeneric: "An error occurred while loading.",
       retry: "Retry"
@@ -358,7 +426,7 @@ export const translations = {
       step6Title: "Manage your administrator profile",
       projectSettings: "Settings & Project",
       eventName: "Event Name",
-      eventNamePlaceholder: "Ex: Danie & John",
+      eventNamePlaceholder: "Ex: Sarah & James",
       eventDate: "Date",
       eventTime: "Time",
       eventLocation: "Location",

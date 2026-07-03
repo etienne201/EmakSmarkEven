@@ -14,6 +14,7 @@ import {
 import { DashboardWrapper } from "@frontend/components/dashboard/DashboardWrapper";
 import { HighEndStats } from "@frontend/components/dashboard/HighEndStats";
 import { GuestsView } from "@frontend/components/dashboard/GuestsView";
+import { Guest } from "@backend/types";
 import { PresenceView } from "@frontend/components/dashboard/PresenceView";
 import { TablesView } from "@frontend/components/dashboard/TablesView";
 import { AnalyticsView } from "@frontend/components/dashboard/AnalyticsView";
@@ -29,7 +30,7 @@ import { useToast } from "@frontend/hooks/useToast";
 import { useAuth } from "@frontend/context/AuthContext";
 import { translations } from "@backend/translations";
 
-import { createGuest, deleteGuest, getStoredEventId } from "@frontend/utils/event-api";
+import { createGuest, updateGuest, deleteGuest, getStoredEventId } from "@frontend/utils/event-api";
 import { Suspense } from "react";
 
 function DashboardContent() {
@@ -113,7 +114,7 @@ function DashboardContent() {
   const totalPages = Math.ceil(filteredGuests.length / ITEMS_PER_PAGE);
   useEffect(() => { setCurrentPage(1); }, [search, selectedTable]);
 
-  const handleLogout = () => {
+  const _handleLogout = () => {
     Cookies.remove("auth-token");
     localStorage.removeItem("event-config");
     router.push("/login");
@@ -134,12 +135,19 @@ function DashboardContent() {
       lang,
     };
     try {
-      const { data, error } = await createGuest(eventId, guestData);
+      const res = editId 
+        ? await updateGuest(String(editId), guestData)
+        : await createGuest(eventId, guestData);
+      
+      const { data, error } = res;
       if (data && !error) {
-        const savedGuest = (data as Record<string, unknown>) || { ...guestData, id: editId ? String(editId) : crypto.randomUUID() };
+        const savedGuest = data ? (data as unknown as Guest) : ({
+          ...guestData,
+          id: editId ? (typeof editId === "number" ? editId : Number(editId)) : Date.now(),
+        } as Guest);
         setGuests(prev => {
           const arr = Array.isArray(prev) ? prev : [];
-          return editId ? arr.map(g => g.id === editId ? savedGuest as typeof g : g) : [...arr, savedGuest as typeof arr[0]];
+          return editId ? arr.map(g => g.id === editId ? savedGuest : g) : [...arr, savedGuest];
         });
         showToast(editId ? t.toasts.successUpdate : t.toasts.successAdd, "success");
         setView("list");
@@ -185,7 +193,7 @@ function DashboardContent() {
                 {getGreeting()}, <span style={{ color: 'var(--color-primary)' }}>{user?.name || (ownerId === 'system' ? 'Organisateur' : ownerId)}</span>
               </h1>
               <p className="es-subtle mt-2">
-                Voici l&apos;état actuel de votre événement <span className="font-semibold text-[color:var(--text-primary)]">« {cfg?.eventName} »</span>.
+                Voici l&apos;état actuel de votre événement <span className="font-semibold text-[color:var(--text-primary)]">« {cfg?.eventName} »</span>.
               </p>
             </div>
 
@@ -209,8 +217,8 @@ function DashboardContent() {
                 selectedTable={selectedTable} setSelectedTable={setSelectedTable}
                 filteredGuests={filteredGuests} paginatedGuests={paginatedGuests}
                 customTables={tables} editId={editId} setEditId={setEditId}
-                handleSaveGuest={handleSaveGuest} handleDeleteGuest={handleDeleteGuest}
-                setIsClearModalOpen={setIsClearModalOpen} setIsTableModalOpen={() => {}}
+                handleSaveGuest={handleSaveGuest} _handleDeleteGuest={handleDeleteGuest}
+                _setIsClearModalOpen={setIsClearModalOpen} _setIsTableModalOpen={() => {}}
                 currentPage={currentPage} setCurrentPage={setCurrentPage}
                 totalPages={totalPages} appLang={appLang} origin={origin}
                 ownerId={ownerId} eventConfig={cfg} setSelectedGuest={setSelectedGuest}

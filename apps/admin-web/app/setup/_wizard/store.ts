@@ -9,7 +9,7 @@ import type {
   EventStatus,
 } from "./types";
 
-export const TOTAL_STEPS = 6;
+export const TOTAL_STEPS = 9;
 
 export const DEFAULT_MODULES: ModulesMap = {
   guests: true,
@@ -40,6 +40,8 @@ export interface StepData {
   step3: { modules: ModulesMap };
   step4: Partial<Step4Data>;
   step5: Partial<Step5Data>;
+  step6: { description: string; agenda: string; extraText?: string };
+  step7: { templateId?: string; designId?: string };
 }
 
 interface SetupState {
@@ -61,6 +63,8 @@ interface SetupState {
   updateModules: (patch: Partial<ModulesMap>) => void;
   updateStep4: (patch: Partial<Step4Data>) => void;
   updateStep5: (patch: Partial<Step5Data>) => void;
+  updateStep6: (patch: Partial<{ description: string; agenda: string; extraText?: string }>) => void;
+  updateStep7: (patch: Partial<{ templateId?: string; designId?: string }>) => void;
   markCompleted: (step: number) => void;
   setSaving: (saving: boolean) => void;
   setSaveError: (error: string | null) => void;
@@ -74,6 +78,8 @@ const emptyData: StepData = {
   step3: { modules: { ...DEFAULT_MODULES } },
   step4: {},
   step5: {},
+  step6: { description: "", agenda: "", extraText: "" },
+  step7: {},
 };
 
 export const useSetupStore = create<SetupState>((set) => ({
@@ -129,6 +135,12 @@ export const useSetupStore = create<SetupState>((set) => ({
             guestCategories: s[5]?.access?.guestCategories ?? [],
             staffCategories: s[5]?.access?.staffCategories ?? [],
           },
+          step6: {
+            description: s[1]?.description ?? "",
+            agenda: "",
+            extraText: "",
+          },
+          step7: {},
         },
       };
     }),
@@ -153,6 +165,10 @@ export const useSetupStore = create<SetupState>((set) => ({
     set((st) => ({ data: { ...st.data, step4: { ...st.data.step4, ...patch } } })),
   updateStep5: (patch) =>
     set((st) => ({ data: { ...st.data, step5: { ...st.data.step5, ...patch } } })),
+  updateStep6: (patch) =>
+    set((st) => ({ data: { ...st.data, step6: { ...st.data.step6, ...patch } } })),
+  updateStep7: (patch) =>
+    set((st) => ({ data: { ...st.data, step7: { ...st.data.step7, ...patch } } })),
 
   markCompleted: (step) =>
     set((st) =>

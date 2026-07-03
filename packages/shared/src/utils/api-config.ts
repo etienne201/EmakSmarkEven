@@ -16,17 +16,54 @@ export function resolveApiUrl(endpoint: string): string {
   return endpoint;
 }
 
-export type AppRole = "admin" | "super-admin" | "guest" | "staff";
+export type AppRole =
+  | "super-admin"
+  | "owner"
+  | "manager"
+  | "viewer"
+  | "event-admin"
+  | "event-manager"
+  | "staff"
+  | "guest";
 
 /** Maps backend role names (e.g. SUPER_ADMIN) to frontend role slugs. */
 export function normalizeRole(role: string | undefined): AppRole {
   const r = (role ?? "").toLowerCase().replace(/_/g, "-");
   if (r === "superadmin" || r === "super-admin") return "super-admin";
+  if (r === "owner") return "owner";
+  if (r === "manager") return "manager";
+  if (r === "viewer") return "viewer";
+  if (r === "event-admin" || r === "eventadmin") return "event-admin";
+  if (r === "event-manager" || r === "eventmanager") return "event-manager";
   if (r === "staff") return "staff";
   if (r === "guest") return "guest";
-  return "admin";
+  return "guest"; // secure fallback
 }
 
 export function isSuperAdminRole(role: string | undefined): boolean {
   return normalizeRole(role) === "super-admin";
+}
+
+/** Check if the role has administrative write access (can add/edit guests, tables, configurations). */
+export function hasWriteAccess(role: string | undefined): boolean {
+  const r = normalizeRole(role);
+  return (
+    r === "super-admin" ||
+    r === "owner" ||
+    r === "manager" ||
+    r === "event-admin" ||
+    r === "event-manager"
+  );
+}
+
+/** Check if the role is allowed to register check-ins. */
+export function canCheckIn(role: string | undefined): boolean {
+  const r = normalizeRole(role);
+  return r !== "viewer" && r !== "guest";
+}
+
+/** Check if the role is allowed to view tables and analytics dashboard tabs. */
+export function canViewAnalytics(role: string | undefined): boolean {
+  const r = normalizeRole(role);
+  return r !== "staff" && r !== "guest";
 }

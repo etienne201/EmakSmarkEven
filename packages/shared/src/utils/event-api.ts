@@ -14,6 +14,18 @@ export interface SetupStatusResponse {
 export function getStoredEventId(): string | null {
   if (typeof window === "undefined") return null;
   try {
+    // Check if there is an eventId in the query parameters first
+    const urlParams = new URLSearchParams(window.location.search);
+    const queryEventId = urlParams.get("eventId");
+    if (queryEventId) {
+      localStorage.setItem(EVENT_ID_KEY, queryEventId);
+      // Clean query parameter from URL to keep it clean
+      const url = new URL(window.location.href);
+      url.searchParams.delete("eventId");
+      window.history.replaceState({}, "", url.toString());
+      return queryEventId;
+    }
+
     const direct = localStorage.getItem(EVENT_ID_KEY);
     if (direct) return direct;
     const stored = localStorage.getItem("event-config");
@@ -124,9 +136,17 @@ export async function createGuest(eventId: string, body: Record<string, unknown>
   });
 }
 
+export async function updateGuest(guestId: string, body: Record<string, unknown>) {
+  return apiRequest(`/api/v1/guests/${guestId}`, {
+    method: "PUT",
+    body: JSON.stringify(body),
+  });
+}
+
 export async function deleteGuest(guestId: string) {
   return apiRequest(`/api/v1/guests/${guestId}`, { method: "DELETE" });
 }
+
 
 export async function getEventTables(eventId: string) {
   return apiRequest<unknown[]>(`/api/v1/events/${eventId}/tables`);

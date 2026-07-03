@@ -1,7 +1,7 @@
 "use client";
 import { useState, useMemo } from "react";
-import { User, Shield, Trash2, Edit2, Search, Lock, Power, MoreVertical, ExternalLink, Calendar, CheckCircle2, AlertCircle } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { User, Shield, Trash2, Edit2, Search, Lock, Power, Calendar, CheckCircle2, AlertCircle } from "lucide-react";
+import { motion } from "framer-motion";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 
@@ -20,7 +20,7 @@ export function AdminsTable({ admins, onDelete, onEdit, onToggleStatus, onResetP
 
   const filteredAdmins = useMemo(() => {
     return admins.filter(admin => 
-      (admin.name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (admin.name || admin.fullName || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
       (admin.email || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
       (admin.id || "").toLowerCase().includes(searchTerm.toLowerCase())
     );
@@ -55,7 +55,7 @@ export function AdminsTable({ admins, onDelete, onEdit, onToggleStatus, onResetP
               <tr className="border-b border-white/5 bg-white/[0.02]">
                 <th className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Utilisateur</th>
                 <th className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Accès / Status</th>
-                <th className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Dernière Connexion</th>
+                <th className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Dernière connexion</th>
                 <th className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest text-right">Actions</th>
               </tr>
             </thead>
@@ -81,24 +81,35 @@ export function AdminsTable({ admins, onDelete, onEdit, onToggleStatus, onResetP
                         <div className={`absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full border-2 border-black ${admin.status === 'active' ? 'bg-[#28A745]' : 'bg-red-500'}`} />
                       </div>
                       <div>
-                        <p className="text-sm font-bold text-white leading-tight">{admin.name || "N/A"}</p>
+                        <p className="text-sm font-bold text-white leading-tight">{admin.name || admin.fullName || "N/A"}</p>
                         <p className="text-[10px] text-slate-500 font-medium uppercase tracking-tight">{admin.email}</p>
+                        {admin.roleOccupied && (
+                          <p className="text-[10px] text-indigo-400 font-semibold tracking-wide mt-0.5">{admin.roleOccupied}</p>
+                        )}
+                        {admin.organization?.name && (
+                          <p className="text-[9px] text-slate-400 font-medium mt-0.5">Org : {admin.organization.name}</p>
+                        )}
                         <p className="text-[9px] text-slate-600 font-mono mt-0.5">{admin.id}</p>
                       </div>
                     </div>
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex flex-col gap-2">
-                      <div className={`inline-flex items-center gap-2 px-2.5 py-1 rounded-lg border w-fit ${
-                        admin.role === 'super-admin' 
-                          ? 'bg-amber-400/10 border-amber-400/20 text-amber-400' 
-                          : 'bg-[#3B3B6D]/10 border-[#3B3B6D]/20 text-[#3B3B6D]'
-                      }`}>
-                        <Shield className="w-3 h-3" />
-                        <span className="text-[9px] font-black uppercase tracking-widest">
-                          {admin.role === 'super-admin' ? 'Master' : 'Admin'}
-                        </span>
-                      </div>
+                      {(() => {
+                        const isSuper = admin.role === 'super-admin' || admin.role?.name === 'SUPER_ADMIN' || admin.role?.name === 'super-admin';
+                        return (
+                          <div className={`inline-flex items-center gap-2 px-2.5 py-1 rounded-lg border w-fit ${
+                            isSuper 
+                              ? 'bg-amber-400/10 border-amber-400/20 text-amber-400' 
+                              : 'bg-[#3B3B6D]/10 border-[#3B3B6D]/20 text-[#3B3B6D]'
+                          }`}>
+                            <Shield className="w-3 h-3" />
+                            <span className="text-[9px] font-black uppercase tracking-widest">
+                              {isSuper ? 'Master' : 'Admin'}
+                            </span>
+                          </div>
+                        );
+                      })()}
                       <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border w-fit ${
                         admin.status === 'active' 
                           ? 'bg-[#28A745]/10 border-[#28A745]/20 text-[#28A745]' 
@@ -115,7 +126,7 @@ export function AdminsTable({ admins, onDelete, onEdit, onToggleStatus, onResetP
                     <div className="flex items-center gap-2 text-slate-400">
                       <Calendar className="w-3.5 h-3.5" />
                       <span className="text-xs font-medium">
-                        {admin.lastLoginAt 
+                        {admin.lastLoginAt && !Number.isNaN(new Date(admin.lastLoginAt).getTime())
                           ? format(new Date(admin.lastLoginAt), "d MMM yyyy HH:mm", { locale: fr })
                           : "Jamais connecté"}
                       </span>

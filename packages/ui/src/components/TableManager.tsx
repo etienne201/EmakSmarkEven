@@ -2,11 +2,13 @@
 
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Plus, Trash2, Hash, Edit3 } from "lucide-react";
+import { X, Plus, Trash2, Hash } from "lucide-react";
 import { Language, translations } from "@backend/translations";
 import { ConfirmModal } from "./ConfirmModal";
 import { useToast } from "@frontend/hooks/useToast";
 import { Table } from "@backend/eventConfig";
+import { useAuth } from "@frontend/context/AuthContext";
+import { hasWriteAccess } from "@frontend/utils/api-config";
 
 interface TableManagerProps {
   isOpen: boolean;
@@ -23,6 +25,8 @@ export function TableManager({ isOpen, onClose, tables, onUpdateTables, lang, in
   const [newName, setNewName] = useState("");
   const [newNumber, setNewNumber] = useState<number>(tables.length + 1);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const { user } = useAuth();
+  const canEdit = hasWriteAccess(user?.role);
 
   const handleAdd = (e: React.FormEvent) => {
     e.preventDefault();
@@ -70,38 +74,40 @@ export function TableManager({ isOpen, onClose, tables, onUpdateTables, lang, in
             </div>
 
             {/* Form to Add Table */}
-            <form onSubmit={handleAdd} className="p-6 bg-gray-50/50 border-b border-gray-100">
-               <div className="flex gap-2">
-                 <div className="w-20">
-                    <input
-                      type="number"
-                      min="1"
-                      required
-                      className="w-full px-3 py-2.5 bg-white border border-gold-light rounded-xl outline-none focus:ring-2 focus:ring-gold/20"
-                      placeholder={t.tableManager.tableNumber}
-                      value={newNumber}
-                      onChange={(e) => setNewNumber(Number(e.target.value))}
-                    />
+            {canEdit && (
+              <form onSubmit={handleAdd} className="p-6 bg-gray-50/50 border-b border-gray-100">
+                 <div className="flex gap-2">
+                   <div className="w-20">
+                      <input
+                        type="number"
+                        min="1"
+                        required
+                        className="w-full px-3 py-2.5 bg-white border border-gold-light rounded-xl outline-none focus:ring-2 focus:ring-gold/20"
+                        placeholder={t.tableManager.tableNumber}
+                        value={newNumber}
+                        onChange={(e) => setNewNumber(Number(e.target.value))}
+                      />
+                   </div>
+                   <div className="flex-1">
+                      <input
+                        type="text"
+                        required
+                        className="w-full px-4 py-2.5 bg-white border border-gold-light rounded-xl outline-none focus:ring-2 focus:ring-gold/20"
+                        placeholder={t.tableManager.tableName}
+                        value={newName}
+                        onChange={(e) => setNewName(e.target.value)}
+                      />
+                   </div>
+                   <button 
+                     type="submit"
+                     className="p-2.5 text-white rounded-xl shadow-lg active:scale-95 transition-all"
+                     style={{ backgroundColor: 'var(--color-primary)', boxShadow: '0 10px 15px -3px var(--color-primary)' }}
+                   >
+                     <Plus className="w-6 h-6" />
+                   </button>
                  </div>
-                 <div className="flex-1">
-                    <input
-                      type="text"
-                      required
-                      className="w-full px-4 py-2.5 bg-white border border-gold-light rounded-xl outline-none focus:ring-2 focus:ring-gold/20"
-                      placeholder={t.tableManager.tableName}
-                      value={newName}
-                      onChange={(e) => setNewName(e.target.value)}
-                    />
-                 </div>
-                 <button 
-                   type="submit"
-                   className="p-2.5 text-white rounded-xl shadow-lg active:scale-95 transition-all"
-                   style={{ backgroundColor: 'var(--color-primary)', boxShadow: '0 10px 15px -3px var(--color-primary)' }}
-                 >
-                   <Plus className="w-6 h-6" />
-                 </button>
-               </div>
-            </form>
+              </form>
+            )}
 
             {/* List of Tables */}
             <div className="flex-1 overflow-y-auto p-6 space-y-3">
@@ -121,12 +127,14 @@ export function TableManager({ isOpen, onClose, tables, onUpdateTables, lang, in
                         </span>
                         <span className="font-medium text-gray-700">{table.name}</span>
                      </div>
-                    <button 
-                      onClick={() => setDeleteId(table.id)}
-                      className="p-2 text-gray-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    {canEdit && (
+                      <button 
+                        onClick={() => setDeleteId(table.id)}
+                        className="p-2 text-gray-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
                   </div>
                 ))
               )}

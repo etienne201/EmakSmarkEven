@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
-import { isSuperAdminRole } from "@frontend/utils/api-config";
+import { isSuperAdminRole, hasWriteAccess, normalizeRole } from "@frontend/utils/api-config";
 import {
   ensureEventId,
   getSetupStatus,
@@ -13,7 +13,7 @@ import {
 /**
  * Auth guard hook: ensures the user is logged in and has an event configured.
  * - No auth-token → redirect to /login
- * - No event-config → redirect to /setup
+ * - No event-config → redirect to /setup (only if user has write access)
  *
  * Returns `isReady` which is `true` only once the guard has passed.
  */
@@ -36,10 +36,25 @@ export function useAuthGuard() {
           return;
         }
 
+        const userRole = normalizeRole(payload.role);
+        const isWriteUser = hasWriteAccess(userRole);
+
         const eventId = await ensureEventId(token);
         if (!eventId) {
-          if (!window.location.pathname.startsWith("/setup")) {
-            router.replace("/setup");
+          if (!window.location.pathname.startsWith("/setup") && !window.location.pathname.startsWith("/onboarding")) {
+            router.replace("/onboarding");
+          } else {
+            setIsReady(true);
+          }
+          return;
+        }
+
+        // Bypassing setup checks for non-write roles
+        if (!isWriteUser) {
+          if (window.location.pathname.startsWith("/setup") || window.location.pathname.startsWith("/onboarding")) {
+            router.replace("/home");
+          } else {
+            setIsReady(true);
           }
           return;
         }
@@ -47,7 +62,7 @@ export function useAuthGuard() {
         const configured = await isEventConfigured(eventId, token);
         const status = await getSetupStatus(eventId, token);
 
-        if (!configured && !window.location.pathname.startsWith("/setup")) {
+        if (!configured && !window.location.pathname.startsWith("/setup") && !window.location.pathname.startsWith("/onboarding")) {
           router.replace(`/setup?eventId=${eventId}`);
           return;
         }

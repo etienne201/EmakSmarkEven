@@ -7,6 +7,9 @@ import { AuthController } from './auth.controller';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { PermissionsGuard } from './guards/permissions.guard';
 import { RolesGuard } from './guards/roles.guard';
+import { PermissionsCacheService } from './permissions-cache.service';
+import { AccountCreationGuard } from './guards/account-creation.guard';
+import { EventOwnershipGuard } from './guards/event-ownership.guard';
 
 @Module({
   imports: [
@@ -21,8 +24,23 @@ import { RolesGuard } from './guards/roles.guard';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, PermissionsGuard, RolesGuard],
-  exports: [AuthService, PermissionsGuard, RolesGuard],
+  providers: [
+    AuthService,
+    JwtStrategy,
+    PermissionsGuard,
+    RolesGuard,
+    PermissionsCacheService,
+    AccountCreationGuard,
+    EventOwnershipGuard,
+  ],
+  exports: [
+    AuthService,
+    PermissionsGuard,
+    RolesGuard,
+    PermissionsCacheService,
+    AccountCreationGuard,
+    EventOwnershipGuard,
+  ],
 })
 export class AuthModule {}
 

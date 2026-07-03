@@ -3,13 +3,42 @@
 import { useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  Heart,
+  Cake,
+  Mic,
+  Sparkles,
+  Music,
+  Compass,
+  Building,
+  Users,
+  Award,
+  Layers,
+  HelpCircle
+} from "lucide-react";
 import { step1Schema, type Step1Values, EVENT_TYPES, VISIBILITIES } from "../schemas";
 import { useSetupStore } from "../store";
 import { setupApi } from "../api";
 import { useAutosave } from "../useAutosave";
 import { slugify, EVENT_TYPE_LABELS, VISIBILITY_LABELS } from "../lib";
 import { StepFooter } from "./StepFooter";
-import type { Step1Data } from "../types";
+import type { Step1Data, EventTypeKey } from "../types";
+
+const EVENT_TYPE_ICONS: Record<EventTypeKey, any> = {
+  wedding: Heart,
+  birthday: Cake,
+  conference: Mic,
+  festival: Sparkles,
+  concert: Music,
+  expo: Compass,
+  corporate: Building,
+  networking: Users,
+  church: Compass,
+  gala: Award,
+  hybrid: Layers,
+  vip: Award,
+  other: HelpCircle,
+};
 
 interface Props {
   onCompleted: () => void;
@@ -119,17 +148,27 @@ export function Step1General({ onCompleted }: Props) {
         </div>
 
         <div className="es-field">
-          <label className="es-label" htmlFor="eventType">
+          <label className="es-label">
             Type d&apos;événement <span className="es-req">*</span>
           </label>
-          <select id="eventType" className="es-select" {...register("eventType")}>
-            <option value="">Sélectionner…</option>
-            {EVENT_TYPES.map((t) => (
-              <option key={t} value={t}>
-                {EVENT_TYPE_LABELS[t]}
-              </option>
-            ))}
-          </select>
+          <input type="hidden" {...register("eventType")} />
+          <div className="es-type-grid">
+            {EVENT_TYPES.map((t) => {
+              const Icon = EVENT_TYPE_ICONS[t] || HelpCircle;
+              const isSelected = values.eventType === t;
+              return (
+                <div
+                  key={t}
+                  className="es-type-card"
+                  data-selected={isSelected}
+                  onClick={() => setValue("eventType", t, { shouldValidate: true })}
+                >
+                  <Icon />
+                  <span>{EVENT_TYPE_LABELS[t]}</span>
+                </div>
+              );
+            })}
+          </div>
           {errors.eventType && (
             <p className="es-error-text">{errors.eventType.message}</p>
           )}

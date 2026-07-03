@@ -109,6 +109,11 @@ export interface SmartDesignSettings {
 }
 
 export interface EventConfig {
+  // Identity Context
+  id?: string;
+  eventId?: string;
+  title?: string;
+
   // Identity
   eventType: EventType;
   eventName: string;
@@ -150,6 +155,12 @@ export interface EventConfig {
     location?: string | null;
     details?: string | null;
     position: number;
+  }[];
+  description?: string;
+  metadata?: Record<string, unknown>;
+  attendanceOptions?: {
+    id: string;
+    enabled: boolean;
   }[];
 
   // Adaptive fields

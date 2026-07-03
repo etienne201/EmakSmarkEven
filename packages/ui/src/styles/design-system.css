@@ -579,3 +579,186 @@
 .es-finalize-hero { display: flex; flex-direction: column; align-items: center; text-align: center; gap: var(--space-3); padding: var(--space-8) var(--space-4); }
 .es-finalize-badge { display: inline-flex; align-items: center; justify-content: center; width: 4.5rem; height: 4.5rem; border-radius: var(--radius-pill); background: var(--primary-soft); color: var(--primary-strong); }
 .es-finalize-actions { display: flex; flex-wrap: wrap; gap: var(--space-3); justify-content: center; margin-top: var(--space-2); }
+
+/* ── Premium Logo Component ── */
+.premium-logo-container {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  background: rgba(15, 23, 42, 0.4);
+}
+
+.premium-logo-glow-ring {
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  padding: 2px;
+  background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.02));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Gold Variant */
+.premium-logo-container.variant-gold .premium-logo-glow-ring {
+  background: linear-gradient(135deg, #d4af37, #aa7c11, #f3e5ab, #aa7c11);
+  background-size: 300% 300%;
+  animation: gold-shimmer-spin 8s linear infinite;
+  opacity: 0.85;
+}
+.premium-logo-container.variant-gold {
+  box-shadow: 0 8px 24px -8px rgba(212, 175, 55, 0.2);
+}
+.premium-logo-container.variant-gold:hover {
+  box-shadow: 0 12px 32px -4px rgba(212, 175, 55, 0.35);
+  transform: translateY(-2px) scale(1.03);
+}
+
+/* Emerald Variant */
+.premium-logo-container.variant-emerald .premium-logo-glow-ring {
+  background: linear-gradient(135deg, #10b981, #059669, #34d399, #047857);
+  background-size: 300% 300%;
+  animation: gold-shimmer-spin 8s linear infinite;
+  opacity: 0.85;
+}
+.premium-logo-container.variant-emerald {
+  box-shadow: 0 8px 24px -8px rgba(16, 185, 129, 0.2);
+}
+.premium-logo-container.variant-emerald:hover {
+  box-shadow: 0 12px 32px -4px rgba(16, 185, 129, 0.35);
+  transform: translateY(-2px) scale(1.03);
+}
+
+/* Blue Variant (SuperAdmin) */
+.premium-logo-container.variant-blue .premium-logo-glow-ring {
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8, #60a5fa, #1e40af);
+  background-size: 300% 300%;
+  animation: gold-shimmer-spin 8s linear infinite;
+  opacity: 0.85;
+}
+.premium-logo-container.variant-blue {
+  box-shadow: 0 8px 24px -8px rgba(59, 130, 246, 0.25);
+}
+.premium-logo-container.variant-blue:hover {
+  box-shadow: 0 12px 32px -4px rgba(59, 130, 246, 0.45);
+  transform: translateY(-2px) scale(1.03);
+}
+
+/* Glass Variant */
+.premium-logo-container.variant-glass .premium-logo-glow-ring {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.2));
+  opacity: 0.7;
+}
+.premium-logo-container.variant-glass {
+  background: rgba(255, 255, 255, 0.07);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.premium-logo-container.variant-glass:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.25);
+  transform: translateY(-2px) scale(1.03);
+}
+
+@keyframes gold-shimmer-spin {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Shimmer Sweep Effect */
+.premium-logo-shimmer {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent);
+  transform: translateX(-100%);
+  transition: transform 0.6s ease;
+  pointer-events: none;
+  z-index: 5;
+}
+.premium-logo-container:hover .premium-logo-shimmer {
+  animation: shimmer-sweep 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes shimmer-sweep {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* Radial aura under logo */
+.premium-logo-aura {
+  position: absolute;
+  inset: 15%;
+  border-radius: 50%;
+  filter: blur(16px);
+  opacity: 0.15;
+  transition: all 0.5s ease;
+  z-index: 0;
+  pointer-events: none;
+}
+.premium-logo-container.variant-gold .premium-logo-aura { background: radial-gradient(circle, #d4af37 0%, transparent 70%); }
+.premium-logo-container.variant-emerald .premium-logo-aura { background: radial-gradient(circle, #10b981 0%, transparent 70%); }
+.premium-logo-container.variant-blue .premium-logo-aura { background: radial-gradient(circle, #3b82f6 0%, transparent 70%); }
+.premium-logo-container.variant-glass .premium-logo-aura { background: radial-gradient(circle, #ffffff 0%, transparent 70%); opacity: 0.08; }
+
+.premium-logo-container:hover .premium-logo-aura {
+  opacity: 0.35;
+  transform: scale(1.2);
+}
+
+/* Inner content */
+.premium-logo-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  overflow: hidden;
+  background: rgba(15, 23, 42, 0.65);
+  padding: 6px;
+}
+.premium-logo-container.variant-glass .premium-logo-inner {
+  background: transparent;
+}
+.premium-logo-image {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.premium-logo-container:hover .premium-logo-image {
+  transform: scale(1.1) rotate(2deg);
+}
+
+/* Fallback icons/initials styles */
+.premium-logo-icon {
+  width: 55%;
+  height: 55%;
+  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.premium-logo-container:hover .premium-logo-icon {
+  transform: scale(1.15) rotate(-3deg);
+}
+.premium-logo-container.variant-gold .premium-logo-icon { color: #f3e5ab; }
+.premium-logo-container.variant-emerald .premium-logo-icon { color: #a7f3d0; }
+.premium-logo-container.variant-blue .premium-logo-icon { color: #bfdbfe; }
+.premium-logo-container.variant-glass .premium-logo-icon { color: #ffffff; }
+
+.premium-logo-initials {
+  font-family: var(--font-mono), monospace;
+  font-weight: 900;
+  letter-spacing: -0.05em;
+  transition: all 0.5s ease;
+}
+.premium-logo-container:hover .premium-logo-initials {
+  transform: scale(1.1);
+}

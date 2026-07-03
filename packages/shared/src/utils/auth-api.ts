@@ -1,5 +1,5 @@
 import { apiRequest } from "@frontend/utils/api";
-import { isSuperAdminRole, normalizeRole } from "@frontend/utils/api-config";
+import { isSuperAdminRole, normalizeRole, hasWriteAccess } from "@frontend/utils/api-config";
 import type { User } from "@frontend/context/AuthContext";
 import { getPrimaryEventId, getSetupStatus, persistEventContext } from "@frontend/utils/event-api";
 
@@ -67,7 +67,19 @@ export async function updateUserProfile(body: Record<string, unknown>) {
 /** Resolves post-login redirect for organizer accounts. */
 export async function resolveOrganizerRedirect(accessToken: string): Promise<string> {
   const eventId = await getPrimaryEventId(accessToken);
-  if (!eventId) return "/setup?welcome=true";
+  if (!eventId) return "/onboarding";
+
+  // Parse JWT token to check user role and bypass setup checks for non-write roles
+  try {
+    const payload = JSON.parse(atob(accessToken.split(".")[1]));
+    const role = normalizeRole(payload.role);
+    if (!hasWriteAccess(role)) {
+      persistEventContext(eventId, { eventId, setupCompleted: true, status: "active" });
+      return "/home?welcome=true";
+    }
+  } catch (err) {
+    console.error("Error decoding token in resolveOrganizerRedirect:", err);
+  }
 
   const status = await getSetupStatus(eventId, accessToken);
   if (!status) return `/setup?eventId=${eventId}`;

@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString, IsInt, IsOptional, Min } from 'class-validator';
+import { IsNotEmpty, IsString, IsInt, IsOptional, Min, IsArray } from 'class-validator';
 
 export class CreateTableDto {
   @ApiProperty({ example: 'Table 1' })
@@ -33,3 +33,11 @@ export class UpdateTableDto {
   @IsOptional()
   metadata?: any;
 }
+
+export class SyncTablesDto {
+  @ApiProperty({ type: [Object] })
+  @IsArray()
+  @IsNotEmpty()
+  tables: any[];
+}
+

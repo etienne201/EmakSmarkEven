@@ -194,7 +194,9 @@ export class AdminService {
           data.email
         );
       }
-    } catch {}
+    } catch (error) {
+      // Ignore error if link generation fails
+    }
 
     return {
       ...newAdmin,

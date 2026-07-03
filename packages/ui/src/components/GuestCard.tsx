@@ -1,7 +1,8 @@
-import { QrCode, Edit2, Trash2, User, Link as LinkIcon, Copy } from "lucide-react";
+import { QrCode, Edit2, Trash2, User, Copy } from "lucide-react";
 import { translations } from "@backend/translations";
 import { useToast } from "@frontend/hooks/useToast";
 import { useAuth } from "@frontend/context/AuthContext";
+import { hasWriteAccess } from "@frontend/utils/api-config";
 
 interface Guest {
   id: number;
@@ -27,7 +28,7 @@ export function GuestCard({ guest, onOpenQR, onEdit, onDelete, lang, origin, own
   const t = translations[lang] || translations.fr;
   const { showToast } = useToast();
   const { user } = useAuth();
-  const isStaff = user?.role === "staff";
+  const canEdit = hasWriteAccess(user?.role);
 
   const initials = guest.name
     .split(" ")
@@ -40,7 +41,7 @@ export function GuestCard({ guest, onOpenQR, onEdit, onDelete, lang, origin, own
     let guestOrigin = origin;
     if (guestOrigin.includes("localhost")) {
       const url = new URL(guestOrigin);
-      url.port = "3000";
+      url.port = "3005";
       guestOrigin = url.origin;
     }
     
@@ -98,15 +99,17 @@ export function GuestCard({ guest, onOpenQR, onEdit, onDelete, lang, origin, own
             <QrCode className="w-4 h-4" />
           </button>
         )}
-        <button
-          onClick={() => onEdit(guest)}
-          className="p-2.5 bg-white border border-slate-100 text-slate-500 rounded-xl hover:bg-emerald/5 hover:text-emerald hover:border-emerald/20 transition-all active:scale-95 shadow-sm"
-          title={t.editGuest}
-          aria-label={`${t.editGuest} - ${guest.title} ${guest.name}`}
-        >
-          <Edit2 className="w-4 h-4" />
-        </button>
-        {!isStaff && (
+        {canEdit && (
+          <button
+            onClick={() => onEdit(guest)}
+            className="p-2.5 bg-white border border-slate-100 text-slate-500 rounded-xl hover:bg-emerald/5 hover:text-emerald hover:border-emerald/20 transition-all active:scale-95 shadow-sm"
+            title={t.editGuest}
+            aria-label={`${t.editGuest} - ${guest.title} ${guest.name}`}
+          >
+            <Edit2 className="w-4 h-4" />
+          </button>
+        )}
+        {canEdit && (
           <button
             onClick={() => onDelete(guest.id)}
             className="p-2.5 bg-white border border-slate-100 text-red-400 rounded-xl hover:bg-red-50 hover:text-red-500 hover:border-red-100 transition-all active:scale-95 shadow-sm"

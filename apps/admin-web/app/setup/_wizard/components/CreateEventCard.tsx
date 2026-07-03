@@ -2,11 +2,42 @@
 
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { Sparkles, Loader2, ArrowRight, PartyPopper } from "lucide-react";
+import {
+  Sparkles,
+  Loader2,
+  ArrowRight,
+  PartyPopper,
+  Heart,
+  Cake,
+  Mic,
+  Music,
+  Compass,
+  Building,
+  Users,
+  Award,
+  Layers,
+  HelpCircle
+} from "lucide-react";
 import { setupApi } from "../api";
 import { slugify, EVENT_TYPE_LABELS } from "../lib";
 import { EVENT_TYPES } from "../schemas";
 import type { EventTypeKey } from "../types";
+
+const EVENT_TYPE_ICONS: Record<EventTypeKey, any> = {
+  wedding: Heart,
+  birthday: Cake,
+  conference: Mic,
+  festival: Sparkles,
+  concert: Music,
+  expo: Compass,
+  corporate: Building,
+  networking: Users,
+  church: Compass,
+  gala: Award,
+  hybrid: Layers,
+  vip: Award,
+  other: HelpCircle,
+};
 
 interface Props {
   onCreated: (eventId: string) => void;
@@ -95,22 +126,26 @@ export function CreateEventCard({ onCreated }: Props) {
           </div>
 
           <div className="es-field">
-            <label className="es-label" htmlFor="newType">
+            <label className="es-label">
               Type d&apos;événement
             </label>
-            <select
-              id="newType"
-              className="es-select"
-              value={eventType}
-              onChange={(e) => setEventType(e.target.value as EventTypeKey)}
-            >
-              <option value="">Sélectionner…</option>
-              {EVENT_TYPES.map((t) => (
-                <option key={t} value={t}>
-                  {EVENT_TYPE_LABELS[t]}
-                </option>
-              ))}
-            </select>
+            <div className="es-type-grid">
+              {EVENT_TYPES.map((t) => {
+                const Icon = EVENT_TYPE_ICONS[t] || HelpCircle;
+                const isSelected = eventType === t;
+                return (
+                  <div
+                    key={t}
+                    className="es-type-card"
+                    data-selected={isSelected}
+                    onClick={() => setEventType(t)}
+                  >
+                    <Icon />
+                    <span>{EVENT_TYPE_LABELS[t]}</span>
+                  </div>
+                );
+              })}
+            </div>
           </div>
 
           {error && <p className="es-error-text">{error}</p>}

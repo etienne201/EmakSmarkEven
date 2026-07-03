@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { X, AlertTriangle, Trash2, Loader2 } from "lucide-react";
+import { AlertTriangle, Trash2, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface DeleteConfirmModalProps {

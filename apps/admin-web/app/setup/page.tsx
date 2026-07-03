@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { Loader2 } from "lucide-react";
 import { SetupWizardClient } from "./_wizard/SetupWizardClient";
+import "./setup-wizard.css";
 
 export const dynamic = "force-dynamic";
 

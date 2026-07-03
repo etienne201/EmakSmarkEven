@@ -14,6 +14,7 @@ import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse } from '@nestjs/swagg
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { PermissionsGuard } from '../auth/guards/permissions.guard';
+import { EventOwnershipGuard } from '../auth/guards/event-ownership.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Permissions } from '../auth/decorators/permissions.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
@@ -56,6 +57,7 @@ export class EventsController {
   }
 
   @Get(':id')
+  @UseGuards(EventOwnershipGuard)
   @Permissions('events.list')
   @ApiOperation({ summary: 'Récupérer un événement par ID' })
   async findOne(@Param('id') id: string) {
@@ -63,6 +65,7 @@ export class EventsController {
   }
 
   @Put(':id')
+  @UseGuards(EventOwnershipGuard)
   @Permissions('events.update')
   @ApiOperation({ summary: 'Modifier un événement' })
   async update(@Param('id') id: string, @Body() dto: UpdateEventDto) {
@@ -70,6 +73,7 @@ export class EventsController {
   }
 
   @Delete(':id')
+  @UseGuards(EventOwnershipGuard)
   @Permissions('events.delete')
   @ApiOperation({ summary: 'Supprimer un événement' })
   async remove(@Param('id') id: string) {
@@ -78,12 +82,14 @@ export class EventsController {
 
   // ===================== EVENT SETUP =====================
   @Get(':id/setup/status')
+  @UseGuards(EventOwnershipGuard)
   @ApiOperation({ summary: 'Récupérer le statut du wizard de configuration' })
   async setupStatus(@Param('id') id: string) {
     return this.eventsService.getSetupStatus(id);
   }
 
   @Post(':id/setup/step/:stepId')
+  @UseGuards(EventOwnershipGuard)
   @Permissions('events.settings')
   @ApiOperation({ summary: 'Enregistrer une étape du wizard (1-5)' })
   async setupStep(
@@ -95,6 +101,7 @@ export class EventsController {
   }
 
   @Post(':id/setup/finalize')
+  @UseGuards(EventOwnershipGuard)
   @Permissions('events.settings')
   @ApiOperation({ summary: 'Finaliser la configuration initiale' })
   async setupFinalize(@Param('id') id: string) {
@@ -103,12 +110,14 @@ export class EventsController {
 
   // ===================== EVENT SETTINGS =====================
   @Get(':id/settings')
+  @UseGuards(EventOwnershipGuard)
   @ApiOperation({ summary: "Récupérer les réglages de l'événement" })
   async getSettings(@Param('id') id: string) {
     return this.eventsService.getSettings(id);
   }
 
   @Put(':id/settings')
+  @UseGuards(EventOwnershipGuard)
   @Permissions('events.settings')
   @ApiOperation({ summary: "Modifier les réglages de l'événement" })
   async updateSettings(@Param('id') id: string, @Body() dto: UpdateEventSettingsDto) {
@@ -117,12 +126,14 @@ export class EventsController {
 
   // ===================== EVENT MODULES =====================
   @Get(':id/modules')
+  @UseGuards(EventOwnershipGuard)
   @ApiOperation({ summary: 'Lister les modules activés' })
   async getModules(@Param('id') id: string) {
     return this.eventsService.getModules(id);
   }
 
   @Put(':id/modules')
+  @UseGuards(EventOwnershipGuard)
   @Permissions('events.settings')
   @ApiOperation({ summary: 'Activer/Désactiver des modules (contraintes appliquées)' })
   async updateModules(@Param('id') id: string, @Body() body: UpdateEventModulesDto) {

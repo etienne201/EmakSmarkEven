@@ -33,7 +33,7 @@ export function ActivityTracker() {
     const publicRoutes = ["/login", "/guest"];
     if (publicRoutes.some(route => pathname.startsWith(route))) return;
 
-    let timeoutId: NodeJS.Timeout;
+    let timeoutId: NodeJS.Timeout | null = null;
 
     const handleActivity = () => {
       // Debounce the refresh call to once every minute
@@ -42,7 +42,6 @@ export function ActivityTracker() {
       refreshSession();
 
       timeoutId = setTimeout(() => {
-        // @ts-ignore
         timeoutId = null;
       }, 60000); // 1 minute throttle
     };

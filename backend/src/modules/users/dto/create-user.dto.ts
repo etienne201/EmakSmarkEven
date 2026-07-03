@@ -28,8 +28,18 @@ export class CreateUserDto {
   @IsOptional()
   organizationId?: string;
 
+  @ApiProperty({ required: false, example: 'Organisateur' })
+  @IsString()
+  @IsOptional()
+  roleOccupied?: string;
+
   @ApiProperty({ required: false, enum: UserStatus, default: UserStatus.active })
   @IsEnum(UserStatus)
   @IsOptional()
   status?: UserStatus;
+
+  @ApiProperty({ required: false, example: '00000000-0000-0000-0000-000000000000' })
+  @IsUUID()
+  @IsOptional()
+  eventId?: string;
 }

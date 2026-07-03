@@ -91,7 +91,11 @@ function handleCloudError(e: any) {
 // Local Fallback Helpers
 const DATA_DIR = path.join(process.cwd(), "backend", "data", "storage_local");
 if (!fs.existsSync(DATA_DIR)) {
-  try { fs.mkdirSync(DATA_DIR, { recursive: true }); } catch {}
+  try {
+    fs.mkdirSync(DATA_DIR, { recursive: true });
+  } catch (error) {
+    // Ignore error creating directory
+  }
 }
 
 function getLocalPath(ownerId: string, type: string) {
@@ -104,7 +108,9 @@ function readLocal(ownerId: string, type: string, defaultValue: any) {
     if (fs.existsSync(p)) {
       return JSON.parse(fs.readFileSync(p, "utf-8"));
     }
-  } catch {}
+  } catch (error) {
+    // Ignore error reading file
+  }
   return defaultValue;
 }
 
@@ -112,7 +118,9 @@ function writeLocal(ownerId: string, type: string, data: any) {
   try {
     const p = getLocalPath(ownerId, type);
     fs.writeFileSync(p, JSON.stringify(data, null, 2));
-  } catch {}
+  } catch (error) {
+    // Ignore error writing file
+  }
 }
 
 export const Storage = {
@@ -284,12 +292,13 @@ export const Storage = {
         handleCloudError(e);
       }
     }
-    // Delete local
     try {
       fs.unlinkSync(getLocalPath(ownerId, "config"));
       const owners = readLocal("global", "owners", []);
       writeLocal("global", "owners", owners.filter((o: string) => o !== ownerId));
-    } catch {}
+    } catch (error) {
+      // Ignore error unlinking configuration
+    }
   },
 
   // --- ADMIN (TENANT) MANAGEMENT ---

@@ -9,11 +9,24 @@ import { FloatingDecorations } from "../FloatingDecorations";
 import { LoadingScreen } from "../LoadingScreen";
 import { useEvent } from "@frontend/hooks/useEvent";
 import { useAuthGuard } from "@frontend/hooks/useAuthGuard";
+import { useAuth } from "@frontend/context/AuthContext";
+import { canViewAnalytics } from "@frontend/utils/api-config";
+import { useEffect } from "react";
 
 export function DashboardWrapper({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const isReady = useAuthGuard();
+  const { user } = useAuth();
+
+  useEffect(() => {
+    if (user) {
+      const isRestrictedPath = pathname.includes("/analytics") || pathname.includes("/table");
+      if (isRestrictedPath && !canViewAnalytics(user.role)) {
+        router.replace("/home");
+      }
+    }
+  }, [user, pathname, router]);
   
   const {
     eventConfig: cfg,
@@ -61,7 +74,7 @@ export function DashboardWrapper({ children }: { children: React.ReactNode }) {
   const view = currentView();
   const isHome = pathname.includes("/home");
 
-  if (!isReady || isSyncing) return <LoadingScreen isLoading={true} title={cfg?.eventName || "Chargement..."} />;
+  if (!isReady || isSyncing) return <LoadingScreen isLoading={true} title={cfg?.eventName || "Chargement..."} logoUrl={cfg?.logoUrl} eventType={cfg?.eventType} initials={cfg?.hostInitials} />;
 
   if (cfg?.isBlocked) {
     return (
