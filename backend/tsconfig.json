@@ -9,7 +9,11 @@
     "target": "ES2021",
     "sourceMap": true,
     "outDir": "./dist",
-    "baseUrl": "./",
+    "paths": {
+      "*": ["./*"],
+      "@backend/*": ["./src/*"],
+      "@backend": ["./src"]
+    },
     "incremental": true,
     "skipLibCheck": true,
     "strictNullChecks": false,
@@ -18,5 +22,23 @@
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false
   },
-  "exclude": ["node_modules", "dist", "src/legacy"]
+  "exclude": [
+    "node_modules",
+    "dist",
+    "src/legacy",
+    "src/templateEngine.ts",
+    "src/presets",
+    "src/prisma.ts",
+    "src/firebase-admin.ts",
+    "src/auth.ts",
+    "src/middleware/auth-guard.ts",
+    "src/middleware/error-handler.ts",
+    "src/middleware/response-handler.ts",
+    "src/storage",
+    "src/services",
+    "src/validations",
+    "src/lib",
+    "src/middlewares",
+    "src/swagger.ts"
+  ]
 }

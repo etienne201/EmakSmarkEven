@@ -1,6 +1,6 @@
 "use client";
 import { useState, useRef } from "react";
-import { User, Save, Loader2, Camera, Upload, Trash2, ShieldCheck, CheckCircle2, LogOut } from "lucide-react";
+import { User, Save, Loader2, Camera, Upload, ShieldCheck, CheckCircle2, LogOut } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface AdminProfileData {

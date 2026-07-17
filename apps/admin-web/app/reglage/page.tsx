@@ -14,7 +14,10 @@ import { useLocalStorage } from "@frontend/hooks/useLocalStorage";
 import { useToast } from "@frontend/hooks/useToast";
 import Cookies from "js-cookie";
 import { Language, translations } from "@backend/translations";
-import { apiRequest } from "@frontend/utils/api";
+import { getUserProfile, updateUserProfile } from "@frontend/utils/auth-api";
+import { ensureEventId, getEvent, updateEvent } from "@frontend/utils/event-api";
+import { isSuperAdminRole, hasWriteAccess } from "@frontend/utils/api-config";
+import { useAuth } from "@frontend/context/AuthContext";
 import {
   EventConfig, EventType, DecorationType, Ceremony,
   EVENT_TYPES, PRESET_PALETTES, DEFAULT_DECORATION,
@@ -39,11 +42,19 @@ const TABS = [
 export default function ConfigurationSuite() {
   const router = useRouter();
   const { showToast } = useToast();
+  const { user } = useAuth();
   const [appLang] = useLocalStorage<Language>("mariage-app-lang", "fr");
   const [activeTab, setActiveTab] = useState("general");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const t = translations[appLang];
+
+  useEffect(() => {
+    if (user && !hasWriteAccess(user.role)) {
+      showToast("Accès refusé. Vous n'avez pas l'autorisation de modifier les réglages de cet événement.", "error");
+      router.replace("/home");
+    }
+  }, [user, router, showToast]);
 
   // Config State
   const [config, setConfig] = useState<EventConfig>(DEFAULT_EVENT_CONFIG);
@@ -52,65 +63,97 @@ export default function ConfigurationSuite() {
   const [designEditorOpen, setDesignEditorOpen] = useState(false);
 
   useEffect(() => {
-    const token = Cookies.get("auth-token");
-    if (!token) { router.push("/login"); return; }
-    
-    const payload = JSON.parse(atob(token.split(".")[1]));
-    let currentOwnerId = payload.ownerId;
-    
-    // Support d'impersonation pour les super-admins
-    if (payload.role === "super-admin" || payload.ownerId === "system") {
-      try {
-        const storedConfig = localStorage.getItem("event-config");
-        if (storedConfig) {
-          const parsed = JSON.parse(storedConfig);
-          if (parsed?.ownerId) currentOwnerId = parsed.ownerId;
-        }
-      } catch (e) { /* ignore */ }
-    }
-    
-    fetchData(currentOwnerId);
-  }, []);
+    const load = async () => {
+      const token = Cookies.get("auth-token");
+      if (!token) { router.push("/login"); return; }
 
-  const fetchData = async (oid: string) => {
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      let eventId: string | null = null;
+
+      if (isSuperAdminRole(payload.role) || payload.ownerId === "system") {
+        try {
+          const storedConfig = localStorage.getItem("event-config");
+          if (storedConfig) {
+            const parsed = JSON.parse(storedConfig);
+            eventId = parsed?.id ?? parsed?.eventId ?? null;
+          }
+        } catch { /* ignore */ }
+      } else {
+        eventId = await ensureEventId(token);
+      }
+
+      await fetchData(eventId);
+    };
+    load();
+  }, [router, showToast]);
+
+  const fetchData = async (eventId: string | null) => {
     try {
-      const [configRes, profileRes] = await Promise.all([
-        apiRequest<EventConfig>(`/api/event-config?ownerId=${oid}`),
-        apiRequest<any>(`/api/auth/admin/profile?ownerId=${oid}`)
-      ]);
+      const profileRes = await getUserProfile();
+      if (eventId) {
+        const configRes = await getEvent(eventId);
+        if (configRes.data) {
+          const ev = configRes.data as any;
+          const themes = ev.themes || [];
+          const themeTokens = themes[0]?.tokens || {};
+          const logoUrl = themeTokens.logoUrl || ev.logoUrl || undefined;
+          
+          const evMeta = typeof ev.metadata === 'object' && ev.metadata ? (ev.metadata as Record<string, any>) : {};
+          const eventDateVal = ev.startDate ? new Date(ev.startDate).toISOString().split('T')[0] : "";
+          const eventTimeVal = ev.startDate ? new Date(ev.startDate).toTimeString().split(' ')[0].substring(0, 5) : "";
 
-      if (configRes.data) {
-        // Deep merge with defaults to prevent undefined properties
-        const mergedConfig = {
-          ...DEFAULT_EVENT_CONFIG,
-          ...configRes.data,
-          palette: { ...DEFAULT_EVENT_CONFIG.palette, ...(configRes.data.palette || {}) },
-          uiSettings: { ...DEFAULT_EVENT_CONFIG.uiSettings, ...(configRes.data.uiSettings || {}) }
-        };
-        setConfig(mergedConfig);
+          const mergedConfig = {
+            ...DEFAULT_EVENT_CONFIG,
+            id: String(ev.id ?? eventId),
+            eventId: String(ev.id ?? eventId),
+            ownerId: String(ev.organizationId ?? ev.slug ?? eventId),
+            eventName: String(ev.title ?? ""),
+            title: String(ev.title ?? ""),
+            eventType: (ev.eventType as EventConfig["eventType"]) ?? DEFAULT_EVENT_CONFIG.eventType,
+            description: ev.description ? String(ev.description) : DEFAULT_EVENT_CONFIG.description,
+            eventLocation: ev.location || "",
+            eventVenue: ev.location || "",
+            eventDate: eventDateVal,
+            eventTime: eventTimeVal,
+            sessions: evMeta.sessions || [],
+            attendanceOptions: evMeta.attendanceOptions || [
+              { id: "present", enabled: true },
+              { id: "absent", enabled: true },
+              { id: "honored", enabled: false },
+              { id: "outOfSchedule", enabled: false },
+            ],
+            smartDesign: evMeta.smartDesign || DEFAULT_EVENT_CONFIG.smartDesign,
+            layoutElements: evMeta.layoutElements || DEFAULT_EVENT_CONFIG.layoutElements,
+            logoUrl: logoUrl || evMeta.logoUrl || undefined,
+          };
 
-        // Restore Smart Design Engine store state from db if present
-        const dbSmartDesign = (configRes.data as any)?.smartDesign;
-        const dbLayoutElements = (configRes.data as any)?.layoutElements;
-        if (dbSmartDesign?.templateId) {
-          const store = useSmartDesignStore.getState();
-          store.setTemplate(dbSmartDesign.templateId);
-          if (dbSmartDesign.dynamicValues) {
-            Object.entries(dbSmartDesign.dynamicValues).forEach(([k, v]) => {
-              store.updateDynamicValue(k, v as string);
-            });
+          // Synchronize with SmartDesignStore
+          if (mergedConfig.smartDesign?.templateId) {
+            const store = useSmartDesignStore.getState();
+            store.setTemplate(mergedConfig.smartDesign.templateId);
+            if (mergedConfig.smartDesign.personality) {
+              store.setPersonality(mergedConfig.smartDesign.personality);
+            }
+            if (mergedConfig.smartDesign.dynamicValues) {
+              Object.entries(mergedConfig.smartDesign.dynamicValues).forEach(([k, v]) => {
+                store.updateDynamicValue(k, v);
+              });
+            }
+            if (mergedConfig.layoutElements && mergedConfig.layoutElements.length > 0) {
+              store.setElements(mergedConfig.layoutElements);
+            }
           }
-          if (dbLayoutElements && dbLayoutElements.length > 0) {
-            store.setElements(dbLayoutElements);
-          }
+
+          setConfig(mergedConfig as EventConfig);
         }
       }
       if (profileRes.data) {
+        const p = profileRes.data as Record<string, unknown>;
         setAdminProfile({
-          name: profileRes.data.name || "",
-          email: profileRes.data.email || "",
-          phone: profileRes.data.phone || "",
-          password: ""
+          name: String(p.fullName ?? p.name ?? ""),
+          email: String(p.email ?? ""),
+          phone: String(p.phone ?? ""),
+          password: "",
         });
       }
     } catch (e) {
@@ -139,9 +182,30 @@ export default function ConfigurationSuite() {
         layoutElements: storeState.elements
       };
 
-      const { error } = await apiRequest("/api/event-config", {
-        method: "POST",
-        body: JSON.stringify(updatedConfig),
+      const metadata = {
+        ...(config.metadata as any || {}),
+        smartDesign: updatedConfig.smartDesign,
+        layoutElements: updatedConfig.layoutElements,
+        sessions: updatedConfig.sessions || [],
+        attendanceOptions: updatedConfig.attendanceOptions || [
+          { id: "present", enabled: true },
+          { id: "absent", enabled: true },
+          { id: "honored", enabled: false },
+          { id: "outOfSchedule", enabled: false },
+        ]
+      };
+
+      const { error } = await updateEvent(config.eventId || "", {
+        title: updatedConfig.eventName || updatedConfig.title,
+        eventType: updatedConfig.eventType,
+        description: updatedConfig.description,
+        location: updatedConfig.eventLocation || null,
+        startDate: updatedConfig.eventDate && updatedConfig.eventTime
+          ? new Date(`${updatedConfig.eventDate}T${updatedConfig.eventTime}`)
+          : updatedConfig.eventDate
+            ? new Date(updatedConfig.eventDate)
+            : undefined,
+        metadata: metadata
       });
       if (error) throw new Error(error);
       showToast("Configuration enregistrée !", "success");
@@ -155,9 +219,9 @@ export default function ConfigurationSuite() {
   const handleSaveProfile = async () => {
     setSaving(true);
     try {
-      const { error } = await apiRequest("/api/auth/admin/profile", {
-        method: "PUT",
-        body: JSON.stringify({ ...adminProfile, ownerId: config.ownerId }),
+      const { error } = await updateUserProfile({
+        fullName: adminProfile.name,
+        email: adminProfile.email,
       });
       if (error) throw new Error(error);
       showToast("Profil admin mis à jour !", "success");
@@ -278,6 +342,57 @@ export default function ConfigurationSuite() {
                           <input type="text" value={config.eventLocation || ""} onChange={(e) => setConfig({...config, eventLocation: e.target.value})}
                             className="w-full bg-slate-50 border-2 border-transparent rounded-2xl px-6 py-4 outline-none focus:border-emerald/20 focus:bg-white transition-all font-bold" />
                         </div>
+                      </div>
+                    </section>
+
+                    {/* Options de Confirmation de Présence */}
+                    <section className="space-y-6 pt-12 border-t border-slate-50">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center">
+                          <CheckCircle2 className="text-emerald w-6 h-6" />
+                        </div>
+                        <div>
+                          <h3 className="text-lg font-black text-slate-900">{t.adminAttendance?.title || "Options de Confirmation"}</h3>
+                          <p className="text-xs text-slate-400 font-medium">{t.adminAttendance?.desc || "Choisissez les options de présence disponibles pour vos invités."}</p>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {(config.attendanceOptions || [
+                          { id: "present", enabled: true },
+                          { id: "absent", enabled: true },
+                          { id: "honored", enabled: false },
+                          { id: "outOfSchedule", enabled: false },
+                        ]).map((opt: any, idx: number) => {
+                          const enabled = opt.enabled;
+                          return (
+                            <div key={opt.id} className="flex items-center justify-between p-5 bg-slate-50 rounded-2xl border border-slate-100 hover:border-slate-200 transition-all">
+                              <div>
+                                <h4 className="font-extrabold text-sm text-slate-800">
+                                  {opt.id === "present" ? (t.adminAttendance?.present || "Présent") : opt.id === "absent" ? (t.adminAttendance?.absent || "Absent") : opt.id === "honored" ? (t.adminAttendance?.honored || "Honoré") : (t.adminAttendance?.outOfSchedule || "Hors horaire")}
+                                </h4>
+                                <p className="text-[10px] text-slate-400 font-medium mt-1">
+                                  {opt.id === "present" ? (t.adminAttendance?.presentDesc || "L'invité confirme sa présence") : opt.id === "absent" ? (t.adminAttendance?.absentDesc || "L'invité ne pourra pas venir") : opt.id === "honored" ? (t.adminAttendance?.honoredDesc || "L'invité est honoré d'être invité") : (t.adminAttendance?.outOfScheduleDesc || "L'invité arrive en dehors de l'horaire prévu")}
+                                </p>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const nextOptions = [...(config.attendanceOptions || [
+                                    { id: "present", enabled: true },
+                                    { id: "absent", enabled: true },
+                                    { id: "honored", enabled: false },
+                                    { id: "outOfSchedule", enabled: false },
+                                  ])];
+                                  nextOptions[idx] = { ...opt, enabled: !enabled };
+                                  setConfig({ ...config, attendanceOptions: nextOptions });
+                                }}
+                                className={`w-12 h-6 rounded-full p-1 transition-all duration-300 ${enabled ? "bg-emerald" : "bg-slate-200"}`}
+                              >
+                                <div className={`w-4 h-4 bg-white rounded-full transition-all duration-300 ${enabled ? "translate-x-6" : "translate-x-0"}`} />
+                              </button>
+                            </div>
+                          );
+                        })}
                       </div>
                     </section>
 
@@ -749,9 +864,10 @@ export default function ConfigurationSuite() {
                         },
                         layoutElements: storeState.elements
                       };
-                      const { error } = await apiRequest("/api/event-config", {
-                        method: "POST",
-                        body: JSON.stringify(updatedConfig),
+                      const { error } = await updateEvent(config.eventId || String(config.id ?? ""), {
+                        title: updatedConfig.eventName || updatedConfig.title,
+                        eventType: updatedConfig.eventType,
+                        description: updatedConfig.description,
                       });
                       if (error) throw new Error(error);
                       setConfig(updatedConfig);

@@ -35,7 +35,7 @@ export const POST = apiHandler(async (req: NextRequest, { id }: { id: string }) 
     const parsed = addGuestSchema.safeParse(body);
 
     if (!parsed.success) {
-      throw new ValidationError('Validation Failed', parsed.error.errors);
+      throw new ValidationError('Validation Failed', parsed.error.issues);
     }
 
     const guest = await GuestService.addGuest(id, parsed.data);

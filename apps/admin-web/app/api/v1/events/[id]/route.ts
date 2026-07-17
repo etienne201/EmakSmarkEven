@@ -45,7 +45,7 @@ import { NotFoundError } from '../../../../../backend/lib/errors';
  */
 export const GET = apiHandler(async (req: NextRequest, params: { id: string }) => {
   return withAuth(req, async () => {
-    const event = await prisma.event.findUnique({ where: { id: params.id }, include: { settings: true, workflow: true, modules: true, analytics: true } });
+    const event = await prisma.event.findUnique({ where: { id: params.id }, include: { settings: true, workflow: true, modules: true, analytics: true, themes: true } });
     if (!event) throw new NotFoundError('Event not found');
     return NextResponse.json({ success: true, data: event });
   });

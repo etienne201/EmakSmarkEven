@@ -2,7 +2,7 @@ import { PresenceClient } from "@frontend/components/PresenceClient";
 import { DashboardWrapper } from "@frontend/components/dashboard/DashboardWrapper";
 
 export const metadata = {
-  title: "Liste des Présences | Danie & John",
+  title: "Liste des Présences | Événement",
   description: "Suivi en temps réel des confirmations d'invités.",
 };
 

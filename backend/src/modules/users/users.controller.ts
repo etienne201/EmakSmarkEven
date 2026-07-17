@@ -6,6 +6,10 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { AccountCreationGuard } from '../auth/guards/account-creation.guard';
+import { TargetRoleField } from '../auth/decorators/target-role-field.decorator';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import { AuthUser } from '../auth/auth.types';
 
 @ApiTags('Users')
 @Controller('users')
@@ -22,10 +26,11 @@ export class UsersController {
   }
 
   @Post()
-  @Roles('Super Admin')
+  @UseGuards(AccountCreationGuard)
+  @TargetRoleField('roleId')
   @ApiOperation({ summary: 'Créer un utilisateur' })
-  async create(@Body() dto: CreateUserDto) {
-    return this.usersService.create(dto);
+  async create(@Body() dto: CreateUserDto, @CurrentUser() creator: AuthUser) {
+    return this.usersService.create(dto, creator);
   }
 
   @Get('profile')

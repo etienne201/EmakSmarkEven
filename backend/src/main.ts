@@ -48,10 +48,12 @@ async function bootstrap() {
     }),
   );
 
-  // CORS (secure for production-ready setup)
+  // CORS — allow all frontend apps (admin-web, super-admin, guest, etc.)
+  const corsOrigins = configService.get<string[]>('app.corsOrigins') ?? ['http://localhost:3000'];
   app.enableCors({
-    origin: ['http://localhost:3000'],
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    origin: corsOrigins,
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
   });
 

@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { ShieldCheck, Lock, Eye, EyeOff, Loader2, AlertCircle, Mail, Fingerprint, ArrowRight } from "lucide-react";
+import { Lock, Eye, EyeOff, Loader2, AlertCircle, Mail, Fingerprint, ArrowRight, ShieldCheck } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@frontend/context/AuthContext";
-import { apiRequest } from "@frontend/utils/api";
+import { loginWithEmail, isSuperAdminRole } from "@frontend/utils/auth-api";
+import { PremiumLogo } from "../PremiumLogo";
 
 export function SuperAdminLoginUI() {
   const { login } = useAuth();
@@ -65,23 +66,19 @@ export function SuperAdminLoginUI() {
     const formData = new FormData(e.currentTarget);
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
-    const totp = formData.get("totp") as string;
-
-    const { data, error: apiError } = await apiRequest<any>("/api/auth/superadmin/login", {
-      method: "POST",
-      body: JSON.stringify({ email, password, totp }),
-    });
+    const { data, error: apiError } = await loginWithEmail(email, password);
 
     if (data) {
-      const userObj = data.user || data;
-      const userData = {
-        uid: userObj.uid || userObj.ownerId || userObj.id,
-        ownerId: userObj.ownerId || userObj.id || "system",
-        role: "super-admin" as const,
-        email: userObj.email,
-        name: userObj.name || userObj.email?.split("@")[0] || "Super Admin",
-      };
-      login(data.token || data.accessToken, data.refreshToken || "", userData);
+      if (!isSuperAdminRole(data.user.role)) {
+        setError("Ce compte n'a pas les droits Super Administrateur.");
+        setLoading(false);
+        return;
+      }
+      login(data.accessToken, data.refreshToken, data.user);
+      const targetUrl = window.location.port === "3000"
+        ? `http://${window.location.hostname}:3002/superadmin?welcome=true`
+        : "/superadmin?welcome=true";
+      window.location.href = targetUrl;
     } else {
       setError(apiError || "Accès refusé. Vérifiez vos identifiants.");
       setLoading(false);
@@ -103,12 +100,13 @@ export function SuperAdminLoginUI() {
         <div className="card-accent-line superadmin-accent" />
         <div className="security-badge"><div className="security-badge-dot" /><span>Accès Sécurisé — Niveau Supérieur</span></div>
         
-        <div className="login-logo-section">
-          <div className="logo-glow-ring superadmin-glow">
-            <div className="logo-inner superadmin-logo-inner">
-              <img src="/images/bleulogo.png" alt="EMAKO" className="logo-image" />
-            </div>
-          </div>
+        <div className="login-logo-section flex justify-center mb-6">
+          <PremiumLogo
+            src="/images/bleulogo.png"
+            fallbackIcon={ShieldCheck}
+            size="xl"
+            variant="blue"
+          />
         </div>
 
         <div className="login-title-section">

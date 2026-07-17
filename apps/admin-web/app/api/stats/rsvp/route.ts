@@ -23,10 +23,10 @@ export async function GET(request: Request) {
     const ownerId = searchParams.get("ownerId") || payload.ownerId;
 
     const [total, confirmed, declined, pending] = await Promise.all([
-      prisma.guest.count({ where: { event: { adminId: String(ownerId) } } }),
-      prisma.guest.count({ where: { event: { adminId: String(ownerId) }, rsvpStatus: 'confirmed' } }),
-      prisma.guest.count({ where: { event: { adminId: String(ownerId) }, rsvpStatus: 'declined' } }),
-      prisma.guest.count({ where: { event: { adminId: String(ownerId) }, rsvpStatus: 'pending' } }),
+      prisma.guest.count({ where: { event: { createdById: String(ownerId) } } }),
+      prisma.guest.count({ where: { event: { createdById: String(ownerId) }, rsvpStatus: 'confirmed' } }),
+      prisma.guest.count({ where: { event: { createdById: String(ownerId) }, rsvpStatus: 'declined' } }),
+      prisma.guest.count({ where: { event: { createdById: String(ownerId) }, rsvpStatus: 'pending' } }),
     ]);
 
     const stats = { total, confirmed, declined, pending };

@@ -1,6 +1,6 @@
 "use client";
 import { motion } from "framer-motion";
-import { Cpu, HardDrive, Activity, Terminal } from "lucide-react";
+import { Cpu, HardDrive, Activity, ServerCog } from "lucide-react";
 
 interface SystemStatusProps {
   systemInfo: any;
@@ -10,43 +10,42 @@ export function SystemStatus({ systemInfo }: SystemStatusProps) {
   if (!systemInfo) return null;
 
   const metrics = [
-    { label: "CPU Load", value: `${systemInfo.cpuUsage || 12}%`, icon: Cpu, color: "text-blue-400" },
-    { label: "Memory", value: `${systemInfo.memoryUsage || 45}%`, icon: HardDrive, color: "text-purple-400" },
-    { label: "Uptime", value: systemInfo.uptime || "12d 4h", icon: Activity, color: "text-emerald-400" },
+    { label: "Charge CPU", value: `${systemInfo.cpuUsage || 12}%`, icon: Cpu },
+    { label: "Mémoire", value: `${systemInfo.memoryUsage || 45}%`, icon: HardDrive },
+    { label: "Disponibilité", value: systemInfo.uptime || "12j 4h", icon: Activity },
   ];
 
   return (
-    <div className="bg-white/5 border border-white/10 rounded-[2rem] p-6 backdrop-blur-xl">
-      <div className="flex items-center gap-3 mb-6">
-        <Terminal className="w-5 h-5 text-slate-500" />
-        <h3 className="text-xs font-black text-white uppercase tracking-[0.2em]">System Health</h3>
+    <div className="es-card es-card--pad">
+      <div className="flex items-center gap-3 mb-5">
+        <span className="es-kpi__icon" style={{ width: "2rem", height: "2rem" }}><ServerCog className="w-4 h-4" /></span>
+        <h3 className="es-h3 text-sm">État du système</h3>
       </div>
 
-      <div className="space-y-4">
-        {metrics.map((m, i) => (
-          <div key={m.label} className="flex items-center justify-between group">
-            <div className="flex items-center gap-3">
-              <div className={`p-2 rounded-lg bg-white/5 ${m.color} group-hover:scale-110 transition-transform`}>
-                <m.icon className="w-3.5 h-3.5" />
+      <div className="space-y-3">
+        {metrics.map((m) => {
+          const Icon = m.icon;
+          return (
+            <div key={m.label} className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-[color:var(--bg-subtle)] text-[color:var(--text-secondary)]">
+                  <Icon className="w-3.5 h-3.5" />
+                </div>
+                <span className="text-xs font-medium text-[color:var(--text-secondary)]">{m.label}</span>
               </div>
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{m.label}</span>
+              <span className="text-sm font-semibold text-[color:var(--text-primary)] font-mono">{m.value}</span>
             </div>
-            <span className="text-xs font-black text-white font-mono">{m.value}</span>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
-      <div className="mt-6 pt-6 border-t border-white/5">
+      <div className="mt-5 pt-5 border-t border-[color:var(--border)]">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Core Database</span>
-          <span className="text-[9px] font-black text-emerald-400 uppercase tracking-widest">Active</span>
+          <span className="es-eyebrow">Base de données</span>
+          <span className="es-badge es-badge--success"><span className="es-badge__dot es-badge__dot--pulse" /> Active</span>
         </div>
-        <div className="h-1 bg-white/5 rounded-full overflow-hidden">
-          <motion.div 
-            initial={{ width: 0 }} 
-            animate={{ width: "100%" }} 
-            className="h-full bg-emerald-500" 
-          />
+        <div className="h-1.5 bg-[color:var(--bg-subtle)] rounded-full overflow-hidden">
+          <motion.div initial={{ width: 0 }} animate={{ width: "100%" }} transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }} className="h-full" style={{ background: "var(--success)" }} />
         </div>
       </div>
     </div>

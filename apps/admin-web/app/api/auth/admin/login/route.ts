@@ -38,7 +38,10 @@ export async function POST(request: Request) {
 
     const tokens = await AdminService.adminLogin(identifier!, validatedData.password);
 
-    return createSuccessResponse(tokens, "AUTH_SUCCESS", "Admin logged in successfully");
+    return createSuccessResponse({
+      ...tokens,
+      accessToken: tokens.token
+    }, "AUTH_SUCCESS", "Admin logged in successfully");
   } catch (error) {
     return handleApiError(error);
   }

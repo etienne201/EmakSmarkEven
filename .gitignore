@@ -1,61 +1,84 @@
-# Dependencies
+# =========================
+# 📦 DEPENDENCIES
+# =========================
 node_modules/
-/.pnp
+**/node_modules/
+.pnp/
 .pnp.js
 
-# Testing
-/coverage/
+# =========================
+# 🧪 TESTING
+# =========================
+coverage/
+**/coverage/
 
-# Next.js
-/.next/
-/.next-*/
-/out/
+# =========================
+# ⚡ NEXT.JS (IMPORTANT)
+# =========================
+.next/
+.next-*/
+**/.next/
+out/
+.next/cache/
+**/.next/cache/
 
-# Production
-/build
-/dist
+# =========================
+# ⚡ TURBO REPO (CRITIQUE DANS TON CAS)
+# =========================
+.turbo/
+**/.turbo/
+.turbo/cache/
+**/.turbo/cache/
+.refact/buddy/runtime_queue.jsonl
+.refact/buddy/state.json
 
-# Misc
-.DS_Store
-*.pem
+# =========================
+# 🏗 BUILD OUTPUT
+# =========================
+build/
+dist/
+**/build/
+**/dist/
 
-# Debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.pnpm-debug.log*
-
-# Local env files
-.env*.local
-.env
-
-# Vercel
-.vercel
-
-# TypeScript
+# =========================
+# 🧠 TYPESCRIPT
+# =========================
 *.tsbuildinfo
 next-env.d.ts
 
-# IDEs
-.vscode/
-.idea/
+# =========================
+# 🔐 ENV FILES
+# =========================
+.env
+.env.*
+!.env.example
+.env*.local
 
-# Logs
-logs
+# =========================
+# 🚀 VERCEL
+# =========================
+.vercel/
+
+# =========================
+# 🪵 LOGS
+# =========================
+logs/
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
 lerna-debug.log*
 
-# End to end testing
-/cypress/screenshots/
-/cypress/videos/
+# =========================
+# 💻 IDEs
+# =========================
+.vscode/
+.idea/
 
-# Diagnostic reports (https://nodejs.org/api/report.html)
-report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
-
-# OS files
+# =========================
+# 🍎 OS FILES
+# =========================
 .DS_Store
 .AppleDouble
 .LSOverride
@@ -64,7 +87,21 @@ Icon
 .Spotlight-V100
 .Trashes
 
-# Next.js build caches
-.next-*
-.dev/
-.refact/
+# =========================
+# 🧪 E2E TESTING (CYPRESS)
+# =========================
+cypress/screenshots/
+cypress/videos/
+
+# =========================
+# ⚙️ NODE / REPORTS
+# =========================
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+# =========================
+# ⚠️ NEXT / TURBO EXTRA SAFETY
+# =========================
+*.pack
+*.pack.gz
+*.hot-update.js
+*.hot-update.json

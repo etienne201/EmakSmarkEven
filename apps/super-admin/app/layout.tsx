@@ -1,22 +1,21 @@
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import "../styles/design-system.css";
 import { ServiceWorkerCleaner } from "@frontend/components/ServiceWorkerCleaner";
 import { Metadata, Viewport } from 'next';
 import { ToastProvider } from "@frontend/hooks/useToast";
-import { AdminNavbar } from "@frontend/components/AdminNavbar";
 import { ThemeProvider } from "@frontend/components/ThemeProvider";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { AuthProvider } from "@frontend/context/AuthContext";
 import { ActivityTracker } from "@frontend/components/ActivityTracker";
 
-const geistSans = Geist({
+const geistSans = Inter({
   variable: "--font-geist-sans",
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
+const geistMono = JetBrains_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });

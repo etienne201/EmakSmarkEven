@@ -5,6 +5,8 @@ import { Download, Users, X, Loader2, AlertCircle, Search } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Language, translations } from "@backend/translations";
 import Cookies from "js-cookie";
+import { fetchApi, parseApiJson } from "@frontend/utils/api";
+import { getStoredEventId } from "@frontend/utils/event-api";
 
 interface AttendanceRecord {
   guestId: string;
@@ -48,26 +50,21 @@ export function PresenceList({ isOpen, onClose, lang, inline = false }: Presence
     setIsLoading(true);
     setError(null);
     try {
-      const configStr = localStorage.getItem("event-config");
-      const configObj = configStr ? JSON.parse(configStr) : null;
-      const ownerId = configObj?.ownerId || "default";
+      const eventId = getStoredEventId();
       const token = Cookies.get("auth-token");
 
-      if (!token) {
+      if (!token || !eventId) {
         setError(p.errorLoad);
         setIsLoading(false);
         return;
       }
 
-      const res = await fetch(`/api/attendance?ownerId=${ownerId}`, {
-        headers: { "Authorization": `Bearer ${token}` }
+      const res = await fetchApi(`/api/v1/events/${eventId}/checkins`, {
+        headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
-        const json = await res.json();
-        // The API returns { success: true, data: { items: [...], ... } } or [...]
-        const rawData = json.data?.items || json.data || json;
-        const data = Array.isArray(rawData) ? rawData : [];
-        setAttendance(data);
+        const { data } = await parseApiJson<unknown[]>(res);
+        setAttendance(Array.isArray(data) ? (data as AttendanceRecord[]) : []);
       } else if (res.status === 401) {
         setError(p.errorLoad);
       } else {
@@ -256,7 +253,7 @@ export function PresenceList({ isOpen, onClose, lang, inline = false }: Presence
         });
 
 
-        // @ts-ignore
+        // @ts-expect-error - lastAutoTable is injected by the autotable plugin and not typed on jsPDF
         currentY = doc.lastAutoTable.finalY + 12;
 
         if (currentY > doc.internal.pageSize.getHeight() - 30 && idx < sortedTables.length - 1) {

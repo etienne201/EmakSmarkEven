@@ -35,8 +35,8 @@ export async function GET(
     }
 
     const whereClause = isValidUUID(eventId)
-      ? { OR: [{ id: eventId }, { adminId: eventId }] }
-      : { adminId: eventId };
+      ? { OR: [{ id: eventId }, { createdById: eventId }] }
+      : { createdById: eventId };
 
     const event = await prisma.event.findFirst({
       where: whereClause,

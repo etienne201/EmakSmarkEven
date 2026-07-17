@@ -1,5 +1,5 @@
 {
-  "extends": "@emak-smark-even-monorepo/tsconfig/nextjs.json",
+  "extends": "../../packages/tsconfig/nextjs.json",
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
@@ -8,9 +8,12 @@
       "@frontend/hooks/*": ["../../packages/shared/src/hooks/*"],
       "@frontend/lib/*": ["../../packages/shared/src/lib/*"],
       "@frontend/*": ["../../packages/shared/src/*"],
-      "@backend/*": ["../../backend/src/*"]
-    }
+      "@/backend/*": ["./backend/*"],
+      "@backend/*": ["./backend/*"]
+    },
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "include": ["next-env.d.ts", "types/**/*.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
   "exclude": ["node_modules"]
 }

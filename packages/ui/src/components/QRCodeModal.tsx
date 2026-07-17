@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useState } from "react";
+import React, { useState } from "react";
 import { QRCodeCanvas } from "qrcode.react";
 import { Download, Printer, ArrowLeft, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -26,7 +26,7 @@ interface QRCodeModalProps {
   eventConfig?: EventConfig | null;
 }
 
-export function QRCodeModal({ guest, origin, onClose, isOpen, lang, eventConfig }: QRCodeModalProps) {
+export function QRCodeModal({ guest, origin, onClose, isOpen, eventConfig }: QRCodeModalProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const { showToast } = useToast();
   const t = translations[guest.lang];
@@ -36,7 +36,7 @@ export function QRCodeModal({ guest, origin, onClose, isOpen, lang, eventConfig 
     let guestOrigin = origin;
     if (guestOrigin.includes("localhost")) {
       const url = new URL(guestOrigin);
-      url.port = "3000";
+      url.port = "3005";
       guestOrigin = url.origin;
     }
     return `${guestOrigin}/guest?id=${guest.id}&ownerId=${encodeURIComponent(cfg.ownerId || 'default')}`;

@@ -17,6 +17,7 @@
     "isolatedModules": true,
     "jsx": "react-jsx",
     "incremental": true,
+    "baseUrl": ".",
     "plugins": [
       {
         "name": "next"
@@ -24,8 +25,12 @@
     ],
     "paths": {
       "@/*": ["./src/*"],
-      "@backend/*": ["./src/backend/src/*"],
-      "@frontend/*": ["./src/frontend/src/*"],
+      "@/backend/*": ["./backend/src/*"],
+      "@backend/*": ["./backend/src/*"],
+      "@frontend/components/*": ["./packages/ui/src/components/*"],
+      "@frontend/hooks/*": ["./packages/shared/src/hooks/*"],
+      "@frontend/lib/*": ["./packages/shared/src/lib/*"],
+      "@frontend/*": ["./packages/shared/src/*"],
       "@qa/*": ["./qa/*"]
     }
   },
@@ -33,19 +38,24 @@
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
-    "**/*.mts",
-    ".next/types/**/*.ts",
-    ".next/dev/types/**/*.ts",
-    ".next-*/types/**/*.ts",
-    ".next-*/dev/types/**/*.ts",
-    ".next-api/types/**/*.ts",
-    ".next-api/dev/types/**/*.ts",
-    ".next-admin/types/**/*.ts",
-    ".next-admin/dev/types/**/*.ts",
-    ".next-user/types/**/*.ts",
-    ".next-user/dev/types/**/*.ts"
+    "**/*.mts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    ".next",
+    ".next-*",
+    ".next-admin",
+    ".next-api",
+    ".next-user",
+    ".turbo",
+    "backend",
+    "build",
+    "dist",
+    "infrastructure",
+    "qa",
+    "apps/backend",
+    "apps/admin-web/backend",
+    "apps/admin-web/app/api",
+    "apps/admin-web/app/api-docs"
   ]
 }

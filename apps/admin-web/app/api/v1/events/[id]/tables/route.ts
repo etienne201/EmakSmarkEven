@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { apiHandler } from '../../../../../../backend/lib/api-handler';
 import { withAuth } from '../../../../../../backend/middlewares/auth';
+import prisma from '../../../../../../backend/lib/prisma';
+
 /**
  * @openapi
  * /api/v1/events/{id}/tables:
@@ -17,7 +19,7 @@ import { withAuth } from '../../../../../../backend/middlewares/auth';
  *       200:
  *         description: List of tables
  *   post:
- *     summary: Create a table
+ *     summary: Synchronize tables for an event
  *     tags: [Tables]
  *     security: [{ BearerAuth: [] }]
  *     parameters:
@@ -27,17 +29,43 @@ import { withAuth } from '../../../../../../backend/middlewares/auth';
  *         schema: { type: string }
  *     responses:
  *       201:
- *         description: Table created
+ *         description: Tables synchronized
  */
 export const GET = apiHandler(async (req: NextRequest, params: { id: string }) => {
   return withAuth(req, async () => {
-    // TODO: query tables from DB (table model may need to be added to schema)
-    return NextResponse.json({ success: true, data: [], message: 'Tables endpoint ready', eventId: params.id });
+    const event = await prisma.event.findUnique({
+      where: { id: params.id },
+      select: { metadata: true },
+    });
+    const metadata = (event?.metadata as Record<string, any>) || {};
+    return NextResponse.json({ success: true, data: metadata.tables || [] });
   });
 });
+
 export const POST = apiHandler(async (req: NextRequest, params: { id: string }) => {
   return withAuth(req, async (req) => {
     const body = await req.json();
-    return NextResponse.json({ success: true, data: { ...body, eventId: params.id }, message: 'Table created' }, { status: 201 });
+    const tables = body.tables || [];
+
+    const event = await prisma.event.findUnique({
+      where: { id: params.id },
+      select: { metadata: true },
+    });
+
+    const currentMeta = (event?.metadata as Record<string, any>) || {};
+    const updatedMeta = {
+      ...currentMeta,
+      tables,
+    };
+
+    const updated = await prisma.event.update({
+      where: { id: params.id },
+      data: { metadata: updatedMeta },
+      select: { metadata: true },
+    });
+
+    const metadata = (updated?.metadata as Record<string, any>) || {};
+    return NextResponse.json({ success: true, data: metadata.tables || [] }, { status: 201 });
   });
 });
+

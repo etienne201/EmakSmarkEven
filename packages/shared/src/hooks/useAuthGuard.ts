@@ -3,14 +3,19 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
+import { isSuperAdminRole, hasWriteAccess, normalizeRole } from "@frontend/utils/api-config";
+import {
+  ensureEventId,
+  getSetupStatus,
+  isEventConfigured,
+} from "@frontend/utils/event-api";
 
 /**
  * Auth guard hook: ensures the user is logged in and has an event configured.
  * - No auth-token → redirect to /login
- * - No event-config → redirect to /setup
- * 
+ * - No event-config → redirect to /setup (only if user has write access)
+ *
  * Returns `isReady` which is `true` only once the guard has passed.
- * Render a loading screen while `isReady` is false.
  */
 export function useAuthGuard() {
   const router = useRouter();
@@ -25,38 +30,50 @@ export function useAuthGuard() {
       }
 
       try {
-        // Décodage du token pour vérifier le rôle
         const payload = JSON.parse(atob(token.split(".")[1]));
-        if (payload.role === "super-admin" || payload.ownerId === "system") {
-          // Un super-admin peut naviguer librement (notamment pour l'impersonation d'événements)
+        if (isSuperAdminRole(payload.role) || payload.ownerId === "system") {
           setIsReady(true);
           return;
         }
 
-        // Vérifier le statut de configuration en base de données pour les organisateurs classiques
-        const res = await fetch("/api/setup/status", {
-          headers: { "Authorization": `Bearer ${token}` }
-        });
-        if (!res.ok) {
-          if (res.status === 401) {
-            router.replace("/login");
+        const userRole = normalizeRole(payload.role);
+        const isWriteUser = hasWriteAccess(userRole);
+
+        const eventId = await ensureEventId(token);
+        if (!eventId) {
+          if (!window.location.pathname.startsWith("/setup") && !window.location.pathname.startsWith("/onboarding")) {
+            router.replace("/onboarding");
           } else {
-            router.replace("/setup");
+            setIsReady(true);
           }
           return;
         }
 
-        const { data } = await res.json();
-        
-        // Si l'événement n'est pas configuré et qu'on n'est pas déjà sur la page de setup
-        if (!data.isConfigured && !window.location.pathname.startsWith("/setup")) {
-          router.replace("/setup");
+        // Bypassing setup checks for non-write roles
+        if (!isWriteUser) {
+          if (window.location.pathname.startsWith("/setup") || window.location.pathname.startsWith("/onboarding")) {
+            router.replace("/home");
+          } else {
+            setIsReady(true);
+          }
           return;
         }
-        
-        // Si l'événement EST configuré et qu'on tente d'aller sur /setup, on redirige vers /home
-        if (data.isConfigured && window.location.pathname === "/setup") {
+
+        const configured = await isEventConfigured(eventId, token);
+        const status = await getSetupStatus(eventId, token);
+
+        if (!configured && !window.location.pathname.startsWith("/setup") && !window.location.pathname.startsWith("/onboarding")) {
+          router.replace(`/setup?eventId=${eventId}`);
+          return;
+        }
+
+        if (configured && window.location.pathname === "/setup") {
           router.replace("/home");
+          return;
+        }
+
+        if (status && !configured && window.location.pathname.startsWith("/setup")) {
+          setIsReady(true);
           return;
         }
 

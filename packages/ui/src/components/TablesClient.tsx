@@ -7,6 +7,8 @@ import { useLocalStorage } from "@frontend/hooks/useLocalStorage";
 import { Language } from "@backend/translations";
 import { LoadingScreen } from "@frontend/components/LoadingScreen";
 import Cookies from "js-cookie";
+import { fetchApi, parseApiJson } from "@frontend/utils/api";
+import { getStoredEventId } from "@frontend/utils/event-api";
 
 import { useRouter } from "next/navigation";
 
@@ -18,26 +20,20 @@ export function TablesClient() {
 
   useEffect(() => {
     const fetchTables = async () => {
-      const configStr = localStorage.getItem("event-config");
-      if (!configStr) {
+      const eventId = getStoredEventId();
+      if (!eventId) {
         router.push("/login");
         return;
       }
-      const configObj = JSON.parse(configStr);
-      const ownerId = configObj.ownerId || "default";
-      const password = configObj.adminPassword || "";
 
       try {
         const authToken = Cookies.get("auth-token");
-        const res = await fetch(`/api/tables?ownerId=${ownerId}`, {
-          headers: { 
-            ...(authToken ? { "Authorization": `Bearer ${authToken}` } : {}),
-            "x-event-password": password 
-          }
+        const res = await fetchApi(`/api/v1/events/${eventId}/tables`, {
+          headers: authToken ? { Authorization: `Bearer ${authToken}` } : {},
         });
-        const data = await res.json();
+        const { data } = await parseApiJson<unknown[]>(res);
         if (Array.isArray(data)) {
-          setCustomTables(data);
+          setCustomTables(data as Table[]);
         }
       } catch (err) {
         console.error("Failed to fetch tables:", err);
@@ -52,21 +48,15 @@ export function TablesClient() {
     const updated = typeof newTables === "function" ? newTables(customTables) : newTables;
     setCustomTables(updated);
     
-    const configStr = localStorage.getItem("event-config");
-    const configObj = configStr ? JSON.parse(configStr) : null;
-    const ownerId = configObj?.ownerId || "default";
-    const password = configObj?.adminPassword || "";
-    
+    const eventId = getStoredEventId();
+    if (!eventId) return;
+
     try {
       const authToken = Cookies.get("auth-token");
-      await fetch("/api/tables", {
+      await fetchApi(`/api/v1/events/${eventId}/tables`, {
         method: "POST",
-        headers: { 
-          "Content-Type": "application/json",
-          ...(authToken ? { "Authorization": `Bearer ${authToken}` } : {}),
-          "x-event-password": password 
-        },
-        body: JSON.stringify({ ownerId, tables: updated }),
+        headers: authToken ? { Authorization: `Bearer ${authToken}` } : {},
+        body: JSON.stringify({ tables: updated }),
       });
     } catch (err) {
       console.error("Failed to sync tables", err);

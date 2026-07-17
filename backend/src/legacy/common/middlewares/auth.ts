@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import jwt from 'jsonwebtoken';
-import prisma from '../lib/prisma';
-import { UnauthorizedError } from '../lib/errors';
+import prisma from '../../../lib/prisma';
+import { UnauthorizedError } from '../../../lib/errors';
 
 export async function getSession(req: NextRequest) {
   const authHeader = req.headers.get('authorization');

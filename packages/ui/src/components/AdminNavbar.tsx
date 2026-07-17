@@ -8,6 +8,7 @@ import { useAuth } from "@frontend/context/AuthContext";
 import { useLocalStorage } from "@frontend/hooks/useLocalStorage";
 import { Language, translations } from "@backend/translations";
 import { EventConfig, EventType } from "@backend/eventConfig";
+import { PremiumLogo } from "./PremiumLogo";
 
 const EVENT_TYPE_ICONS: Record<EventType, React.ComponentType<{ className?: string }>> = {
   wedding: Heart,
@@ -19,7 +20,7 @@ const EVENT_TYPE_ICONS: Record<EventType, React.ComponentType<{ className?: stri
 
 export function AdminNavbar() {
   const pathname = usePathname();
-  const { user, logout } = useAuth();
+  const { logout } = useAuth();
   const [appLang] = useLocalStorage<Language>("mariage-app-lang", "fr");
   const [eventConfig] = useLocalStorage<EventConfig | null>("event-config", null);
   const t = translations[appLang];
@@ -42,14 +43,13 @@ export function AdminNavbar() {
   return (
     <nav className="sticky top-0 z-50 w-full glass-panel !rounded-none border-b border-gold/20 px-4 py-3">
       <div className="max-w-4xl mx-auto flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2 group">
-          <div className="p-1.5 bg-gold/10 rounded-lg group-hover:bg-gold/20 transition-colors overflow-hidden flex items-center justify-center">
-            {eventConfig?.logoUrl ? (
-              <img src={eventConfig.logoUrl} alt="Logo" className="w-5 h-5 object-contain" />
-            ) : (
-              <EventIcon className="w-5 h-5 text-gold fill-gold" />
-            )}
-          </div>
+        <Link href="/" className="flex items-center gap-3 group">
+          <PremiumLogo
+            src={eventConfig?.logoUrl}
+            fallbackIcon={EventIcon}
+            size="sm"
+            variant="gold"
+          />
           <span className="font-serif font-bold text-gray-900 tracking-tight hidden sm:block">
             {eventName}
           </span>

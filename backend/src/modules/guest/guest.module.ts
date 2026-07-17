@@ -5,6 +5,7 @@ import { InvitationsController } from './sub-modules/invitations/invitations.con
 import { QRController } from './sub-modules/qr/qr.controller';
 import { CheckinController } from './sub-modules/checkins/checkin.controller';
 import { TablesController } from './sub-modules/tables/tables.controller';
+import { TablesService } from './tables.service';
 
 @Module({
   controllers: [
@@ -14,6 +15,7 @@ import { TablesController } from './sub-modules/tables/tables.controller';
     CheckinController,
     TablesController,
   ],
-  providers: [GuestService],
+  providers: [GuestService, TablesService],
 })
 export class GuestModule {}
+

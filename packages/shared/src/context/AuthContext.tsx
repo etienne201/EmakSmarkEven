@@ -1,14 +1,15 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
 import { useSessionTimeout } from "@frontend/hooks/useSessionTimeout";
+import { AppRole } from "@frontend/utils/api-config";
 
 export interface User {
   uid: string;
   ownerId: string;
-  role: "admin" | "super-admin" | "guest" | "staff";
+  role: AppRole;
   email?: string;
   name?: string;
 }
@@ -24,7 +25,11 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+type AuthProviderProps = {
+  children: ReactNode;
+};
+
+export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -49,6 +54,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const login = useCallback((newToken: string, refreshToken: string, userData: User) => {
+    // ── Clear stale event context from any previous session ──
+    // Without this, a new admin could inherit another user's event
+    // and be redirected to a dashboard that doesn't belong to them.
+    localStorage.removeItem("current-event-id");
+    localStorage.removeItem("event-config");
+
     setToken(newToken);
     setUser(userData);
     
@@ -72,6 +83,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     Cookies.remove("auth-token");
     localStorage.removeItem("refresh-token");
     localStorage.removeItem("auth-user");
+    localStorage.removeItem("current-event-id");
     localStorage.removeItem("event-config");
     localStorage.removeItem("session-last-activity");
     // Redirect to the appropriate login page based on role

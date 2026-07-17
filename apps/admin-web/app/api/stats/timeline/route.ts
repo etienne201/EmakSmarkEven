@@ -23,7 +23,7 @@ export async function GET(request: Request) {
 
     const arrivedGuests = await prisma.guest.findMany({
       where: {
-        event: { adminId: String(ownerId) },
+        event: { createdById: String(ownerId) },
         checkinStatus: 'arrived',
         checkedInAt: { not: null }
       },

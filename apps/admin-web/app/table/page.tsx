@@ -2,7 +2,7 @@ import { TablesClient } from "@frontend/components/TablesClient";
 import { DashboardWrapper } from "@frontend/components/dashboard/DashboardWrapper";
 
 export const metadata = {
-  title: "Gestion des Tables | Danie & John",
+  title: "Gestion des Tables | Événement",
   description: "Organisation du plan de table pour le mariage.",
 };
 

@@ -1,7 +1,9 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, BadRequestException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../../database/prisma.service';
 import * as bcrypt from 'bcrypt';
+import { randomUUID } from 'crypto';
+import { resolveLoginEmail } from './auth.types';
 
 @Injectable()
 export class AuthService {
@@ -10,37 +12,95 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async login(email: string, password: string) {
+  async login(email: string, password: string, ctx?: { ip?: string; userAgent?: string }) {
+    const resolvedEmail = resolveLoginEmail(email);
     const user = await this.prisma.user.findUnique({
-      where: { email },
-      include: { role: true, organization: true },
+      where: { email: resolvedEmail },
+      include: { role: true },
     });
 
-    if (!user) {
-      throw new UnauthorizedException('Identifiants invalides');
-    }
+    if (!user) throw new UnauthorizedException('Invalid credentials');
 
-    // Checking password with bcrypt
-    const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
-    if (!isPasswordValid) {
-      throw new UnauthorizedException('Identifiants invalides');
-    }
+    const isValid = await bcrypt.compare(password, user.passwordHash);
+    if (!isValid) throw new UnauthorizedException('Invalid credentials');
 
     if (user.status !== 'active') {
-      throw new UnauthorizedException('Compte inactif');
+      throw new UnauthorizedException('Account inactive');
     }
 
-    const payload = { sub: user.id, email: user.email };
+    const payload = {
+      sub: user.id,
+      email: user.email,
+      role: user.role.name,
+    };
+
+    const accessToken = this.jwtService.sign(payload);
+    const refreshToken = randomUUID();
+
+    await this.prisma.userSession.create({
+      data: {
+        userId: user.id,
+        refreshToken,
+        ipAddress: ctx?.ip ?? null,
+        userAgent: ctx?.userAgent ?? null,
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      },
+    });
+
     return {
       user: {
-        id: user.id,
-        email: user.email,
-        fullName: user.fullName,
+        uid: user.id,
+        ownerId: user.organizationId,
         role: user.role.name,
-        organizationId: user.organizationId,
+        email: user.email,
+        name: user.fullName,
       },
-      token: this.jwtService.sign(payload),
+      accessToken,
+      refreshToken,
     };
+  }
+
+  async forgotPassword(email: string) {
+    const user = await this.prisma.user.findUnique({ where: { email } });
+
+    if (!user) return { success: true };
+
+    const token = randomUUID();
+
+    await this.prisma.passwordReset.create({
+      data: {
+        userId: user.id,
+        token,
+        expiresAt: new Date(Date.now() + 30 * 60 * 1000),
+      },
+    });
+
+    return { success: true };
+  }
+
+  async resetPassword(dto: { token: string; newPassword: string }) {
+    const reset = await this.prisma.passwordReset.findUnique({
+      where: { token: dto.token },
+    });
+
+    if (!reset) throw new BadRequestException('Invalid token');
+
+    if (reset.expiresAt < new Date()) {
+      throw new BadRequestException('Token expired');
+    }
+
+    const hashedPassword = await bcrypt.hash(dto.newPassword, 10);
+
+    await this.prisma.user.update({
+      where: { id: reset.userId },
+      data: { passwordHash: hashedPassword },
+    });
+
+    await this.prisma.passwordReset.delete({
+      where: { token: dto.token },
+    });
+
+    return { success: true };
   }
 
   async getUserSessions(userId: string) {
@@ -49,6 +109,7 @@ export class AuthService {
       orderBy: { createdAt: 'desc' },
     });
   }
+
   async deleteSession(sessionId: string) {
     return this.prisma.userSession.delete({
       where: { id: sessionId },

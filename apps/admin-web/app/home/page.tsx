@@ -12,7 +12,9 @@ import {
 
 // Components
 import { DashboardWrapper } from "@frontend/components/dashboard/DashboardWrapper";
+import { HighEndStats } from "@frontend/components/dashboard/HighEndStats";
 import { GuestsView } from "@frontend/components/dashboard/GuestsView";
+import { Guest } from "@backend/types";
 import { PresenceView } from "@frontend/components/dashboard/PresenceView";
 import { TablesView } from "@frontend/components/dashboard/TablesView";
 import { AnalyticsView } from "@frontend/components/dashboard/AnalyticsView";
@@ -28,6 +30,7 @@ import { useToast } from "@frontend/hooks/useToast";
 import { useAuth } from "@frontend/context/AuthContext";
 import { translations } from "@backend/translations";
 
+import { createGuest, updateGuest, deleteGuest, getStoredEventId } from "@frontend/utils/event-api";
 import { Suspense } from "react";
 
 function DashboardContent() {
@@ -111,34 +114,37 @@ function DashboardContent() {
   const totalPages = Math.ceil(filteredGuests.length / ITEMS_PER_PAGE);
   useEffect(() => { setCurrentPage(1); }, [search, selectedTable]);
 
-  const handleLogout = () => {
+  const _handleLogout = () => {
     Cookies.remove("auth-token");
     localStorage.removeItem("event-config");
     router.push("/login");
   };
 
   const handleSaveGuest = async (title: string, name: string, table: number, tableName: string, lang: any) => {
-    const guestData = { 
-      id: editId ? String(editId) : undefined, 
-      uuid: crypto.randomUUID(), 
-      title, 
-      fullName: name, // mapped to Zod schema expected format
-      name, // keep name for immediate frontend state update compatibility
-      table, 
-      tableName, 
-      lang, 
-      ownerId 
+    const eventId = getStoredEventId();
+    if (!eventId) {
+      showToast(t.toasts.connError, "error");
+      return;
+    }
+    const guestData = {
+      title,
+      fullName: name,
+      name,
+      table,
+      tableName,
+      lang,
     };
-    const token = Cookies.get("auth-token");
     try {
-      const res = await fetch("/api/guests", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
-        body: JSON.stringify(guestData),
-      });
-      if (res.ok) {
-        const json = await res.json();
-        const savedGuest = json.data || guestData; // fallback to guestData if data missing
+      const res = editId 
+        ? await updateGuest(String(editId), guestData)
+        : await createGuest(eventId, guestData);
+      
+      const { data, error } = res;
+      if (data && !error) {
+        const savedGuest = data ? (data as unknown as Guest) : ({
+          ...guestData,
+          id: editId ? (typeof editId === "number" ? editId : Number(editId)) : Date.now(),
+        } as Guest);
         setGuests(prev => {
           const arr = Array.isArray(prev) ? prev : [];
           return editId ? arr.map(g => g.id === editId ? savedGuest : g) : [...arr, savedGuest];
@@ -146,18 +152,16 @@ function DashboardContent() {
         showToast(editId ? t.toasts.successUpdate : t.toasts.successAdd, "success");
         setView("list");
         setEditId(null);
+      } else {
+        showToast(t.toasts.connError, "error");
       }
     } catch { showToast(t.toasts.connError, "error"); }
   };
 
   const handleDeleteGuest = async (id: string | number) => {
-    const token = Cookies.get("auth-token");
     try {
-      const res = await fetch(`/api/guests?id=${id}&ownerId=${ownerId}`, { 
-        method: "DELETE",
-        headers: { "Authorization": `Bearer ${token}` }
-      });
-      if (res.ok) {
+      const { error } = await deleteGuest(String(id));
+      if (!error) {
         setGuests(prev => Array.isArray(prev) ? prev.filter(g => g.id !== id) : []);
         showToast(t.toasts.successDelete, "info");
       }
@@ -175,46 +179,35 @@ function DashboardContent() {
 
   return (
     <DashboardWrapper>
-      <div className="mt-4 space-y-8">
-        {/* Intelligent Header */}
-        <header className="mb-10">
-          <motion.div 
-            initial={{ opacity: 0, x: -20 }} 
-            animate={{ opacity: 1, x: 0 }}
-            className="flex flex-col md:flex-row md:items-center justify-between gap-6"
+      <div className="space-y-8">
+        {/* Header: greeting + primary action */}
+        <header>
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ ease: [0.16, 1, 0.3, 1] }}
+            className="flex flex-col md:flex-row md:items-end justify-between gap-6"
           >
             <div>
-              <h1 className="text-3xl font-black text-gray-900 tracking-tight mb-2">
-                {getGreeting()}, <span style={{ color: 'var(--color-primary)' }}>{user?.name || (ownerId === 'system' ? 'Organisateur' : ownerId)}</span> ✨
+              <h1 className="es-h1">
+                {getGreeting()}, <span style={{ color: 'var(--color-primary)' }}>{user?.name || (ownerId === 'system' ? 'Organisateur' : ownerId)}</span>
               </h1>
-              <p className="text-gray-500 text-sm font-medium">
-                Voici l&apos;état actuel de votre événement <span className="font-bold text-gray-900">"{cfg?.eventName}"</span>.
+              <p className="es-subtle mt-2">
+                Voici l&apos;état actuel de votre événement <span className="font-semibold text-[color:var(--text-primary)]">« {cfg?.eventName} »</span>.
               </p>
             </div>
 
-            <div className="flex items-center gap-3">
-              <div className="hidden sm:flex items-center gap-3 bg-white p-2 rounded-2xl border border-gray-100 shadow-sm">
-                <div 
-                  className="px-4 py-2 rounded-xl text-xs font-bold"
-                  style={{ backgroundColor: 'color-mix(in srgb, var(--color-primary) 10%, transparent)', color: 'var(--color-primary)' }}
-                >
-                  {guests.length} Invités
-                </div>
-                <div className="w-px h-8 bg-gray-100" />
-                <div className="px-4 py-2 bg-blue-50 text-blue-600 rounded-xl text-xs font-bold">
-                  {attendance.length} Présences
-                </div>
-              </div>
-              <button 
-                onClick={() => router.push("/reglage")}
-                className="flex items-center gap-2 px-6 py-3.5 bg-slate-900 text-white rounded-2xl font-bold text-xs hover:bg-slate-800 transition-all shadow-xl shadow-slate-200"
-              >
-                <Settings className="w-4 h-4" style={{ color: 'var(--color-primary)' }} />
-                <span className="uppercase tracking-widest">Edit info even</span>
-              </button>
-            </div>
+            <button
+              onClick={() => router.push("/reglage")}
+              className="es-btn es-btn--secondary es-focusable"
+            >
+              <Settings className="w-4 h-4" />
+              Modifier l&apos;événement
+            </button>
           </motion.div>
         </header>
+
+        <HighEndStats guests={guests} tables={tables} attendance={attendance} lang={appLang} />
 
         <AnimatePresence mode="wait">
           {currentView === "guests" && (
@@ -224,8 +217,8 @@ function DashboardContent() {
                 selectedTable={selectedTable} setSelectedTable={setSelectedTable}
                 filteredGuests={filteredGuests} paginatedGuests={paginatedGuests}
                 customTables={tables} editId={editId} setEditId={setEditId}
-                handleSaveGuest={handleSaveGuest} handleDeleteGuest={handleDeleteGuest}
-                setIsClearModalOpen={setIsClearModalOpen} setIsTableModalOpen={() => {}}
+                handleSaveGuest={handleSaveGuest} _handleDeleteGuest={handleDeleteGuest}
+                _setIsClearModalOpen={setIsClearModalOpen} _setIsTableModalOpen={() => {}}
                 currentPage={currentPage} setCurrentPage={setCurrentPage}
                 totalPages={totalPages} appLang={appLang} origin={origin}
                 ownerId={ownerId} eventConfig={cfg} setSelectedGuest={setSelectedGuest}

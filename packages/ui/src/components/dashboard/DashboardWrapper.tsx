@@ -2,17 +2,31 @@
 
 import { useRouter, usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import { ChevronRight, ShieldAlert } from "lucide-react";
 import { Sidebar } from "./Sidebar";
 import { HighEndStats } from "./HighEndStats";
 import { FloatingDecorations } from "../FloatingDecorations";
 import { LoadingScreen } from "../LoadingScreen";
 import { useEvent } from "@frontend/hooks/useEvent";
 import { useAuthGuard } from "@frontend/hooks/useAuthGuard";
+import { useAuth } from "@frontend/context/AuthContext";
+import { canViewAnalytics } from "@frontend/utils/api-config";
+import { useEffect } from "react";
 
 export function DashboardWrapper({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const isReady = useAuthGuard();
+  const { user } = useAuth();
+
+  useEffect(() => {
+    if (user) {
+      const isRestrictedPath = pathname.includes("/analytics") || pathname.includes("/table");
+      if (isRestrictedPath && !canViewAnalytics(user.role)) {
+        router.replace("/home");
+      }
+    }
+  }, [user, pathname, router]);
   
   const {
     eventConfig: cfg,
@@ -40,6 +54,14 @@ export function DashboardWrapper({ children }: { children: React.ReactNode }) {
     router.push(routeMap[view] || "/home");
   };
 
+  const VIEW_LABELS: Record<string, string> = {
+    guests: "Invités",
+    presence: "Présences",
+    tables: "Plan de table",
+    analytics: "Statistiques",
+    settings: "Paramètres",
+  };
+
   const currentView = () => {
     if (pathname.includes("/home")) return "guests";
     if (pathname.includes("/present")) return "presence";
@@ -49,15 +71,21 @@ export function DashboardWrapper({ children }: { children: React.ReactNode }) {
     return "guests";
   };
 
-  if (!isReady || isSyncing) return <LoadingScreen isLoading={true} title={cfg?.eventName || "Chargement..."} />;
+  const view = currentView();
+  const isHome = pathname.includes("/home");
+
+  if (!isReady || isSyncing) return <LoadingScreen isLoading={true} title={cfg?.eventName || "Chargement..."} logoUrl={cfg?.logoUrl} eventType={cfg?.eventType} initials={cfg?.hostInitials} />;
 
   if (cfg?.isBlocked) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-6 text-center">
-        <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-          className="max-w-md w-full bg-white border border-red-100 p-10 rounded-[2.5rem] shadow-2xl">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Compte Suspendu</h2>
-          <p className="text-gray-500 text-sm mb-8">L&apos;accès à cet événement a été restreint par l&apos;administrateur.</p>
+      <div className="es-app min-h-screen flex items-center justify-center p-6 text-center">
+        <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+          className="es-card es-card--pad max-w-md w-full">
+          <div className="es-empty__icon mx-auto mb-2" style={{ background: "var(--danger-bg)", color: "var(--danger)" }}>
+            <ShieldAlert className="w-7 h-7" />
+          </div>
+          <h2 className="es-h2 mb-2">Accès suspendu</h2>
+          <p className="es-subtle">L&apos;accès à cet événement a été restreint par l&apos;administrateur. Contactez le support pour le rétablir.</p>
         </motion.div>
       </div>
     );
@@ -80,35 +108,50 @@ export function DashboardWrapper({ children }: { children: React.ReactNode }) {
         onLogout={handleLogout}
       />
 
-      <main className="flex-1 ml-72 min-h-screen p-12 overflow-y-auto">
-        <HighEndStats 
-          guests={guests || []} 
-          tables={tables || []} 
-          attendance={attendance || []} 
-          lang={appLang} 
-        />
+      <main className="flex-1 ml-72 min-h-screen p-8 lg:p-12 overflow-y-auto es-scroll">
+        {/* Top bar: breadcrumb + live sync status */}
+        <div className="flex items-center justify-between gap-4 mb-8">
+          <nav className="es-breadcrumb" aria-label="Fil d'ariane">
+            <span>{cfg?.eventName || "Événement"}</span>
+            <ChevronRight />
+            <span aria-current="page">{VIEW_LABELS[view] || "Tableau de bord"}</span>
+          </nav>
+          <div
+            className="es-badge es-badge--neutral"
+            role="status"
+            title={isSyncing ? "Synchronisation en cours" : "Données à jour"}
+          >
+            <span
+              className={`es-badge__dot ${isSyncing ? "es-badge__dot--pulse" : ""}`}
+              style={{ color: isSyncing ? "var(--warning)" : "var(--color-primary)" }}
+            />
+            {isSyncing
+              ? "Synchronisation…"
+              : lastUpdated
+                ? `Sauvegardé à ${lastUpdated.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`
+                : "Connecté"}
+          </div>
+        </div>
 
-        <div className="mt-12">
+        {!isHome && (
+          <HighEndStats
+            guests={guests || []}
+            tables={tables || []}
+            attendance={attendance || []}
+            lang={appLang}
+          />
+        )}
+
+        <div className={isHome ? "" : "mt-10"}>
           <AnimatePresence mode="wait">
-            <motion.div 
+            <motion.div
               key={pathname}
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.3 }}
+              exit={{ opacity: 0, y: -16 }}
+              transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
             >
-              <div className="flex justify-end items-center mb-6 gap-4">
-                <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-2xl border border-gray-100 shadow-sm transition-all hover:shadow-md">
-                    <div className={`w-2 h-2 rounded-full ${isSyncing ? 'bg-amber-400 animate-pulse' : ''}`} style={!isSyncing ? { backgroundColor: 'var(--color-primary)' } : undefined} />
-                  <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">
-                    {isSyncing ? 'Synchronisation...' : lastUpdated ? `Sauvegardé à ${lastUpdated.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : 'Connecté'}
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex-1">
-                {children}
-              </div>
+              {children}
             </motion.div>
           </AnimatePresence>
         </div>
