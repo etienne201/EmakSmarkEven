@@ -137,6 +137,8 @@ export class DesignService {
           layersData: dto.layersData as any,
           colorPalette: dto.colorPalette as any,
           backgroundAssetId: dto.backgroundAssetId,
+          baseTemplateId: dto.baseTemplateId,
+          sourceType: dto.sourceType,
           status: dto.status,
           version: existing.version + 1,
         },
@@ -156,6 +158,8 @@ export class DesignService {
         canvasHeight: dto.canvasHeight,
         colorPalette: dto.colorPalette as any,
         backgroundAssetId: dto.backgroundAssetId,
+        baseTemplateId: dto.baseTemplateId,
+        sourceType: dto.sourceType,
         status: dto.status,
       },
       include: {
@@ -211,8 +215,29 @@ export class DesignService {
   // TEMPLATES
   // ====================================================
   async getDesignTemplates(eventType?: EventTypeKey) {
+    if (!eventType) {
+      return this.prisma.designTemplate.findMany({
+        orderBy: { createdAt: 'desc' },
+      });
+    }
+
+    const dedicated = await this.prisma.designTemplate.findMany({
+      where: { eventType },
+      orderBy: { createdAt: 'desc' },
+    });
+    if (dedicated.length > 0) {
+      return dedicated;
+    }
+
+    // Fallback : modèles universels (other, festival, null)
     return this.prisma.designTemplate.findMany({
-      where: eventType ? { eventType } : {},
+      where: {
+        OR: [
+          { eventType: 'other' },
+          { eventType: 'festival' },
+          { eventType: null },
+        ],
+      },
       orderBy: { createdAt: 'desc' },
     });
   }

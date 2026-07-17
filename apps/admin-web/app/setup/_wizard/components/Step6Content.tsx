@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -25,7 +25,7 @@ interface Props {
 
 export function Step6Content({ onCompleted, onBack }: Props) {
   const eventId = useSetupStore((s) => s.eventId);
-  const stored1 = useRef(useSetupStore.getState().data.step1).current;
+  const step1 = useSetupStore((s) => s.data.step1);
   const stored6 = useRef(useSetupStore.getState().data.step6).current;
   const updateStep1 = useSetupStore((s) => s.updateStep1);
   const updateStep6 = useSetupStore((s) => s.updateStep6);
@@ -35,7 +35,7 @@ export function Step6Content({ onCompleted, onBack }: Props) {
     resolver: zodResolver(contentSchema),
     mode: "onChange",
     defaultValues: {
-      description: stored1.description ?? stored6.description ?? "",
+      description: step1.description ?? stored6.description ?? "",
       agenda: stored6.agenda ?? "",
       extraText: stored6.extraText ?? "",
     },
@@ -55,25 +55,30 @@ export function Step6Content({ onCompleted, onBack }: Props) {
     return () => sub.unsubscribe();
   }, [watch, updateStep1, updateStep6]);
 
+  const save = useCallback(async (v: ContentValues) => {
+    if (!eventId) return;
+    await setupApi.saveStep(eventId, 1, {
+      title: step1.title ?? "",
+      slug: step1.slug ?? "",
+      eventType: step1.eventType!,
+      description: v.description,
+      language: step1.language,
+      visibility: step1.visibility,
+      agenda: v.agenda,
+      extraText: v.extraText,
+    });
+  }, [eventId, step1]);
+
   useAutosave({
     value: values,
     enabled: Boolean(eventId),
-    save: async (v: any) => {
-      // Save description to Step 1 backend data
-      await setupApi.saveStep(eventId as string, 1, {
-        ...stored1,
-        description: v.description,
-      } as any);
-    },
+    save,
   });
 
   const onNext = handleSubmit(async (data) => {
     if (!eventId) return;
     try {
-      await setupApi.saveStep(eventId, 1, {
-        ...stored1,
-        description: data.description,
-      } as any);
+      await save(data);
       markCompleted(6);
       onCompleted();
     } catch (e) {

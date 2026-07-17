@@ -16,7 +16,7 @@ export class PermissionsCacheService implements OnModuleInit, OnModuleDestroy {
   private logErrorThrottle(message: string, error?: any) {
     const now = Date.now();
     const lastLogged = this.lastLoggedErrors.get(message) || 0;
-    if (now - lastLogged > 120000) { // Limit identical logs to once every 2 minutes
+    if (now - lastLogged > 120000) {
       this.lastLoggedErrors.set(message, now);
       if (error?.stack) {
         this.logger.error(message, error.stack);
@@ -26,30 +26,49 @@ export class PermissionsCacheService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
+  private canUseRedis(): boolean {
+    return Boolean(this.redis) && this.redis!.status === 'ready';
+  }
+
+  private useMemoryFallback(reason: string, error?: any): void {
+    this.logErrorThrottle(reason, error);
+  }
+
   onModuleInit() {
     const redisUrl = process.env.REDIS_URL || process.env.KV_URL;
-    if (redisUrl) {
-      try {
-        this.logger.log(`Connecting to Redis: ${redisUrl.split('@').pop()}`);
-        this.redis = new Redis(redisUrl, {
-          maxRetriesPerRequest: 1,
-          connectTimeout: 2000,
-          enableOfflineQueue: false,
-        });
-        
-        this.redis.on('error', (err) => {
-          this.logErrorThrottle(`Redis Error: ${err.message}`);
-        });
-
-        this.redis.on('connect', () => {
-          this.logger.log('Successfully connected to Redis database.');
-          this.lastLoggedErrors.clear(); // Reset throttled logs when connection succeeds
-        });
-      } catch (err: any) {
-        this.logger.error(`Failed to initialize Redis client: ${err.message}`);
-      }
-    } else {
+    if (!redisUrl) {
       this.logger.warn('No REDIS_URL or KV_URL found. Caching will use in-memory fallback.');
+      return;
+    }
+
+    try {
+      this.logger.log(`Connecting to Redis: ${redisUrl.split('@').pop()}`);
+      this.redis = new Redis(redisUrl, {
+        maxRetriesPerRequest: 1,
+        connectTimeout: 2000,
+        enableOfflineQueue: false,
+        lazyConnect: true,
+        retryStrategy: (times) => (times > 2 ? null : 100),
+      });
+
+      this.redis.on('error', (err) => {
+        this.useMemoryFallback(`Redis Error: ${err.message}`);
+      });
+
+      this.redis.on('connect', () => {
+        this.logger.log('Successfully connected to Redis database.');
+        this.lastLoggedErrors.clear();
+      });
+
+      this.redis.on('ready', () => {
+        this.lastLoggedErrors.clear();
+      });
+
+      this.redis.on('reconnecting', () => {
+        this.logger.warn('Redis is reconnecting; using in-memory fallback for cache operations.');
+      });
+    } catch (err: any) {
+      this.logger.error(`Failed to initialize Redis client: ${err.message}`);
     }
   }
 
@@ -60,15 +79,15 @@ export class PermissionsCacheService implements OnModuleInit, OnModuleDestroy {
   }
 
   async get(key: string): Promise<any> {
-    if (this.redis && this.redis.status === 'ready') {
+    if (this.canUseRedis()) {
       try {
-        const val = await this.redis.get(key);
+        const val = await this.redis!.get(key);
         if (val) return JSON.parse(val);
       } catch (err: any) {
-        this.logErrorThrottle(`Redis get error: ${err.message}`);
+        this.useMemoryFallback(`Redis get error: ${err.message}`, err);
       }
     }
-    // Memory fallback
+
     const item = this.memoryCache.get(key);
     if (item && item.expires > Date.now()) {
       return item.value;
@@ -77,15 +96,15 @@ export class PermissionsCacheService implements OnModuleInit, OnModuleDestroy {
   }
 
   async set(key: string, value: any, ttlSeconds = 300): Promise<void> {
-    if (this.redis && this.redis.status === 'ready') {
+    if (this.canUseRedis()) {
       try {
-        await this.redis.set(key, JSON.stringify(value), 'EX', ttlSeconds);
+        await this.redis!.set(key, JSON.stringify(value), 'EX', ttlSeconds);
         return;
       } catch (err: any) {
-        this.logErrorThrottle(`Redis set error: ${err.message}`);
+        this.useMemoryFallback(`Redis set error: ${err.message}`, err);
       }
     }
-    // Memory fallback
+
     this.memoryCache.set(key, {
       value,
       expires: Date.now() + ttlSeconds * 1000,
@@ -93,12 +112,12 @@ export class PermissionsCacheService implements OnModuleInit, OnModuleDestroy {
   }
 
   async del(key: string): Promise<void> {
-    if (this.redis && this.redis.status === 'ready') {
+    if (this.canUseRedis()) {
       try {
-        await this.redis.del(key);
+        await this.redis!.del(key);
         return;
       } catch (err: any) {
-        this.logErrorThrottle(`Redis del error: ${err.message}`);
+        this.useMemoryFallback(`Redis del error: ${err.message}`, err);
       }
     }
     this.memoryCache.delete(key);
@@ -106,15 +125,15 @@ export class PermissionsCacheService implements OnModuleInit, OnModuleDestroy {
 
   async delMultiple(keys: string[]): Promise<void> {
     if (keys.length === 0) return;
-    if (this.redis && this.redis.status === 'ready') {
+    if (this.canUseRedis()) {
       try {
-        await this.redis.del(...keys);
+        await this.redis!.del(...keys);
         return;
       } catch (err: any) {
-        this.logErrorThrottle(`Redis del multiple error: ${err.message}`);
+        this.useMemoryFallback(`Redis del multiple error: ${err.message}`, err);
       }
     }
-    keys.forEach(k => this.memoryCache.delete(k));
+    keys.forEach((k) => this.memoryCache.delete(k));
   }
 
   /**

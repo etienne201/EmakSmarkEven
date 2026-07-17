@@ -97,6 +97,16 @@ export class UpdateDesignDto {
   @IsEnum(DesignStatus)
   @IsOptional()
   status?: DesignStatus;
+
+  @ApiPropertyOptional({ description: 'ID du template de base' })
+  @IsUUID()
+  @IsOptional()
+  baseTemplateId?: string;
+
+  @ApiPropertyOptional({ enum: DesignSourceType })
+  @IsEnum(DesignSourceType)
+  @IsOptional()
+  sourceType?: DesignSourceType;
 }
 
 export class CreateDesignExportDto {

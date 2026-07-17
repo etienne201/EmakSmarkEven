@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useCallback, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Calendar, MapPin, UploadCloud, Trash2 } from "lucide-react";
+import { Calendar, MapPin, UploadCloud, Trash2, Loader2, AlertCircle } from "lucide-react";
 import { useDropzone } from "react-dropzone";
 import { step4Schema, type Step4Values } from "../schemas";
 import { useSetupStore } from "../store";
@@ -42,7 +42,12 @@ export function Step5Branding({ onCompleted, onBack }: Props) {
   const updateStep4 = useSetupStore((s) => s.updateStep4);
   const markCompleted = useSetupStore((s) => s.markCompleted);
 
-  const { register, watch, setValue, handleSubmit } = useForm<Step4Values>({
+  // BUG-06 FIX: État local pour le chargement des uploads d'images
+  const [logoUploading, setLogoUploading] = useState(false);
+  const [bannerUploading, setBannerUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+
+  const { register, watch, setValue, handleSubmit, formState: { errors } } = useForm<Step4Values>({
     resolver: zodResolver(step4Schema),
     mode: "onChange",
     defaultValues: {
@@ -56,25 +61,52 @@ export function Step5Branding({ onCompleted, onBack }: Props) {
   const values = watch();
   const primary = values.colors?.primary ?? "#bfa14a";
 
-  const onLogoDrop = (acceptedFiles: File[]) => {
+  /**
+   * BUG-06 FIX: Upload l'image via l'API et stocke l'URL (pas le base64).
+   * Si l'upload échoue (endpoint absent), fallback temporaire sur le data URL
+   * avec un avertissement visuel.
+   */
+  const onLogoDrop = useCallback(async (acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      setValue("logoUrl", e.target?.result as string, { shouldValidate: true });
-    };
-    reader.readAsDataURL(file);
-  };
+    setUploadError(null);
+    setLogoUploading(true);
+    try {
+      const { url } = await setupApi.uploadImage(file, `logo-${file.name}`);
+      setValue("logoUrl", url, { shouldValidate: true });
+    } catch {
+      // Fallback gracieux : utiliser le data URL si l'API upload n'existe pas encore.
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setValue("logoUrl", e.target?.result as string, { shouldValidate: true });
+        setUploadError("Upload serveur indisponible — image stockée temporairement en local. Pensez à configurer l'endpoint /uploads.");
+      };
+      reader.readAsDataURL(file);
+    } finally {
+      setLogoUploading(false);
+    }
+  }, [setValue]);
 
-  const onBannerDrop = (acceptedFiles: File[]) => {
+  const onBannerDrop = useCallback(async (acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      setValue("bannerUrl", e.target?.result as string, { shouldValidate: true });
-    };
-    reader.readAsDataURL(file);
-  };
+    setUploadError(null);
+    setBannerUploading(true);
+    try {
+      const { url } = await setupApi.uploadImage(file, `banner-${file.name}`);
+      setValue("bannerUrl", url, { shouldValidate: true });
+    } catch {
+      // Fallback gracieux
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setValue("bannerUrl", e.target?.result as string, { shouldValidate: true });
+        setUploadError("Upload serveur indisponible — image stockée temporairement en local. Pensez à configurer l'endpoint /uploads.");
+      };
+      reader.readAsDataURL(file);
+    } finally {
+      setBannerUploading(false);
+    }
+  }, [setValue]);
 
   const logoDropzone = useDropzone({
     accept: { "image/*": [] },
@@ -99,13 +131,26 @@ export function Step5Branding({ onCompleted, onBack }: Props) {
     save: (v) => setupApi.saveStep(eventId as string, 4, toPayload(v as Step4Values)),
   });
 
-  const onNext = handleSubmit(() => {
+  const onNext = handleSubmit(async (data) => {
+    if (eventId) {
+      try {
+        await setupApi.saveStep(eventId, 4, toPayload(data));
+      } catch (e) {
+        console.error("Erreur sauvegarde branding:", e);
+      }
+    }
     markCompleted(5);
     onCompleted();
   });
 
   return (
     <div className="es-wizard-step es-animate-in">
+      {uploadError && (
+        <div className="es-alert es-alert--warning" style={{ marginBottom: "16px", fontSize: "12px" }}>
+          <AlertCircle className="w-4 h-4" style={{ flexShrink: 0 }} />
+          <span>{uploadError}</span>
+        </div>
+      )}
       <div className="es-branding-layout">
         <div className="es-branding-form">
           <div className="es-field">
@@ -165,7 +210,7 @@ export function Step5Branding({ onCompleted, onBack }: Props) {
                   borderRadius: "var(--radius-sm)",
                   padding: "16px",
                   textAlign: "center",
-                  cursor: "pointer",
+                  cursor: logoUploading ? "wait" : "pointer",
                   background: logoDropzone.isDragActive ? "var(--accentbg)" : "transparent",
                   borderColor: logoDropzone.isDragActive ? "var(--accent)" : "var(--border)",
                   transition: "all 0.2s ease",
@@ -176,10 +221,14 @@ export function Step5Branding({ onCompleted, onBack }: Props) {
                   minHeight: "80px",
                 }}
               >
-                <input {...logoDropzone.getInputProps()} />
-                <UploadCloud className="w-5 h-5 text-accent" style={{ marginBottom: "4px" }} />
+                <input {...logoDropzone.getInputProps()} disabled={logoUploading} />
+                {logoUploading ? (
+                  <Loader2 className="w-5 h-5 es-spin text-accent" style={{ marginBottom: "4px" }} />
+                ) : (
+                  <UploadCloud className="w-5 h-5 text-accent" style={{ marginBottom: "4px" }} />
+                )}
                 <span style={{ fontSize: "11px", color: "var(--text2)" }}>
-                  {logoDropzone.isDragActive ? "Déposez ici..." : "Glissez un logo ou cliquez"}
+                  {logoUploading ? "Upload en cours…" : logoDropzone.isDragActive ? "Déposez ici..." : "Glissez un logo ou cliquez"}
                 </span>
               </div>
               {values.logoUrl && (
@@ -212,6 +261,11 @@ export function Step5Branding({ onCompleted, onBack }: Props) {
                 placeholder="https://…/logo.png"
                 {...register("logoUrl")}
               />
+              {errors.logoUrl && (
+                <p style={{ color: "var(--danger)", fontSize: "11px", marginTop: "4px" }}>
+                  {errors.logoUrl.message}
+                </p>
+              )}
             </div>
           </div>
 
@@ -226,7 +280,7 @@ export function Step5Branding({ onCompleted, onBack }: Props) {
                   borderRadius: "var(--radius-sm)",
                   padding: "16px",
                   textAlign: "center",
-                  cursor: "pointer",
+                  cursor: bannerUploading ? "wait" : "pointer",
                   background: bannerDropzone.isDragActive ? "var(--accentbg)" : "transparent",
                   borderColor: bannerDropzone.isDragActive ? "var(--accent)" : "var(--border)",
                   transition: "all 0.2s ease",
@@ -237,10 +291,14 @@ export function Step5Branding({ onCompleted, onBack }: Props) {
                   minHeight: "80px",
                 }}
               >
-                <input {...bannerDropzone.getInputProps()} />
-                <UploadCloud className="w-5 h-5 text-accent" style={{ marginBottom: "4px" }} />
+                <input {...bannerDropzone.getInputProps()} disabled={bannerUploading} />
+                {bannerUploading ? (
+                  <Loader2 className="w-5 h-5 es-spin text-accent" style={{ marginBottom: "4px" }} />
+                ) : (
+                  <UploadCloud className="w-5 h-5 text-accent" style={{ marginBottom: "4px" }} />
+                )}
                 <span style={{ fontSize: "11px", color: "var(--text2)" }}>
-                  {bannerDropzone.isDragActive ? "Déposez ici..." : "Glissez une bannière ou cliquez"}
+                  {bannerUploading ? "Upload en cours…" : bannerDropzone.isDragActive ? "Déposez ici..." : "Glissez une bannière ou cliquez"}
                 </span>
               </div>
               {values.bannerUrl && (
@@ -273,6 +331,11 @@ export function Step5Branding({ onCompleted, onBack }: Props) {
                 placeholder="https://…/banner.jpg"
                 {...register("bannerUrl")}
               />
+              {errors.bannerUrl && (
+                <p style={{ color: "var(--danger)", fontSize: "11px", marginTop: "4px" }}>
+                  {errors.bannerUrl.message}
+                </p>
+              )}
             </div>
           </div>
         </div>
@@ -287,7 +350,7 @@ export function Step5Branding({ onCompleted, onBack }: Props) {
               className="es-preview-banner"
               style={
                 values.bannerUrl
-                  ? { backgroundImage: `url(${values.bannerUrl})` }
+                  ? { backgroundImage: `url("${values.bannerUrl}")` }
                   : { background: `linear-gradient(135deg, ${primary}, #11182722)` }
               }
             >

@@ -90,7 +90,7 @@ export function CreateEventCard({ onCreated }: Props) {
                   Pour accéder à votre <strong>tableau de bord</strong>, commencez par créer et configurer votre premier événement en <strong>3 minutes</strong>.
                 </p>
                 <p className="es-subtle" style={{ marginTop: '0.25rem', fontSize: '0.8rem', opacity: 0.7 }}>
-                  Créer l&apos;événement → Configurer (6 étapes) → Accéder au dashboard
+                  Créer l&apos;événement → Configurer (9 étapes) → Accéder au dashboard
                 </p>
               </div>
             </div>

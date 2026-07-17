@@ -4,7 +4,6 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { useDropzone } from "react-dropzone";
 import {
   Loader2,
-  Plus,
   Type,
   Square,
   Circle,
@@ -18,6 +17,7 @@ import {
   Download,
 
 } from "lucide-react";
+
 import { useSetupStore } from "../store";
 import { setupApi } from "../api";
 import { StepFooter } from "./StepFooter";
@@ -56,10 +56,19 @@ export function Step4FlyerEditor({ onCompleted, onBack }: Props) {
   const [designStatus, setDesignStatus] = useState<"draft" | "final">("draft");
   const [submitting, setSubmitting] = useState(false);
   const [objectCount, setObjectCount] = useState(0);
+  // UX-02: banner de confirmation après que le design est finalisé
+  const [showFinalizedBanner, setShowFinalizedBanner] = useState(false);
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const canvasInstanceRef = useRef<FabricCanvas>(null);
+  // Ref to the fabric module — always up-to-date inside async callbacks (no stale closure).
+  const fabricModuleRef = useRef<FabricModule>(null);
+  // BUG-04 FIX: Évite la double-initialisation du canvas en React StrictMode.
+  // En dev, les effets sont montés/démontés/remontés. Sans ce guard, le second
+  // montage trouve canvasRef.current = null (nettoyé par la cleanup du premier)
+  // et le canvas reste non initialisé.
+  const initRef = useRef(false);
 
   const baseWidth = 1080;
   const baseHeight = 1440;
@@ -79,24 +88,64 @@ export function Step4FlyerEditor({ onCompleted, onBack }: Props) {
   /* ---------------------------------------------------------------- */
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     accept: { "image/*": [] },
+    maxSize: 10 * 1024 * 1024, // 10 MB limit
     onDrop: async (acceptedFiles) => {
       const file = acceptedFiles[0];
-      if (!file || !canvas || !fabricRef) return;
+      // Use refs so this callback always reads the latest values (no stale closure)
+      const fc = canvasInstanceRef.current;
+      const fab = fabricModuleRef.current;
+      if (!file || !fc || !fab) return;
 
       const reader = new FileReader();
       reader.onload = async (e) => {
         try {
           const dataUrl = e.target?.result as string;
-          // Fabric v7: Image.fromURL is async (Promise-based)
-          const image = await fabricRef.Image.fromURL(dataUrl, { crossOrigin: "anonymous" });
-          image.set({ left: 100, top: 100 });
-          if (image.width && image.width > 200) {
-            image.scaleToWidth(200);
+          if (!dataUrl) return;
+
+          // Fabric v7 exports the class as FabricImage; older builds alias it as Image.
+          const ImageClass = fab.FabricImage ?? fab.Image;
+          if (!ImageClass) {
+            console.error("Fabric Image class not found in module exports");
+            return;
           }
-          canvas.add(image);
-          canvas.setActiveObject(image);
-          canvas.renderAll();
-          syncObjectCount(canvas);
+
+          // Data URLs are same-origin — do NOT set crossOrigin (causes silent load failure).
+          // Only remote URLs require crossOrigin: "anonymous".
+          const image = await ImageClass.fromURL(dataUrl);
+
+          // Validate the image loaded with real dimensions
+          const imgWidth = image.width ?? 0;
+          const imgHeight = image.height ?? 0;
+          if (imgWidth === 0 || imgHeight === 0) {
+            console.error("Image loaded with zero dimensions, skipping.");
+            return;
+          }
+
+          // Scale in canvas coordinate space (unzoomed: 1080×1440).
+          // Target: fit within 80% of canvas width, preserving aspect ratio.
+          const maxW = baseWidth * 0.8;
+          const maxH = baseHeight * 0.8;
+          const currentW = imgWidth * (image.scaleX ?? 1);
+          const currentH = imgHeight * (image.scaleY ?? 1);
+
+          if (currentW > maxW || currentH > maxH) {
+            const scaleFactor = Math.min(maxW / currentW, maxH / currentH);
+            image.scaleX = (image.scaleX ?? 1) * scaleFactor;
+            image.scaleY = (image.scaleY ?? 1) * scaleFactor;
+          }
+
+          // Center the image on the canvas (in canvas coordinate space)
+          const finalW = imgWidth * image.scaleX;
+          const finalH = imgHeight * image.scaleY;
+          image.set({
+            left: Math.round((baseWidth - finalW) / 2),
+            top: Math.round((baseHeight - finalH) / 2),
+          });
+
+          fc.add(image);
+          fc.setActiveObject(image);
+          fc.requestRenderAll();
+          syncObjectCount(fc);
         } catch (err) {
           console.error("Error adding image to canvas:", err);
         }
@@ -111,6 +160,10 @@ export function Step4FlyerEditor({ onCompleted, onBack }: Props) {
   useEffect(() => {
     let disposed = false;
     let activeCanvas: FabricCanvas = null;
+
+    // BUG-04 FIX: Ne pas réinitialiser si déjà fait (protection StrictMode React).
+    if (initRef.current) return;
+    initRef.current = true;
 
     async function initEditor() {
       if (!eventId) return;
@@ -189,6 +242,8 @@ export function Step4FlyerEditor({ onCompleted, onBack }: Props) {
         const fabric = await import("fabric");
         if (disposed) return;
 
+        // Store in both a ref (for non-stale callback access) and state (for re-renders)
+        fabricModuleRef.current = fabric;
         setFabricRef(fabric);
 
         if (canvasRef.current) {
@@ -202,14 +257,16 @@ export function Step4FlyerEditor({ onCompleted, onBack }: Props) {
 
           // Fabric v7: loadFromJSON is Promise-based
           if (normalizedLayers && normalizedLayers.objects) {
-            // Traverse objects to inject crossOrigin = 'anonymous' for Image types
+            // Inject crossOrigin only for remote URLs (not data URLs)
             normalizedLayers.objects.forEach((obj: any) => {
-              if (obj.type === "Image" || obj.type === "image") {
-                obj.crossOrigin = "anonymous";
+              if (obj.type === "Image" || obj.type === "image" || obj.type === "FabricImage") {
+                if (obj.src && !obj.src.startsWith("data:")) {
+                  obj.crossOrigin = "anonymous";
+                }
               }
             });
             await fc.loadFromJSON(normalizedLayers);
-            fc.renderAll();
+            fc.requestRenderAll();
           }
 
           // Handle object selections
@@ -260,6 +317,9 @@ export function Step4FlyerEditor({ onCompleted, onBack }: Props) {
 
     return () => {
       disposed = true;
+      // Réinitialiser le guard seulement quand le composant est réellement démonté,
+      // pas lors de la cleanup intermédiaire de StrictMode.
+      initRef.current = false;
       if (activeCanvas) {
         activeCanvas.dispose();
         canvasInstanceRef.current = null;
@@ -270,36 +330,46 @@ export function Step4FlyerEditor({ onCompleted, onBack }: Props) {
   /* ---------------------------------------------------------------- */
   /*  Save design                                                     */
   /* ---------------------------------------------------------------- */
-  const saveDesign = async (statusOverride?: "draft" | "final") => {
-    if (!canvas || !designId) return;
+  const saveDesign = async (statusOverride?: "draft" | "final"): Promise<boolean> => {
+    if (!canvas || !designId) return false;
     setSubmitting(true);
     setSaving(true);
     try {
       const json = canvas.toJSON();
-      // Store background color in our custom structure for reloading
       json.background = bgColor;
 
-      // Generate a small thumbnail (e.g. width 216px) for review step and previewing
+      // BUG-07 FIX: Générer le thumbnail et l'uploader via l'API au lieu de
+      // le stocker en base64 dans layersData (payload très lourd en DB).
+      // Si l'upload échoue, on stocke temporairement le data URL (fallback).
       try {
         const currentZoom = canvas.getZoom();
         canvas.setZoom(1);
         canvas.setDimensions({ width: baseWidth, height: baseHeight });
-        
+
         const thumbnailDataUrl = canvas.toDataURL({
           format: "jpeg",
           quality: 0.8,
-          multiplier: 0.2, // 1080 * 0.2 = 216px width
+          multiplier: 0.2,
         });
-        
-        // Restore canvas zoom/dimensions
+
+        // Restaurer le zoom avant l'upload (opération async)
         canvas.setZoom(currentZoom);
         canvas.setDimensions({
           width: baseWidth * zoomFactor,
           height: baseHeight * zoomFactor,
         });
         canvas.renderAll();
-        
-        json.thumbnail = thumbnailDataUrl;
+
+        try {
+          // Convertir le data URL en Blob pour l'upload multipart
+          const response = await fetch(thumbnailDataUrl);
+          const blob = await response.blob();
+          const { url: thumbnailUrl } = await setupApi.uploadImage(blob, `thumbnail-${designId}.jpg`);
+          json.thumbnailUrl = thumbnailUrl; // URL serveur
+        } catch {
+          // Fallback : stocker le data URL si l'upload échoue
+          json.thumbnail = thumbnailDataUrl;
+        }
       } catch (thumbErr) {
         console.error("Error generating flyer thumbnail:", thumbErr);
       }
@@ -312,9 +382,17 @@ export function Step4FlyerEditor({ onCompleted, onBack }: Props) {
 
       setDesignStatus(finalStatus);
       setSaved();
+
+      // UX-02 FIX: Afficher le banner de confirmation si le design est finalisé.
+      if (finalStatus === "final") {
+        setShowFinalizedBanner(true);
+      }
+
+      return true;
     } catch (err) {
       console.error("Error saving design layers:", err);
       setSaveError("Échec de la sauvegarde du design.");
+      return false;
     } finally {
       setSubmitting(false);
     }
@@ -322,11 +400,12 @@ export function Step4FlyerEditor({ onCompleted, onBack }: Props) {
 
   const handleNext = async () => {
     if (canvas && designId) {
-      await saveDesign();
+      const saved = await saveDesign();
+      if (!saved) return; // Keep user on the editor page if save failed
       markCompleted(4);
       onCompleted();
     } else {
-      // Allow skipping if no canvas
+      // Allow skipping if no canvas (editor not initialised)
       markCompleted(4);
       onCompleted();
     }
@@ -510,7 +589,36 @@ export function Step4FlyerEditor({ onCompleted, onBack }: Props) {
       className="es-wizard-step es-animate-in"
       style={{ display: "flex", flexDirection: "column", gap: "20px" }}
     >
-      {/* Editor Controls Bar */}
+      {/* UX-02: Banner de confirmation après finalisation du design */}
+      {showFinalizedBanner && (
+        <div
+          className="es-alert"
+          style={{
+            background: "var(--successbg)",
+            border: "1px solid var(--success)",
+            color: "var(--success)",
+            display: "flex",
+            alignItems: "center",
+            gap: "10px",
+            padding: "12px 16px",
+            borderRadius: "var(--radius)",
+            fontSize: "13px",
+          }}
+        >
+          <CheckCircle2 className="w-4 h-4" style={{ flexShrink: 0 }} />
+          <span>
+            <strong>Design finalisé&nbsp;!</strong> Cliquez sur «&nbsp;Sauvegarder et continuer&nbsp;» ci-dessous pour passer à l&apos;étape suivante.
+          </span>
+          <button
+            type="button"
+            onClick={() => setShowFinalizedBanner(false)}
+            style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", color: "var(--success)", fontSize: "16px" }}
+            aria-label="Fermer"
+          >
+            ×
+          </button>
+        </div>
+      )}
       <div
         style={{
           display: "flex",
@@ -882,31 +990,46 @@ export function Step4FlyerEditor({ onCompleted, onBack }: Props) {
               style={{
                 display: "flex",
                 flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
+                gap: "10px",
                 flex: 1,
-                gap: "8px",
-                padding: "24px 0",
+                padding: "8px 0",
               }}
             >
-              <div
-                style={{
-                  width: "48px",
-                  height: "48px",
-                  borderRadius: "50%",
-                  background: "var(--surface)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <Plus className="w-5 h-5" style={{ color: "var(--text2)" }} />
-              </div>
               <p
                 className="es-subtle"
-                style={{ fontSize: "12px", textAlign: "center", maxWidth: "180px" }}
+                style={{ fontSize: "11px", textAlign: "center", marginBottom: "8px" }}
               >
-                Sélectionnez un élément sur le flyer pour modifier ses propriétés
+                Ajout rapide
+              </p>
+              <button
+                type="button"
+                className="es-btn es-btn--secondary es-btn--sm"
+                style={{ justifyContent: "flex-start", gap: "8px" }}
+                onClick={addText}
+              >
+                <Type className="w-3.5 h-3.5" /> Texte
+              </button>
+              <button
+                type="button"
+                className="es-btn es-btn--secondary es-btn--sm"
+                style={{ justifyContent: "flex-start", gap: "8px" }}
+                onClick={addRect}
+              >
+                <Square className="w-3.5 h-3.5" /> Rectangle
+              </button>
+              <button
+                type="button"
+                className="es-btn es-btn--secondary es-btn--sm"
+                style={{ justifyContent: "flex-start", gap: "8px" }}
+                onClick={addCircle}
+              >
+                <Circle className="w-3.5 h-3.5" /> Cercle
+              </button>
+              <p
+                className="es-subtle"
+                style={{ fontSize: "10px", textAlign: "center", marginTop: "8px", color: "var(--text3)" }}
+              >
+                Ou sélectionnez un objet sur le flyer pour voir ses propriétés
               </p>
             </div>
           )}

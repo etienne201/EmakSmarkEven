@@ -57,6 +57,16 @@ export class SetupStep1Dto {
   @IsEnum(VisibilityType)
   @IsOptional()
   visibility?: VisibilityType;
+
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  agenda?: string;
+
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  extraText?: string;
 }
 
 // ======================================================

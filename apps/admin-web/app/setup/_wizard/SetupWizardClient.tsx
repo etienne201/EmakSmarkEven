@@ -28,6 +28,8 @@ export function SetupWizardClient() {
   const hydrate = useSetupStore((s) => s.hydrate);
   const goToStep = useSetupStore((s) => s.goToStep);
   const setEventId = useSetupStore((s) => s.setEventId);
+  // TECH-04: updateStep7 pour hydrater designId/templateId au chargement
+  const updateStep7 = useSetupStore((s) => s.updateStep7);
 
   const [phase, setPhase] = useState<"loading" | "create" | "ready" | "error">(
     eventId ? "loading" : "create",
@@ -40,6 +42,24 @@ export function SetupWizardClient() {
       try {
         const status = await setupApi.getStatus(id);
         hydrate(status);
+
+        // TECH-04 FIX: Hydrater step7 (designId, templateId) depuis les designs
+        // existants de l'événement. Auparavant, step7 était toujours {} au
+        // rechargement, ce qui forçait les composants à refaire un appel API
+        // pour découvrir l'existence d'un design actif.
+        try {
+          const designs = await setupApi.getEventDesigns(id);
+          if (designs && designs.length > 0) {
+            const activeDesign = designs[0];
+            updateStep7({
+              designId: activeDesign.id,
+              templateId: activeDesign.baseTemplateId ?? undefined,
+            });
+          }
+        } catch {
+          // Non-bloquant : step7 reste vide, les composants gèrent ce cas.
+        }
+
         setPhase("ready");
       } catch (e) {
         const err = e as ApiError;
@@ -51,7 +71,7 @@ export function SetupWizardClient() {
         setPhase("error");
       }
     },
-    [hydrate, router],
+    [hydrate, updateStep7, router],
   );
 
   useEffect(() => {

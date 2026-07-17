@@ -1,0 +1,28 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true
+  },
+  "include": [
+    "next-env.d.ts",
+    "types/**/*.d.ts",
+    "app/setup/_wizard/**/*.ts",
+    "app/setup/_wizard/**/*.tsx",
+    "app/setup/_wizard/**/*.json",
+    "packages/shared/src/**/*.ts",
+    "packages/shared/src/**/*.tsx",
+    "packages/shared/src/**/*.d.ts",
+    "packages/ui/src/**/*.ts",
+    "packages/ui/src/**/*.tsx",
+    "packages/ui/src/**/*.d.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "app/api/**",
+    "app/**/api/**",
+    "backend/**",
+    "**/api/**",
+    ".next/**"
+  ]
+}
+

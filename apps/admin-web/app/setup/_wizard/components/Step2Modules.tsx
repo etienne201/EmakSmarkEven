@@ -28,7 +28,14 @@ export function Step2Modules({ onCompleted, onBack }: Props) {
     save: (m) => setupApi.saveStep(eventId as string, 3, { modules: m }),
   });
 
-  const onNext = () => {
+  const onNext = async () => {
+    if (eventId) {
+      try {
+        await setupApi.saveStep(eventId, 3, { modules });
+      } catch (e) {
+        console.error("Erreur sauvegarde modules:", e);
+      }
+    }
     markCompleted(2);
     onCompleted();
   };

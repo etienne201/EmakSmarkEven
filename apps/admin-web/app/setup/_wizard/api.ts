@@ -1,5 +1,5 @@
 // Typed client for the Setup Wizard. Consumes ONLY existing NestJS endpoints
-// (events.controller) under the /api/v1 prefix. No new endpoints are introduced.
+// (events.controller) under the /api/v1 prefix.
 import Cookies from "js-cookie";
 import { API_V1_ROOT } from "@frontend/utils/api-config";
 import type {
@@ -156,6 +156,49 @@ export const setupApi = {
     return request<any>(`/designs/${designId}/exports`, {
       method: "POST",
       body: JSON.stringify(data),
+    });
+  },
+
+  /**
+   * BUG-06/07 FIX: Upload une image (logo, bannière, thumbnail) via multipart
+   * et retourne une URL publique. Évite de stocker du base64 en DB.
+   * Endpoint attendu : POST /uploads (multipart/form-data, champ "file")
+   */
+  async uploadImage(file: File | Blob, filename?: string): Promise<{ url: string }> {
+    const token = Cookies.get("auth-token");
+    const form = new FormData();
+    form.append("file", file, filename ?? "upload");
+    let res: Response;
+    try {
+      res = await fetch(`${API_ROOT}/uploads`, {
+        method: "POST",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        body: form,
+      });
+    } catch {
+      throw { message: "Connexion au serveur impossible.", status: 0 } as ApiError;
+    }
+    const text = await res.text();
+    let body: unknown = null;
+    if (text) { try { body = JSON.parse(text); } catch { body = text; } }
+    if (!res.ok) {
+      const b = (body ?? {}) as Record<string, unknown>;
+      throw { message: (b.message as string) || "Échec de l'upload.", status: res.status } as ApiError;
+    }
+    const b = (body ?? {}) as Record<string, unknown>;
+    return ("data" in b ? b.data : b) as { url: string };
+  },
+
+  /**
+   * BUG-07 FIX: Upload le thumbnail d'un design (JPEG blob) et stocke
+   * l'URL résultante sur le design — évite le base64 dans layersData.
+   */
+  async uploadDesignThumbnail(designId: string, blob: Blob): Promise<{ thumbnailUrl: string }> {
+    const { url } = await setupApi.uploadImage(blob, `thumbnail-${designId}.jpg`);
+    // Mettre à jour le design avec l'URL du thumbnail
+    return request<{ thumbnailUrl: string }>(`/designs/${designId}/thumbnail`, {
+      method: "POST",
+      body: JSON.stringify({ thumbnailUrl: url }),
     });
   },
 };

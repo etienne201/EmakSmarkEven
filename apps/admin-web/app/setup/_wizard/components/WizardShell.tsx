@@ -1,8 +1,8 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { Check } from "lucide-react";
 import { SaveIndicator } from "./SaveIndicator";
+import { StepperHeader } from "./StepperHeader";
 import { STEPS } from "../steps.config";
 import { useSetupStore } from "../store";
 import { motion, AnimatePresence } from "framer-motion";
@@ -87,37 +87,12 @@ export function WizardShell({
               </div>
             </header>
 
-            {/* ================================================ STEPPER HORIZONTAL */}
-            <nav className="es-wizard-stepper" aria-label="Étapes de configuration">
-              {STEPS.map((step) => {
-                const Icon = step.icon;
-                const isActive = step.id === currentStep;
-                const isCompleted = completedSteps.includes(step.id);
-                
-                return (
-                  <button
-                    key={step.id}
-                    onClick={() => onStepClick(step.id)}
-                    className="es-wizard-step-btn"
-                    data-active={isActive}
-                    data-completed={isCompleted}
-                    type="button"
-                    aria-label={`Étape ${step.id}: ${step.title}`}
-                  >
-                    {isCompleted ? (
-                      <Check className="w-5 h-5" />
-                    ) : (
-                      <Icon className="w-4 h-4" />
-                    )}
-                    
-                    {/* Tooltip */}
-                    <span className="es-tooltip">
-                      Étape {step.id} : {step.title}
-                    </span>
-                  </button>
-                );
-              })}
-            </nav>
+            {/* ================================================ STEPPER 9 ÉTAPES */}
+            <StepperHeader
+              currentStep={currentStep}
+              completedSteps={completedSteps}
+              onStepClick={onStepClick}
+            />
 
             {/* Step Panel Container with premium page transitions */}
             <AnimatePresence mode="wait">

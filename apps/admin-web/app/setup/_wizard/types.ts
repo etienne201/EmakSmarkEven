@@ -44,7 +44,10 @@ export interface Step1Data {
   eventType: EventTypeKey;
   language?: string;
   visibility?: VisibilityType;
+  agenda?: string;
+  extraText?: string;
 }
+
 
 export interface Step2Data {
   location?: string;
@@ -88,7 +91,7 @@ export interface SetupStatus {
       endDate?: string | null;
     };
     3: { modules: Partial<ModulesMap>; settings: unknown };
-    4: { themes: unknown };
+    4: { themes: Array<{ name?: string; tokens?: Record<string, unknown> }> };
     5: { access: { guestCategories?: string[]; staffCategories?: string[] } | null };
   };
 }

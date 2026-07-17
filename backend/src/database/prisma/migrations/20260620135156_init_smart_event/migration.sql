@@ -99,7 +99,6 @@ CREATE TABLE "permissions" (
     "label" VARCHAR(150) NOT NULL,
     "scope" "PermissionScope" NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
     CONSTRAINT "permissions_pkey" PRIMARY KEY ("id")
 );
 

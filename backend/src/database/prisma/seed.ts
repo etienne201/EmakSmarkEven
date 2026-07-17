@@ -536,6 +536,25 @@ async function main() {
     }
   });
 
+  await prisma.designTemplate.upsert({
+    where: { id: '00000000-0000-0000-0000-000000000407' },
+    update: {},
+    create: {
+      id: '00000000-0000-0000-0000-000000000407',
+      name: 'Template Concert Rock Live',
+      eventType: 'concert',
+      style: 'Rock',
+      previewUrl: 'https://images.unsplash.com/photo-1506157786151-b8491531f063',
+      layersData: {
+        background: { color: '#110303' },
+        elements: [
+          { type: 'text', text: 'ROCK CONCERT LIVE', fontSize: 48, fill: '#ff3333', left: 100, top: 100 }
+        ]
+      },
+      isPremium: false,
+    }
+  });
+
   const assetsToSeed = [
     { id: '00000000-0000-0000-0000-000000000501', category: 'shape' as const, name: 'Cercle Or', url: '/assets/shapes/circle.svg', tags: ['circle', 'shape', 'gold'] },
     { id: '00000000-0000-0000-0000-000000000502', category: 'sticker' as const, name: 'Cœur d\'Amour', url: '/assets/stickers/heart.svg', tags: ['heart', 'love', 'red'] },

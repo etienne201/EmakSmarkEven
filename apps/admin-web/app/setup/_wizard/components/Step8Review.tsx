@@ -1,12 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { CheckCircle2, AlertTriangle, Info, Loader2, Eye, Layout } from "lucide-react";
+import { CheckCircle2, AlertTriangle, Info, Loader2, Eye, Layout, RefreshCw } from "lucide-react";
 import { useSetupStore } from "../store";
 import { setupApi } from "../api";
 import { step1Schema, step2Schema } from "../schemas";
-import { localInputToIso, EVENT_TYPE_LABELS, MODULE_LABELS } from "../lib";
-import { STEPS } from "../steps.config";
+import { EVENT_TYPE_LABELS, MODULE_LABELS } from "../lib";
 import { StepFooter } from "./StepFooter";
 
 interface Props {
@@ -87,29 +86,32 @@ export function Step8Review({ onBack, onGoToStep, onCompleted }: Props) {
   };
   const step2Valid = step2Schema.safeParse({
     ...data.step2,
-    startDate: localInputToIso(data.step2.startDate) ? data.step2.startDate : "",
+    // Keep original local input value; schema will validate via Date parsing.
+    startDate: (data.step2 as any)?.startDate ?? "",
   }).success;
 
   const blocking = useMemo(() => {
     const items: string[] = [];
     if (!step1Valid) items.push("Infos de base incomplètes.");
     if (!step2Valid) items.push("Dates ou lieu invalides.");
-    if (!design) items.push("Aucun design ou flyer n'a été créé. Veuillez choisir un modèle.");
     return items;
-  }, [step1Valid, step2Valid, design]);
+  }, [step1Valid, step2Valid]);
 
   const warnings = useMemo(() => {
     const items: string[] = [];
     const activeModules = Object.entries(data.step3.modules).filter(
       ([, v]) => v,
     ).length;
+
+    if (!design) items.push("Aucun flyer configuré — vous pourrez en créer un plus tard.");
     if (activeModules <= 1) items.push("Aucun module optionnel activé.");
     if (!data.step4.theme) items.push("Aucun thème de branding choisi.");
-    if (design && design.status === "draft") {
+    if (design?.status === "draft") {
       items.push("Le design du flyer est encore à l'état de brouillon.");
     }
+
     return items;
-  }, [data, design]);
+  }, [data.step3.modules, data.step4.theme, design]);
 
   const enabledModules = Object.entries(data.step3.modules)
     .filter(([, v]) => v)
@@ -122,6 +124,11 @@ export function Step8Review({ onBack, onGoToStep, onCompleted }: Props) {
     try {
       await setupApi.finalize(eventId);
       markCompleted(8);
+
+      // Refresh store so Step9 can rely on an up-to-date backend state.
+      const status = await setupApi.getStatus(eventId);
+      useSetupStore.getState().hydrate(status);
+
       onCompleted();
     } catch (e) {
       setError((e as { message?: string }).message ?? "Échec de la validation.");
@@ -187,7 +194,7 @@ export function Step8Review({ onBack, onGoToStep, onCompleted }: Props) {
           </SummaryRow>
 
           <SummaryRow
-            step={3}
+            step="3 & 4"
             ok={!!design}
             title="Templates & Éditeur de flyer"
             onEdit={() => onGoToStep(4)}
@@ -202,7 +209,7 @@ export function Step8Review({ onBack, onGoToStep, onCompleted }: Props) {
           </SummaryRow>
 
           <SummaryRow
-            step={4}
+            step={5}
             ok={true}
             title="Branding & Design"
             onEdit={() => onGoToStep(5)}
@@ -211,7 +218,7 @@ export function Step8Review({ onBack, onGoToStep, onCompleted }: Props) {
           </SummaryRow>
 
           <SummaryRow
-            step={5}
+            step={6}
             ok={true}
             title="Contenu additionnel"
             onEdit={() => onGoToStep(6)}
@@ -220,7 +227,7 @@ export function Step8Review({ onBack, onGoToStep, onCompleted }: Props) {
           </SummaryRow>
 
           <SummaryRow
-            step={6}
+            step={7}
             ok={true}
             title="Invités & Accès"
             onEdit={() => onGoToStep(7)}
@@ -228,6 +235,7 @@ export function Step8Review({ onBack, onGoToStep, onCompleted }: Props) {
             {(data.step5.guestCategories ?? []).length} catégorie(s) d&apos;invités ·{" "}
             {(data.step5.staffCategories ?? []).length} rôle(s) de staff
           </SummaryRow>
+
         </div>
 
         {/* Right Side: Mandatory Design Preview Panel */}
@@ -268,21 +276,39 @@ export function Step8Review({ onBack, onGoToStep, onCompleted }: Props) {
                   overflow: "hidden"
                 }}
               >
-                {design.layersData?.thumbnail ? (
+                {/* UX-03 FIX: Priorité thumbnailUrl (URL serveur) > thumbnail (base64) > fallback explicite */}
+                {(design.layersData?.thumbnailUrl || design.layersData?.thumbnail) ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
-                    src={design.layersData.thumbnail}
+                    src={design.layersData.thumbnailUrl ?? design.layersData.thumbnail}
                     alt="Aperçu du flyer"
                     style={{ width: "100%", height: "100%", objectFit: "cover" }}
                   />
                 ) : (
-                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "16px" }}>
-                    <div style={{ color: getFirstColor(), fontSize: "11px", fontWeight: "bold", textAlign: "center", textTransform: "uppercase" }}>
-                      {getFirstText()}
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      padding: "12px",
+                      gap: "8px",
+                      textAlign: "center",
+                    }}
+                  >
+                    <RefreshCw className="w-5 h-5" style={{ color: "var(--text3)" }} />
+                    <div style={{ fontSize: "10px", color: "var(--text3)", lineHeight: 1.4 }}>
+                      Aperçu non disponible.
+                      <br />
+                      Retournez dans l&apos;éditeur (Étape 4) et sauvegardez pour le générer.
                     </div>
-                    <div style={{ fontSize: "10px", color: "var(--text3)", marginTop: "12px" }}>
-                      Fascicule / Flyer invitation
-                    </div>
+                    <button
+                      type="button"
+                      className="es-btn es-btn--ghost es-btn--sm"
+                      onClick={() => onGoToStep(4)}
+                      style={{ fontSize: "10px" }}
+                    >
+                      Ouvrir l&apos;éditeur
+                    </button>
                   </div>
                 )}
                 <span
@@ -357,10 +383,10 @@ export function Step8Review({ onBack, onGoToStep, onCompleted }: Props) {
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            {design.layersData?.thumbnail ? (
+            {(design.layersData?.thumbnailUrl || design.layersData?.thumbnail) ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
-                src={design.layersData.thumbnail}
+                src={design.layersData.thumbnailUrl ?? design.layersData.thumbnail}
                 alt="Aperçu du flyer"
                 style={{ width: "100%", height: "100%", objectFit: "contain", borderRadius: "4px" }}
               />
@@ -403,7 +429,7 @@ function SummaryRow({
   onEdit,
   children,
 }: {
-  step: number;
+  step: number | string;
   ok: boolean;
   title: string;
   onEdit: () => void;

@@ -17,9 +17,14 @@ const STAFF_SUGGESTIONS = ["Accueil", "Sécurité", "Coordination", "Technique"]
 
 export function Step7Guests({ onCompleted, onBack }: Props) {
   const eventId = useSetupStore((s) => s.eventId);
+  const eventType = useSetupStore((s) => s.data.step1.eventType);
   const stored = useSetupStore((s) => s.data.step5);
   const updateStep5 = useSetupStore((s) => s.updateStep5);
   const markCompleted = useSetupStore((s) => s.markCompleted);
+
+  const guestSuggestions = eventType === "concert" || eventType === "festival"
+    ? ["Standard", "VIP", "Early Bird", "Presse", "Invitations Spéciales"]
+    : GUEST_SUGGESTIONS;
 
   const [guestCategories, setGuestCategories] = useState<string[]>(
     stored.guestCategories ?? [],
@@ -36,8 +41,15 @@ export function Step7Guests({ onCompleted, onBack }: Props) {
     save: (v) => setupApi.saveStep(eventId as string, 5, v),
   });
 
-  const onNext = () => {
+  const onNext = async () => {
     updateStep5(value);
+    if (eventId) {
+      try {
+        await setupApi.saveStep(eventId, 5, value);
+      } catch (e) {
+        console.error("Erreur sauvegarde invités:", e);
+      }
+    }
     markCompleted(7);
     onCompleted();
   };
@@ -59,7 +71,7 @@ export function Step7Guests({ onCompleted, onBack }: Props) {
             updateStep5({ guestCategories: v });
           }}
           placeholder="Ajouter une catégorie d'invités…"
-          suggestions={GUEST_SUGGESTIONS}
+          suggestions={guestSuggestions}
         />
       </div>
 

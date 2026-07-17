@@ -142,11 +142,71 @@ export class EventsService {
     }
 
     const meta = (event.metadata as SetupMetadata) ?? {};
-    const completedSteps = meta.completedSteps ?? [];
+    const backendCompletedSteps = meta.completedSteps ?? [];
+
+    const completedSteps: number[] = [];
+    
+    // Étape 1 : Infos de base (nécessite les étapes backend 1 et 2 complétées)
+    const hasStep1 = event.title && event.title.trim().length >= 3 && event.slug && event.eventType;
+    const hasStep2 = event.startDate;
+    if (hasStep1 && hasStep2 && backendCompletedSteps.includes(1) && backendCompletedSteps.includes(2)) {
+      completedSteps.push(1);
+    }
+    
+    // Étape 2 : Modules (nécessite l'étape backend 3 complétée)
+    if (backendCompletedSteps.includes(3)) {
+      completedSteps.push(2);
+    }
+    
+    // Étape 3 et 4 : Templates & Éditeur (nécessite l'existence d'au moins un design)
+    const designsCount = await this.prisma.design.count({
+      where: { eventId: id },
+    });
+    if (designsCount > 0) {
+      completedSteps.push(3);
+      completedSteps.push(4);
+    }
+    
+    // Étape 5 : Branding (nécessite l'étape backend 4 complétée)
+    if (backendCompletedSteps.includes(4)) {
+      completedSteps.push(5);
+    }
+    
+    // Étape 6 : Contenu (nécessite description non vide)
+    if (event.description && event.description.trim().length > 0) {
+      completedSteps.push(6);
+    }
+    
+    // Étape 7 : Invités (nécessite l'étape backend 5 complétée)
+    if (backendCompletedSteps.includes(5)) {
+      completedSteps.push(7);
+    }
+    
+    // Étape 8 : Revue (nécessite la finalisation)
+    if (event.setupCompleted) {
+      completedSteps.push(8);
+    }
+    
+    // Étape 9 : Publication (nécessite un statut publié)
+    if (event.status !== 'draft') {
+      completedSteps.push(9);
+    }
+    
+    // Calcul de l'étape courante
+    let currentStep = 1;
+    for (let step = 1; step <= 9; step++) {
+      if (!completedSteps.includes(step)) {
+        currentStep = step;
+        break;
+      }
+    }
+    if (completedSteps.length === 9 || event.setupCompleted) {
+      currentStep = 9;
+    }
 
     return {
       eventId: event.id,
-      currentStep: event.currentStep,
+      currentStep,
       completedSteps,
       setupCompleted: event.setupCompleted,
       status: event.status,
@@ -158,6 +218,8 @@ export class EventsService {
           eventType: event.eventType,
           language: event.language,
           visibility: event.visibility,
+          agenda: (meta.agenda as string) ?? "",
+          extraText: (meta.extraText as string) ?? "",
         },
         2: {
           location: event.location,
@@ -209,30 +271,57 @@ export class EventsService {
   async finalizeSetup(id: string) {
     const event = await this.ensureExists(id);
 
-    // Étapes 1 & 2 bloquantes : on vérifie que les champs requis sont présents.
+    // Validation des étapes obligatoires (1 & 2) et cohérence des données
     const errors: string[] = [];
-    if (!event.title || !event.slug || !event.eventType) {
-      errors.push("Étape 1 incomplète : titre, slug et type d'événement sont requis.");
+    
+    // Étape 1 - Informations générales
+    if (!event.title || event.title.trim().length < 3) {
+      errors.push("Étape 1 incomplète : le titre doit contenir au moins 3 caractères.");
     }
-    if (!event.startDate) {
-      errors.push('Étape 2 incomplète : la date de début est requise.');
+    if (!event.slug || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(event.slug)) {
+      errors.push("Étape 1 incomplète : le slug est invalide (minuscules, chiffres et tirets uniquement).");
     }
-    if (event.endDate && event.startDate && event.endDate <= event.startDate) {
-      errors.push('La date de fin doit être postérieure à la date de début.');
-    }
-    if (errors.length > 0) {
-      throw new BadRequestException({ message: 'Finalisation impossible.', errors });
+    if (!event.eventType) {
+      errors.push("Étape 1 incomplète : le type d'événement est requis.");
     }
 
+    // Étape 2 - Lieu & dates
+    if (!event.startDate) {
+      errors.push('Étape 2 incomplète : la date de début est requise.');
+    } else if (new Date(event.startDate) < new Date()) {
+      errors.push('Étape 2 invalide : la date de début ne peut pas être dans le passé.');
+    }
+    if (event.endDate && event.startDate && new Date(event.endDate) <= new Date(event.startDate)) {
+      errors.push('Étape 2 invalide : la date de fin doit être postérieure à la date de début.');
+    }
+
+    // Vérifier que les étapes 1 et 2 sont marquées comme complétées
     const meta = (event.metadata as SetupMetadata) ?? {};
-    const completedSteps = Array.from(new Set([...(meta.completedSteps ?? []), 6]));
+    const completedSteps = meta.completedSteps ?? [];
+    if (!completedSteps.includes(1)) {
+      errors.push("L'étape 1 doit être validée avant la finalisation.");
+    }
+    if (!completedSteps.includes(2)) {
+      errors.push("L'étape 2 doit être validée avant la finalisation.");
+    }
+
+    if (errors.length > 0) {
+      throw new BadRequestException({ 
+        message: 'Finalisation impossible. Veuillez compléter les étapes requises.', 
+        errors 
+      });
+    }
+
+    // Marquer le setup comme complété
+    const finalCompletedSteps = Array.from(new Set([...completedSteps, 5])); // 5 = étape finale
 
     await this.prisma.event.update({
       where: { id },
       data: {
         setupCompleted: true,
-        currentStep: 6,
-        metadata: { ...meta, completedSteps } as Prisma.InputJsonValue,
+        currentStep: 9,
+        status: EventStatus.draft, // L'événement reste en draft jusqu'à publication explicite
+        metadata: { ...meta, completedSteps: finalCompletedSteps } as Prisma.InputJsonValue,
       },
     });
 
@@ -334,6 +423,8 @@ export class EventsService {
   // ====================================================
   private async persistStep1(id: string, dto: SetupStep1Dto) {
     try {
+      const event = await this.prisma.event.findUnique({ where: { id }, select: { metadata: true } });
+      const meta = (event?.metadata as SetupMetadata) ?? {};
       await this.prisma.event.update({
         where: { id },
         data: {
@@ -343,6 +434,11 @@ export class EventsService {
           eventType: dto.eventType,
           language: dto.language,
           visibility: dto.visibility,
+          metadata: {
+            ...meta,
+            agenda: dto.agenda ?? null,
+            extraText: dto.extraText ?? null,
+          } as Prisma.InputJsonValue,
         },
       });
     } catch (e) {
@@ -470,7 +566,7 @@ export class EventsService {
   private async markStepCompleted(id: string, currentMeta: SetupMetadata | null, step: number) {
     const meta = currentMeta ?? {};
     const completedSteps = Array.from(new Set([...(meta.completedSteps ?? []), step]));
-    const nextStep = Math.min(Math.max(step + 1, ...completedSteps) || step, 6);
+    const nextStep = Math.min(Math.max(step + 1, ...completedSteps) || step, 9);
     await this.prisma.event.update({
       where: { id },
       data: {

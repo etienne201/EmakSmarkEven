@@ -53,7 +53,10 @@ export const step1Schema = z.object({
   }),
   language: z.string().max(10).optional(),
   visibility: z.enum(VISIBILITIES).optional(),
+  agenda: z.string().optional().or(z.literal("")),
+  extraText: z.string().optional().or(z.literal("")),
 });
+
 
 // Étape 2 — Lieu & dates (obligatoire, validation croisée)
 export const step2Schema = z
@@ -87,20 +90,27 @@ export const step3Schema = z.object({
   }),
 });
 
+// Validates a URL that may be an absolute http(s) URL, a relative path, or a base64 data URL.
+const imageUrlSchema = z
+  .string()
+  .refine(
+    (val) =>
+      !val ||
+      val.startsWith("data:") ||
+      val.startsWith("http://") ||
+      val.startsWith("https://") ||
+      val.startsWith("/"),
+    { message: "URL d'image invalide (doit commencer par http, https, / ou data:)." },
+  )
+  .optional()
+  .or(z.literal(""));
+
 // Étape 4 — Design & branding (optionnel)
 export const step4Schema = z.object({
   theme: z.string().optional().or(z.literal("")),
   colors: z.record(z.string(), z.string()).optional(),
-  logoUrl: z
-    .string()
-    .url("URL de logo invalide.")
-    .optional()
-    .or(z.literal("")),
-  bannerUrl: z
-    .string()
-    .url("URL de bannière invalide.")
-    .optional()
-    .or(z.literal("")),
+  logoUrl: imageUrlSchema,
+  bannerUrl: imageUrlSchema,
 });
 
 // Étape 5 — Invités & accès (optionnel)

@@ -29,6 +29,8 @@ out/
 **/.turbo/
 .turbo/cache/
 **/.turbo/cache/
+.refact/buddy/runtime_queue.jsonl
+.refact/buddy/state.json
 
 # =========================
 # 🏗 BUILD OUTPUT

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -154,49 +154,41 @@ export function Step1BaseInfo({ onCompleted }: Props) {
 
   const valid = combinedSchema.safeParse(values).success;
 
+  // TECH-03 FIX: Wrapper save dans useCallback pour que la référence de la
+  // fonction soit stable entre les renders. Sans ça, chaque frappe créait un
+  // nouvel objet fonction → le tableau de dépendances de useEffect (useAutosave)
+  // changeait à chaque render → le timer de debounce se réinitialisait.
+  const save = useCallback(async (v: CombinedValues) => {
+    if (!eventId) return;
+    await setupApi.saveStep(eventId, 1, {
+      title: v.title,
+      slug: v.slug,
+      description: v.description,
+      eventType: v.eventType,
+      language: v.language,
+      visibility: v.visibility,
+    } as Step1Data);
+    await setupApi.saveStep(eventId, 2, {
+      location: v.location,
+      city: v.city,
+      country: v.country,
+      timezone: v.timezone,
+      startDate: localInputToIso(v.startDate) as string,
+      endDate: localInputToIso(v.endDate),
+    } as Step2Data);
+  }, [eventId]);
+
   useAutosave({
     value: values,
     enabled: Boolean(eventId) && valid,
-    save: async (v: any) => {
-      await setupApi.saveStep(eventId as string, 1, {
-        title: v.title,
-        slug: v.slug,
-        description: v.description,
-        eventType: v.eventType,
-        language: v.language,
-        visibility: v.visibility,
-      } as Step1Data);
-      await setupApi.saveStep(eventId as string, 2, {
-        location: v.location,
-        city: v.city,
-        country: v.country,
-        timezone: v.timezone,
-        startDate: localInputToIso(v.startDate) as string,
-        endDate: localInputToIso(v.endDate),
-      } as Step2Data);
-    },
+    save,
   });
 
   const onNext = handleSubmit(async (data) => {
     if (!eventId) return;
     setSaving(true);
     try {
-      await setupApi.saveStep(eventId, 1, {
-        title: data.title,
-        slug: data.slug,
-        description: data.description,
-        eventType: data.eventType,
-        language: data.language,
-        visibility: data.visibility,
-      } as Step1Data);
-      await setupApi.saveStep(eventId, 2, {
-        location: data.location,
-        city: data.city,
-        country: data.country,
-        timezone: data.timezone,
-        startDate: localInputToIso(data.startDate) as string,
-        endDate: localInputToIso(data.endDate),
-      } as Step2Data);
+      await save(data);
       setSaved();
       markCompleted(1);
       onCompleted();

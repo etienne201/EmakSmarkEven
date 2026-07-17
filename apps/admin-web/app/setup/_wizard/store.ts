@@ -104,14 +104,20 @@ export const useSetupStore = create<SetupState>((set) => ({
         ...DEFAULT_MODULES,
         ...(s[3]?.modules ?? {}),
       } as ModulesMap);
+
+      const theme = Array.isArray(s[4]?.themes) ? s[4].themes[0] : null;
+      const themeTokens = (theme?.tokens ?? {}) as Record<string, unknown>;
+      const themeColors = (themeTokens.colors ?? {}) as Record<string, string>;
+
       return {
         eventId: status.eventId,
         completedSteps: status.completedSteps ?? [],
         setupCompleted: status.setupCompleted,
         status: status.status,
-        currentStep: status.setupCompleted
-          ? TOTAL_STEPS
-          : Math.min(Math.max(status.currentStep || 1, 1), TOTAL_STEPS),
+        currentStep: Math.min(
+          Math.max(status.currentStep || 1, 1),
+          TOTAL_STEPS,
+        ),
         data: {
           step1: {
             title: s[1]?.title ?? "",
@@ -130,15 +136,20 @@ export const useSetupStore = create<SetupState>((set) => ({
             endDate: isoToLocalInput(s[2]?.endDate),
           },
           step3: { modules },
-          step4: {},
+          step4: {
+            theme: theme?.name ?? "elegant-gold",
+            colors: { primary: themeColors.primary ?? "#bfa14a" },
+            logoUrl: (themeTokens.logoUrl as string) ?? "",
+            bannerUrl: (themeTokens.bannerUrl as string) ?? "",
+          },
           step5: {
             guestCategories: s[5]?.access?.guestCategories ?? [],
             staffCategories: s[5]?.access?.staffCategories ?? [],
           },
           step6: {
             description: s[1]?.description ?? "",
-            agenda: "",
-            extraText: "",
+            agenda: (s[1] as { agenda?: string })?.agenda ?? "",
+            extraText: (s[1] as { extraText?: string })?.extraText ?? "",
           },
           step7: {},
         },
@@ -146,7 +157,13 @@ export const useSetupStore = create<SetupState>((set) => ({
     }),
 
   updateStep1: (patch) =>
-    set((st) => ({ data: { ...st.data, step1: { ...st.data.step1, ...patch } } })),
+    set((st) => {
+      const nextStep1 = { ...st.data.step1, ...patch };
+      if ((patch.eventType === "concert" || patch.eventType === "festival") && (!nextStep1.visibility || nextStep1.visibility === "private")) {
+        nextStep1.visibility = "public";
+      }
+      return { data: { ...st.data, step1: nextStep1 } };
+    }),
   updateStep2: (patch) =>
     set((st) => ({ data: { ...st.data, step2: { ...st.data.step2, ...patch } } })),
   updateModules: (patch) =>
